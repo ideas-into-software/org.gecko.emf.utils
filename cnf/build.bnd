@@ -1,0 +1,94 @@
+
+base-version: 1.0.0
+
+javac.source: 11
+javac.target: 11
+
+Bundle-DocURL: https://github.com/geckoprojects-org/org.gecko.emf.utils
+Bundle-SCM: url=https://github.com/geckoprojects-org/org.gecko.emf.utils, \
+	connection=scm:git:https://github.com/geckoprojects-org/org.gecko.emf.utils.git, \
+	developerConnection=scm:git:git@github.com:geckoprojects-org/org.gecko.emf.utils.git
+Bundle-Version: ${base-version}
+Bundle-License: Eclipse Public License 2.0
+Bundle-Copyright: Data In Motion Consuling GmbH - All rights reserved
+Bundle-Vendor: Data In Motion Consuling GmbH
+Bundle-ContactAddress: info@data-in-motion.biz
+Bundle-Developers: \
+    sbischof; \
+        email="stbischof@bipolis.org"; \
+        name="Stefan Bischof"; \
+        roles="developer", \
+    jalbert; \
+        email="j.albert@data-in-motion.biz"; \
+        name="Juergen Albert"; \
+        organization="Data In Motion"; \
+        organizationUrl="https://www.datainmotion.de"; \
+        roles="architect,developer", \
+    mhoffmann; \
+        name="Mark Hoffmann"; \
+        email="m.hoffmann@data-in-motion.biz"; \
+        url="https://www.datainmotion.de"; \
+        organization="Data In Motion"; \
+        organizationUrl="https://www.datainmotion.de"; \
+        roles="developer,architect"
+
+-groupid: org.geckoprojects.emf.utils
+-pom version=${base.version}-SNAPSHOT
+-require-bnd "(version>=6.0.0)"
+	
+emf-version: 4.1.0.${tstamp}-SNAPSHOT
+
+releaseNotNeeded: ${findproviders;osgi.identity;(&(osgi.identity=${bsn})(version=${Bundle-Version}));REPOS}
+-maven-release.local: ${if;${def;releaseNotNeeded};local;remote}
+
+-buildpath.base: \
+    org.osgi.annotation.versioning,\
+    org.osgi.annotation.bundle, \
+    org.osgi.service.component.annotations,\
+    org.osgi.service.metatype.annotations
+
+-testpath.base \
+    junit-platform-commons;version=latest,\
+    junit-platform-engine;version=latest,\
+    junit-jupiter-api, \
+    junit-jupiter-engine, \
+    junit-jupiter-params,\
+    junit-vintage-engine;version=latest, \
+    org.opentest4j;version=latest,\
+    org.mockito.mockito-core,\
+    org.mockito.junit-jupiter,\
+    assertj-core;version=latest,\
+    biz.aQute.wrapper.hamcrest;version=latest,\
+    org.apache.servicemix.bundles.junit;version=latest,\
+    net.bytebuddy.byte-buddy;version=latest,\
+    net.bytebuddy.byte-buddy-agent;version=latest,\
+    org.objenesis;version=latest
+    
+-library: geckoEMF
+    
+-plugin.Central: \
+    aQute.bnd.repository.maven.provider.MavenBndRepository; \
+        snapshotUrl="https://oss.sonatype.org/content/repositories/snapshots/"; \
+        releaseUrl=https://repo.maven.apache.org/maven2/; \
+        index=${.}/central.mvn; \
+        readOnly=true; \
+        poll.time=-1; \
+        name="Central"
+
+-plugin.Local: \
+	aQute.bnd.deployer.repository.LocalIndexedRepo; \
+		name = Local; \
+		pretty = true; \
+		local = ${build}/local
+
+-plugin.Templates: \
+	aQute.bnd.deployer.repository.LocalIndexedRepo; \
+		name = Templates; \
+		pretty = true; \
+		local = ${build}/templates
+
+-plugin.Temp: \
+	aQute.bnd.deployer.repository.LocalIndexedRepo; \
+		name = Temp; \
+		pretty = true; \
+		local = ${build}/cache/temp

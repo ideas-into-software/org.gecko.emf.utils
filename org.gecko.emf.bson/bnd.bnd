@@ -1,0 +1,20 @@
+-buildpath: \
+	org.eclipse.emf.ecore;version=latest,\
+	org.eclipse.emf.common;version=latest,\
+	org.eclipse.emf.ecore.xmi;version=latest,\
+	com.fasterxml.jackson.core.jackson-core;version=latest,\
+	com.fasterxml.jackson.core.jackson-databind;version=latest,\
+	emfjson-jackson;version=latest,\
+	de.undercouch.bson4jackson;version=latest,\
+	org.gecko.emf.osgi.api;version=latest,\
+	org.gecko.emf.json
+
+Bundle-Name: Gecko EMF Bson Extension
+Bundle-Description: Extension to de-/serialize EMF from/into Bson
+Bundle-Version: 1.0.0.SNAPSHOT
+
+Export-Package: \
+	org.gecko.emf.bson.annotation,\
+	org.gecko.emf.bson.handler
+	
+-privatepackage: org.gecko.emf.bson

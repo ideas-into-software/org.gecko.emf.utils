@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="collection" nsURI="https://geckoprojects.org/model/emf/collection/1.0"
+    nsPrefix="collection">
+  <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+    <details key="suppressInterfaces" value="false"/>
+    <details key="containmentProxies" value="true"/>
+    <details key="basePackage" value="org.gecko"/>
+  </eAnnotations>
+  <eClassifiers xsi:type="ecore:EDataType" name="EList" instanceTypeName="org.eclipse.emf.common.util.EList&lt;org.eclipse.emf.ecore.EObject>"/>
+  <eClassifiers xsi:type="ecore:EClass" name="ECollection" abstract="true" interface="true">
+    <eOperations name="getValues" unique="false" eType="#//EList"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EContainmentCollection" eSuperTypes="#//ECollection">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="values" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject" containment="true"
+        resolveProxies="false"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="EReferenceCollection" eSuperTypes="#//ECollection">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="values" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EDataType" name="EIterator" instanceTypeName="java.util.Iterator&lt;org.eclipse.emf.ecore.EObject>"/>
+  <eClassifiers xsi:type="ecore:EClass" name="EIterable" eSuperTypes="#//EIterableInterface">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="delegate" eType="#//Iterable"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EDataType" name="Iterable" instanceTypeName="java.lang.Iterable&lt;org.eclipse.emf.ecore.EObject>"/>
+  <eClassifiers xsi:type="ecore:EClass" name="EIterableInterface" instanceTypeName="java.lang.Iterable&lt;org.eclipse.emf.ecore.EObject>"
+      abstract="true" interface="true">
+    <eOperations name="iterator" lowerBound="1" eType="#//EIterator">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="return getDelegate() != null ? getDelegate().iterator() : null;"/>
+      </eAnnotations>
+    </eOperations>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="FeaturePath">
+    <eOperations name="getValue" upperBound="-1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EJavaObject">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="&lt;%java.util.List%>&lt;Object> result = &lt;%org.gecko.emf.collection.helper.ECollectionsHelper%>.getFeaturePathValue(this, object);&#xA;if (result != null) {&#xA;&#x9;return &lt;%org.eclipse.emf.common.util.ECollections%>.asEList(result);&#xA;}&#xA;return &lt;%org.eclipse.emf.common.util.ECollections%>.emptyEList();"/>
+      </eAnnotations>
+      <eParameters name="object" lowerBound="1" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    </eOperations>
+    <eOperations name="isValid" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="body" value="if (object == null) {&#xA;&#x9;return false;&#xA;}&#xA;return &lt;%org.gecko.emf.collection.helper.ECollectionsHelper%>.validateFeaturePath(this, object.eClass());"/>
+      </eAnnotations>
+      <eParameters name="object" lowerBound="1" eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EObject"/>
+    </eOperations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="name" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="feature" upperBound="-1"
+        eType="ecore:EClass http://www.eclipse.org/emf/2002/Ecore#//EStructuralFeature"/>
+  </eClassifiers>
+</ecore:EPackage>
