@@ -7,14 +7,14 @@
 	emfjson-jackson;version=latest,\
 	de.undercouch.bson4jackson;version=latest,\
 	org.gecko.emf.osgi.api;version=latest,\
-	org.gecko.emf.json
+	org.gecko.emf.json;version=snapshot
 
 Bundle-Name: Gecko EMF Bson Extension
 Bundle-Description: Extension to de-/serialize EMF from/into Bson
-Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Version: 1.0.1.SNAPSHOT
 
 Export-Package: \
-	org.gecko.emf.bson.annotation,\
-	org.gecko.emf.bson.handler
+	org.gecko.emf.bson.handler,\
+	org.gecko.emf.bson.annotation
 	
 -privatepackage: org.gecko.emf.bson
