@@ -5,7 +5,7 @@
 		transitive          = false;\
         poll.time			= -1; \
 		name                = "Jacoco Dependencies"
-jacoco.version: 0.8.7
+jacoco.version: 0.8.6
 
 ## Jacoco Dependencies
 dependencies.jacoco:\
@@ -17,6 +17,7 @@ dependencies.jacoco:\
 ## Runpath and vm args
 -runpath.jacoco:\
 	org.jacoco.agent,\
+	org.jacoco.ant,\
 	org.jacoco:org.jacoco.agent:jar:runtime
 
 -runvm.coverage: -javaagent:${repo;org.jacoco:org.jacoco.agent:jar:runtime;latest}=destfile=${target-dir}/jacoco.exec
