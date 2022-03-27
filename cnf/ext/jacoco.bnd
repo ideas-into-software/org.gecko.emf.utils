@@ -7,20 +7,18 @@
 		name                = "Jacoco Dependencies"
 jacoco.version: 0.8.6
 
+
 ## Jacoco Dependencies
 dependencies.jacoco:\
-	org.jacoco:org.jacoco.agent:jar:runtime:${jacoco.version},\
-	org.jacoco:org.jacoco.agent:jar:${jacoco.version},\
-	org.jacoco:org.jacoco.ant:${jacoco.version}
-	org.jacoco:org.jacoco.core:${jacoco.version}
+	org.jacoco:org.jacoco.agent:jar:runtime:0.8.6,\
+	org.jacoco:org.jacoco.agent:jar:0.8.7,\
+	org.jacoco:org.jacoco.core:0.8.6
 
 ## Runpath and vm args
 -runpath.jacoco:\
 	org.jacoco.agent,\
-	org.jacoco.ant,\
 	org.jacoco:org.jacoco.agent:jar:runtime
 
 -runvm.coverage: -javaagent:${repo;org.jacoco:org.jacoco.agent:jar:runtime;latest}=destfile=${target-dir}/jacoco.exec
-
 ## BndPomRepository could load g_a_v_c sind 6.0.0
 -require-bnd: "(version>=6.2.0)"
