@@ -11,6 +11,7 @@ jacoco.version: 0.8.7
 dependencies.jacoco:\
 	org.jacoco:org.jacoco.agent:jar:runtime:${jacoco.version},\
 	org.jacoco:org.jacoco.agent:jar:${jacoco.version},\
+	org.jacoco:org.jacoco.ant:${jacoco.version}
 	org.jacoco:org.jacoco.core:${jacoco.version}
 
 ## Runpath and vm args
