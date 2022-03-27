@@ -4,7 +4,7 @@
 		snapshotUrl			= "https://oss.sonatype.org/content/repositories/snapshots/";\
 		name				= "OSGi-Tests-JUnit5 Dependencies";\
 		revision			= "${dependencies.junit5.all}";\
-		poll_time           = -1;\
+		poll.time           = -1;\
 		transitive			= false
 
 Test-Cases: ${classes;HIERARCHY_INDIRECTLY_ANNOTATED;org.junit.platform.commons.annotation.Testable;CONCRETE}
