@@ -115,6 +115,7 @@ public class EMFJSONResourceFactoryConfigurator implements ResourceFactoryConfig
 		
 		return new ConfigurableJsonResourceFactory(mapper);
 	}
+	
 	private JsonResourceFactory createPropertiesFactory() {
 		ObjectMapper mapper = new ObjectMapper(new JavaPropsFactory());
 		final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.ENGLISH);

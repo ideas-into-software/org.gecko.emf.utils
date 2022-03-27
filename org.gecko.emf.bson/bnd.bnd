@@ -11,7 +11,7 @@
 
 Bundle-Name: Gecko EMF Bson Extension
 Bundle-Description: Extension to de-/serialize EMF from/into Bson
-Bundle-Version: 1.0.1.SNAPSHOT
+Bundle-Version: 1.0.0.SNAPSHOT
 
 Export-Package: \
 	org.gecko.emf.bson.handler,\

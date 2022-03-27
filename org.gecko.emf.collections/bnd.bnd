@@ -1,5 +1,5 @@
 # sets the usually required buildpath using the bnd library, you can extend it with the normal -buildpath to your liking
-src src,src-gen,resources
+src src,src-gen
 #-library: enable-emf
 
 

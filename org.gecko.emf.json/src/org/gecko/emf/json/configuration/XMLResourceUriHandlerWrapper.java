@@ -37,7 +37,7 @@ public class XMLResourceUriHandlerWrapper implements URIHandler {
 	 */
 	@Override
 	public URI deresolve(URI baseURI, URI uri) {
-		return xmlUriHandler.deresolve(uri);
+		return xmlUriHandler != null ? xmlUriHandler.deresolve(uri) : null;
 	}
 
 	/* 
@@ -46,7 +46,7 @@ public class XMLResourceUriHandlerWrapper implements URIHandler {
 	 */
 	@Override
 	public URI resolve(URI baseURI, URI uri) {
-		return xmlUriHandler.resolve(uri);
+		return xmlUriHandler != null ?  xmlUriHandler.resolve(uri) : null;
 	}
 
 }
