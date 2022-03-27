@@ -33,15 +33,6 @@ public final class EMFJs {
 	 */
 	public static final String OPTION_SERIALIZE_TYPE = "OPTION_SERIALIZE_TYPE";
 	/**
-	 * When value is true, the writer will include a type to each reference JSON
-	 * objects.
-	 * <p>
-	 * Default value is false
-	 * </p>
-	 */
-	@Deprecated
-	public static final String OPTION_SERIALIZE_REF_TYPE = "OPTION_SERIALIZE_REF_TYPE";
-	/**
 	 * When value is true, the writer will include default values for attributes. *
 	 * <p>
 	 * Default value is false.
@@ -61,14 +52,6 @@ public final class EMFJs {
 	 */
 	public static final String OPTION_SERIALIZE_CONTAINMENT_AS_HREF = "OPTION_SERIALIZE_CONTAINMENT_AS_HREF";
 	/**
-	 * When value is true, the reader will load attributes of proxy objects.
-	 * <p>
-	 * Default value is false
-	 * </p>
-	 */
-	@Deprecated
-	public static final String OPTION_PROXY_ATTRIBUTES = "PROXY_ATTRIBUTES";
-	/**
 	 * When value is true, the writer will include an _id key to each json objects
 	 * and sets as value the fragment identifier.
 	 * <p>
@@ -76,82 +59,6 @@ public final class EMFJs {
 	 * </p>
 	 */
 	public static final String OPTION_USE_ID = "OPTION_USE_ID";
-	/**
-	 * Specify the URIHandler object to use during serialization of external
-	 * references.
-	 * <p>
-	 * By default org.emfjson.jackson.handlers.BaseURIHandler will be use
-	 * </p>
-	 */
-	@Deprecated
-	public static final String OPTION_URI_HANDLER = "OPTION_URI_HANDLER";
-	/**
-	 * Specify the ReferenceSerializer object to use during serialization of
-	 * references.
-	 * <p>
-	 * By default
-	 * org.emfjson.jackson.databind.ser.references.ReferenceAsObjectSerializer will
-	 * be use
-	 * </p>
-	 */
-	@Deprecated
-	public static final String OPTION_REF_SERIALIZER = "OPTION_REF_SERIALIZER";
-	/**
-	 * Specify the ReferenceDeserializer object to use during deserialization of
-	 * references.
-	 * <p>
-	 * By default
-	 * org.emfjson.jackson.databind.deser.references.ReferenceAsObjectDeserializer
-	 * will be use
-	 * </p>
-	 */
-	@Deprecated
-	public static final String OPTION_REF_DESERIALIZER = "OPTION_REF_DESERIALIZER";
-	/**
-	 * Specify the IdSerializer object to use during serialization of object's id.
-	 * <p/>
-	 * <p>
-	 * By default
-	 * org.emfjson.jackson.databind.deser.references.ReferenceAsObjectDeserializer
-	 * will be use
-	 * </p>
-	 */
-	@Deprecated
-	public static final String OPTION_ID_SERIALIZER = "OPTION_ID_SERIALIZER";
-	/**
-	 * Specify the IdDeserializer object to use during deserialization of object's
-	 * id.
-	 * <p/>
-	 * <p>
-	 * By default
-	 * org.emfjson.jackson.databind.deser.references.ReferenceAsObjectDeserializer
-	 * will be use
-	 * </p>
-	 */
-	@Deprecated
-	public static final String OPTION_ID_DESERIALIZER = "OPTION_ID_DESERIALIZER";
-	/**
-	 * Specify the TypeSerializer object to use during serialization of object's
-	 * type.
-	 * <p/>
-	 * <p>
-	 * By default org.emfjson.jackson.databind.deser.DefaultTypeSerializer will be
-	 * use
-	 * </p>
-	 */
-	@Deprecated
-	public static final String OPTION_TYPE_SERIALIZER = "OPTION_TYPE_SERIALIZER";
-	/**
-	 * Specify the TypeDeserializer object to use during deserialization of object's
-	 * type.
-	 * <p/>
-	 * <p>
-	 * By default org.emfjson.jackson.databind.deser.DefaultTypeDeserializer will be
-	 * use
-	 * </p>
-	 */
-	@Deprecated
-	public static final String OPTION_TYPE_DESERIALIZER = "OPTION_TYPE_DESERIALIZER";
 	/**
 	 * Specify the field name that will be use to denote the type of objects.
 	 * <p>

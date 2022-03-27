@@ -44,11 +44,7 @@ public class EMFJsonAnnotationConverter implements AnnotationConverter {
 	 */
 	@Override
 	public boolean canHandle(Annotation annotation, boolean serialize) {
-		if(annotation instanceof RootElement
-				|| annotation instanceof EMFJSONConfig){
-			return true;
-		}
-		return false;
+		return annotation instanceof RootElement || annotation instanceof EMFJSONConfig;
 	}
 
 	/* 

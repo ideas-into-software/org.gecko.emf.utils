@@ -72,10 +72,7 @@ public class EMFResourceMessageBodyHandler<R extends Resource, W extends Resourc
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		ResourceSetFactory setFactory = getResourceSetFactory();
-		ResourceSet resourceSet = setFactory.createResourceSet();
-		return Resource.class.isAssignableFrom(type) && resourceSet.getResourceFactoryRegistry()
-				.getContentTypeToFactoryMap().containsKey(mediaType.getType() + "/" + mediaType.getSubtype());
+		return isReadWritable(type, mediaType);
 	}
 
 	/*
@@ -95,6 +92,16 @@ public class EMFResourceMessageBodyHandler<R extends Resource, W extends Resourc
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
+		return isReadWritable(type, mediaType);
+	}
+
+	/**
+	 * Checks if the MessageBodyReader / -Writer can be handled
+	 * @param type the class type
+	 * @param mediaType the media type
+	 * @return <code>true</code>, if the MBR/MBW can be used, otherwise <code>false</code>
+	 */
+	private boolean isReadWritable(Class<?> type, MediaType mediaType) {
 		ResourceSetFactory setFactory = getResourceSetFactory();
 		ResourceSet resourceSet = setFactory.createResourceSet();
 		return Resource.class.isAssignableFrom(type) && resourceSet.getResourceFactoryRegistry()

@@ -19,7 +19,7 @@ import org.eclipse.emf.ecore.xmi.XMLResource;
 
 public class XMLURIHandler implements XMLResource.URIHandler{
 
-	private static final Logger logger = Logger.getLogger("DIM-XMLURIHandler");
+	private static final Logger logger = Logger.getLogger("XMLURIHandler");
 	private final URI resourceURI;
 
 	public XMLURIHandler() {
@@ -32,6 +32,7 @@ public class XMLURIHandler implements XMLResource.URIHandler{
 
 	@Override
 	public void setBaseURI(URI uri) {
+		// We use not base Uri here
 	}
 
 	@Override
@@ -58,11 +59,11 @@ public class XMLURIHandler implements XMLResource.URIHandler{
 			return uri.deresolve(resourceURI);
 		}
 		if (uri.segmentCount() == 0) {
-			logger.severe("DERESOLVING URI WITH SEGMENT COUNT 0! Uri to deresolve is: " + uri.toString());
+			logger.severe(()->"De-resolving with segment count '0'! Uri to deresolve is: " + uri.toString());
 			return null;
 		}
 		URI newURI = null;
-		logger.severe("DERESOLVING URI WITH SEGMENT COUNT LARGER 0! Uri to deresolve is: \" + uri.toString()");
+		logger.fine(()->"De-resolving Uri with segment count > 0! Uri to deresolve is: " + uri.toString());
 		if (uri.segmentCount() == 2) {
 			newURI = URI.createURI(uri.toString().replace("mongodb://" + uri.authority() + "/" + uri.segment(0) +"/", ""));
 		} else {

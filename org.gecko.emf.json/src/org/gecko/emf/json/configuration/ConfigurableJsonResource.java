@@ -85,7 +85,7 @@ public class ConfigurableJsonResource extends JsonResource {
 		 * Add a problem handler
 		 */
 		Object problemHandler = getOrDefault(options, EMFJs.OPTIONS_PROBLEM_HANDLER, null);
-		if (problemHandler != null && problemHandler instanceof DeserializationProblemHandler) {
+		if (problemHandler instanceof DeserializationProblemHandler) {
 			mapper.addHandler((DeserializationProblemHandler) problemHandler);
 		}
 		

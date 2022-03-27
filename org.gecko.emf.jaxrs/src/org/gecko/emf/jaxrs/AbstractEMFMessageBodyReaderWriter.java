@@ -170,7 +170,7 @@ public abstract class AbstractEMFMessageBodyReaderWriter<R,W> implements Message
 		} else if (opt.valueType().equals(Boolean.class)) {
 			return Boolean.parseBoolean(opt.value());
 		} else if (opt.valueType().equals(EClass.class)) {
-			return (EClass) resourceSet.getEObject(URI.createURI(opt.value()), Boolean.TRUE);
+			return resourceSet.getEObject(URI.createURI(opt.value()), Boolean.TRUE);
 		} else if (opt.valueType().equals(SimpleDateFormat.class)) {
 			return new SimpleDateFormat(opt.value());
 		}
@@ -185,34 +185,68 @@ public abstract class AbstractEMFMessageBodyReaderWriter<R,W> implements Message
 	private void checkResourceByAnnotation(Resource resource, Annotation[] annotations) {
 		for(Annotation annotation : annotations){
 			if(annotation instanceof ContentNotEmpty){
-				ContentNotEmpty cne = (ContentNotEmpty) annotation;
-				if(resource.getContents().size() == 0){
-					List<Variant> encoded = Variant.encodings(cne.message()).build();
-					Response res = Response.notAcceptable(encoded).build();
-					throw new WebApplicationException(res);
-				}
+				handleContentNotEmpty(resource, (ContentNotEmpty) annotation);
 			}
 			if(annotation instanceof ResourceEClass){
-				String eClassName = ((ResourceEClass) annotation).value();
-				for(EObject eObject : resource.getContents()){
-					if(!eObject.eClass().getName().equals(eClassName)){
-						List<Variant> encoded = Variant.encodings(eClassName).build();
-						Response res = Response.notAcceptable(encoded).build();
-						throw new WebApplicationException(res);
-					}
-				}
+				handleResourceEClass(resource, annotation);
 			}
 			if(annotation instanceof ValidateContent){
-				for(EObject eObject : resource.getContents()){
-					Diagnostic diagnostic = Diagnostician.INSTANCE.validate(eObject);
-					if(diagnostic.getSeverity() == Diagnostic.ERROR){
-						Response res = Response.status(400).entity(buildDiagnosticMessage(diagnostic)).build();
-						throw new WebApplicationException(res);
-					}
-				}
+				handleValidateContent(resource);
 			}
 		}
 
+	}
+
+	/**
+	 * Handles the content validation
+	 * @param resource the EMF resource to validate
+	 */
+	private void handleValidateContent(Resource resource) {
+		if (resource== null) {
+			return;
+		}
+		for(EObject eObject : resource.getContents()){
+			Diagnostic diagnostic = Diagnostician.INSTANCE.validate(eObject);
+			if(diagnostic.getSeverity() == Diagnostic.ERROR){
+				Response res = Response.status(400).entity(buildDiagnosticMessage(diagnostic)).build();
+				throw new WebApplicationException(res);
+			}
+		}
+	}
+
+	/**
+	 * Handles the {@link ResourceEClass} annotaiton
+	 * @param resource the EMF resource
+	 * @param annotation the annotaiton
+	 */
+	private void handleResourceEClass(Resource resource, Annotation annotation) {
+		if (resource == null || annotation == null) {
+			return;
+		}
+		String eClassName = ((ResourceEClass) annotation).value();
+		for(EObject eObject : resource.getContents()){
+			if(!eObject.eClass().getName().equals(eClassName)){
+				List<Variant> encoded = Variant.encodings(eClassName).build();
+				Response res = Response.notAcceptable(encoded).build();
+				throw new WebApplicationException(res);
+			}
+		}
+	}
+
+	/**
+	 * Handles the content not empty annoation
+	 * @param resource the EMF resource
+	 * @param annotation the content not empty annotation
+	 */
+	private void handleContentNotEmpty(Resource resource, ContentNotEmpty annotation) {
+		if (resource == null || annotation == null) {
+			return;
+		}
+		if(resource.getContents().isEmpty()){
+			List<Variant> encoded = Variant.encodings(annotation.message()).build();
+			Response res = Response.notAcceptable(encoded).build();
+			throw new WebApplicationException(res);
+		}
 	}
 
 	/**
