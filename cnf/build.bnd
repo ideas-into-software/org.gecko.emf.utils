@@ -46,6 +46,14 @@ releaseNotNeeded: ${findproviders;osgi.identity;(&(osgi.identity=${bsn})(version
     org.osgi.annotation.bundle, \
     org.osgi.service.component.annotations,\
     org.osgi.service.metatype.annotations
+    
+emf.lib: \
+	org.osgi.service.component.annotations;version=1.4,\
+	org.osgi.framework;version=1.9,\
+	org.gecko.emf.osgi.api;version=latest,\
+	org.eclipse.emf.common;version=latest,\
+	org.eclipse.emf.ecore;version=latest,\
+	org.eclipse.emf.ecore.xmi;version=latest
 
 -testpath.base \
     junit-platform-commons;version=latest,\
@@ -64,8 +72,8 @@ releaseNotNeeded: ${findproviders;osgi.identity;(&(osgi.identity=${bsn})(version
     net.bytebuddy.byte-buddy-agent;version=latest,\
     org.objenesis;version=latest
     
--library: geckoEMF
-    
+-library: geckoEMF 
+
 -plugin.Central: \
     aQute.bnd.repository.maven.provider.MavenBndRepository; \
         snapshotUrl="https://oss.sonatype.org/content/repositories/snapshots/"; \

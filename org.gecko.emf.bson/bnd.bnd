@@ -16,5 +16,5 @@ Bundle-Version: 1.0.1.SNAPSHOT
 Export-Package: \
 	org.gecko.emf.bson.handler,\
 	org.gecko.emf.bson.annotation
-	
+
 -privatepackage: org.gecko.emf.bson
