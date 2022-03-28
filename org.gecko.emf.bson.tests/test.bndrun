@@ -2,8 +2,7 @@
 	bnd.identity;id='org.gecko.emf.bson.tests'
 -runfw: org.apache.felix.framework
 -runee: JavaSE-11
--runbundles.junit5: \
-	${test.runbundles} 
+-runbundles.junit5: ${test.runbundles}
 -runbundles: \
 	org.apache.felix.configadmin;version='[1.9.22,1.9.23)',\
 	org.eclipse.emf.ecore.xmi;version='[2.16.0,2.16.1)',\

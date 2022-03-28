@@ -3,8 +3,7 @@
 
 -resolve.effective: active
 
--runbundles.junit5: \
-	${test.runbundles} 
+-runbundles.junit5: ${test.runbundles}
 	
 -runbundles: \
 	com.fasterxml.jackson.core.jackson-annotations;version='[2.13.2,2.13.3)',\
@@ -36,6 +35,8 @@
 	org.osgi.util.promise;version='[1.1.1,1.1.2)',\
 	org.osgi.util.pushstream;version='[1.0.1,1.0.2)',\
 	org.yaml.snakeyaml;version='[1.30.0,1.30.1)'
+	
+
 
 -runrequires: bnd.identity;id='org.gecko.emf.json.tests'
 -runee: JavaSE-11

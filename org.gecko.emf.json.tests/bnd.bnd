@@ -1,12 +1,10 @@
 -enable-junit5: true
 
-
-
 javac.source: 11
 javac.target: 11
 
 Bundle-Version: 1.0.0.SNAPSHOT
 -buildpath: \
-	org.eclipse.emf.common,\
-	org.eclipse.emf.ecore.xmi,\
-	emfjson-jackson
+	org.eclipse.emf.common;version=latest,\
+	org.eclipse.emf.ecore.xmi;version=latest,\
+	emfjson-jackson;version=latest

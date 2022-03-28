@@ -9,7 +9,7 @@ javac.target: 11
 	org.eclipse.emf.ecore;version=latest,\
 	org.eclipse.emf.common;version=latest,\
 	org.eclipse.emf.ecore.xmi;version=latest,\
-	emfjson-jackson
+	emfjson-jackson;version=latest
 Bundle-Name: Gecko EMF JaxRs Extension
 Bundle-Description: Extension to load and save EMF EObjects using a MessageBodyReader or -Writer
 -privatepackage: org.gecko.emf.jaxrs
