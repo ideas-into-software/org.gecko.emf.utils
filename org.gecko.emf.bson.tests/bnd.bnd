@@ -1,11 +1,9 @@
 -enable-junit5: true
 
 -buildpath: \
-	org.eclipse.emf.ecore,\
-	org.eclipse.emf.common,\
+	${emf.lib},\
 	org.osgi.framework,\
 	org.osgi.service.cm,\
-	org.gecko.emf.osgi.api,\
 	org.gecko.emf.osgi.example.model.basic,\
 	com.fasterxml.jackson.core.jackson-core,\
 	com.fasterxml.jackson.core.jackson-databind,\

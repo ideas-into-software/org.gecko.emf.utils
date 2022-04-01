@@ -5,9 +5,9 @@
 #	Jacoco Support - gecko-jacoco
 -library: \
 	geckoEMF,\
-	gecko-osgitest,\
-	gecko-dimc,\
-	gecko-jacoco
+	geckoOSGi-Test,\
+	geckoDIMC,\
+	geckoJacoco
 
 # Needed because we enabled library 'gecko-dimc' 	
 github-project: org.gecko.emf.util
@@ -20,6 +20,8 @@ javac.source: 11
 javac.target: 11
 
 -require-bnd "(version>=6.2.0)"
+
+-use-emf: false	
 	
 # Default build path when using EMF and Gecko EMF
 emf.lib: \
@@ -50,3 +52,4 @@ emf.lib: \
 		name = Temp; \
 		pretty = true; \
 		local = ${build}/cache/temp
+

@@ -1,15 +1,14 @@
 javac.source: 11
 javac.target: 11
+
 -buildpath: \
+	${emf.lib},\
 	jakarta.ws.rs-api;version='2.1',\
-	org.osgi.service.jaxrs,\
-	org.osgi.service.component,\
-	org.gecko.emf.osgi.api;version=latest,\
-	org.gecko.emf.json;version=project,\
-	org.eclipse.emf.ecore;version=latest,\
-	org.eclipse.emf.common;version=latest,\
-	org.eclipse.emf.ecore.xmi;version=latest,\
-	emfjson-jackson;version=latest
+	org.osgi.service.jaxrs;version=latest,\
+	org.osgi.service.component;version=latest,\
+	emfjson-jackson;version=latest,\
+	org.gecko.emf.json;version=project
+	
 Bundle-Name: Gecko EMF JaxRs Extension
 Bundle-Description: Extension to load and save EMF EObjects using a MessageBodyReader or -Writer
 -privatepackage: org.gecko.emf.jaxrs

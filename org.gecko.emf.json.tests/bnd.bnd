@@ -5,6 +5,5 @@ javac.target: 11
 
 Bundle-Version: 1.0.0.SNAPSHOT
 -buildpath: \
-	org.eclipse.emf.common;version=latest,\
-	org.eclipse.emf.ecore.xmi;version=latest,\
+	${emf.lib},\
 	emfjson-jackson;version=latest

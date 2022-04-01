@@ -2,16 +2,14 @@ Bundle-Version: 1.0.0.SNAPSHOT
 Bundle-Name: Gecko EMF Json Extension
 Bundle-Description: Extension to save and load EMF objects in/to JSON using JacksonXML
 
+
 -buildpath: \
-	org.eclipse.emf.ecore;version=latest,\
-	org.eclipse.emf.common;version=latest,\
-	org.eclipse.emf.ecore.xmi;version=latest,\
+	${emf.lib},\
 	com.fasterxml.jackson.core.jackson-core;version=latest,\
 	com.fasterxml.jackson.core.jackson-databind;version=latest,\
 	com.fasterxml.jackson.dataformat.jackson-dataformat-yaml;version=latest,\
 	com.fasterxml.jackson.dataformat.jackson-dataformat-properties;version=latest,\
-	emfjson-jackson;version=latest,\
-	org.gecko.emf.osgi.api;version=latest
+	emfjson-jackson;version=latest
 
 -privatepackage: org.gecko.emf.json
 
