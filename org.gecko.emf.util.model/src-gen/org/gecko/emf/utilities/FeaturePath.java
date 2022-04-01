@@ -9,7 +9,7 @@
  * Contributors:
  * 	Data In Motion - initial API and implementation
  */
-package org.gecko.emf.collection;
+package org.gecko.emf.utilities;
 
 import org.eclipse.emf.common.util.EList;
 
@@ -25,11 +25,11 @@ import org.eclipse.emf.ecore.EStructuralFeature;
  * The following features are supported:
  * </p>
  * <ul>
- *   <li>{@link org.gecko.emf.collection.FeaturePath#getName <em>Name</em>}</li>
- *   <li>{@link org.gecko.emf.collection.FeaturePath#getFeature <em>Feature</em>}</li>
+ *   <li>{@link org.gecko.emf.utilities.FeaturePath#getName <em>Name</em>}</li>
+ *   <li>{@link org.gecko.emf.utilities.FeaturePath#getFeature <em>Feature</em>}</li>
  * </ul>
  *
- * @see org.gecko.emf.collection.CollectionPackage#getFeaturePath()
+ * @see org.gecko.emf.utilities.UtilitiesPackage#getFeaturePath()
  * @model
  * @generated
  */
@@ -40,14 +40,14 @@ public interface FeaturePath extends EObject {
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Name</em>' attribute.
 	 * @see #setName(String)
-	 * @see org.gecko.emf.collection.CollectionPackage#getFeaturePath_Name()
+	 * @see org.gecko.emf.utilities.UtilitiesPackage#getFeaturePath_Name()
 	 * @model
 	 * @generated
 	 */
 	String getName();
 
 	/**
-	 * Sets the value of the '{@link org.gecko.emf.collection.FeaturePath#getName <em>Name</em>}' attribute.
+	 * Sets the value of the '{@link org.gecko.emf.utilities.FeaturePath#getName <em>Name</em>}' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @param value the new value of the '<em>Name</em>' attribute.
@@ -62,7 +62,7 @@ public interface FeaturePath extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Feature</em>' reference list.
-	 * @see org.gecko.emf.collection.CollectionPackage#getFeaturePath_Feature()
+	 * @see org.gecko.emf.utilities.UtilitiesPackage#getFeaturePath_Feature()
 	 * @model
 	 * @generated
 	 */
@@ -72,7 +72,7 @@ public interface FeaturePath extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @model objectRequired="true"
-	 *        annotation="http://www.eclipse.org/emf/2002/GenModel body='&lt;%java.util.List%&gt;&lt;Object&gt; result = &lt;%org.gecko.emf.collection.helper.ECollectionsHelper%&gt;.getFeaturePathValue(this, object);\nif (result != null) {\n\treturn &lt;%org.eclipse.emf.common.util.ECollections%&gt;.asEList(result);\n}\nreturn &lt;%org.eclipse.emf.common.util.ECollections%&gt;.emptyEList();'"
+	 *        annotation="http://www.eclipse.org/emf/2002/GenModel body='&lt;%java.util.List%&gt;&lt;Object&gt; result = &lt;%org.gecko.emf.util.helper.UtilModelHelper%&gt;.getFeaturePathValue(this, object);\nif (result != null) {\n\treturn &lt;%org.eclipse.emf.common.util.ECollections%&gt;.asEList(result);\n}\nreturn &lt;%org.eclipse.emf.common.util.ECollections%&gt;.emptyEList();'"
 	 * @generated
 	 */
 	EList<Object> getValue(EObject object);
@@ -81,7 +81,7 @@ public interface FeaturePath extends EObject {
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @model objectRequired="true"
-	 *        annotation="http://www.eclipse.org/emf/2002/GenModel body='if (object == null) {\n\treturn false;\n}\nreturn &lt;%org.gecko.emf.collection.helper.ECollectionsHelper%&gt;.validateFeaturePath(this, object.eClass());'"
+	 *        annotation="http://www.eclipse.org/emf/2002/GenModel body='if (object == null) {\n\treturn false;\n}\nreturn &lt;%org.gecko.emf.util.helper.UtilModelHelper%&gt;.validateFeaturePath(this, object.eClass());'"
 	 * @generated
 	 */
 	boolean isValid(EObject object);

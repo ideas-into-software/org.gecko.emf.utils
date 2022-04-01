@@ -9,7 +9,9 @@
  * Contributors:
  * 	Data In Motion - initial API and implementation
  */
-package org.gecko.emf.collection.util;
+package org.gecko.emf.utilities.util;
+
+import java.util.Map;
 
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.emf.common.notify.Notifier;
@@ -18,24 +20,24 @@ import org.eclipse.emf.common.notify.impl.AdapterFactoryImpl;
 
 import org.eclipse.emf.ecore.EObject;
 
-import org.gecko.emf.collection.*;
+import org.gecko.emf.utilities.*;
 
 /**
  * <!-- begin-user-doc -->
  * The <b>Adapter Factory</b> for the model.
  * It provides an adapter <code>createXXX</code> method for each class of the model.
  * <!-- end-user-doc -->
- * @see org.gecko.emf.collection.CollectionPackage
+ * @see org.gecko.emf.utilities.UtilitiesPackage
  * @generated
  */
-public class CollectionAdapterFactory extends AdapterFactoryImpl {
+public class UtilitiesAdapterFactory extends AdapterFactoryImpl {
 	/**
 	 * The cached model package.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	protected static CollectionPackage modelPackage;
+	protected static UtilitiesPackage modelPackage;
 
 	/**
 	 * Creates an instance of the adapter factory.
@@ -43,9 +45,9 @@ public class CollectionAdapterFactory extends AdapterFactoryImpl {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public CollectionAdapterFactory() {
+	public UtilitiesAdapterFactory() {
 		if (modelPackage == null) {
-			modelPackage = CollectionPackage.eINSTANCE;
+			modelPackage = UtilitiesPackage.eINSTANCE;
 		}
 	}
 
@@ -74,27 +76,39 @@ public class CollectionAdapterFactory extends AdapterFactoryImpl {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	protected CollectionSwitch<Adapter> modelSwitch =
-		new CollectionSwitch<Adapter>() {
+	protected UtilitiesSwitch<Adapter> modelSwitch =
+		new UtilitiesSwitch<Adapter>() {
 			@Override
-			public Adapter caseECollection(ECollection object) {
-				return createECollectionAdapter();
+			public Adapter caseFeaturePath(FeaturePath object) {
+				return createFeaturePathAdapter();
 			}
 			@Override
-			public Adapter caseEContainmentCollection(EContainmentCollection object) {
-				return createEContainmentCollectionAdapter();
+			public Adapter caseConverter(Converter object) {
+				return createConverterAdapter();
 			}
 			@Override
-			public Adapter caseEReferenceCollection(EReferenceCollection object) {
-				return createEReferenceCollectionAdapter();
+			public Adapter caseLatLng(LatLng object) {
+				return createLatLngAdapter();
 			}
 			@Override
-			public Adapter caseEIterable(EIterable object) {
-				return createEIterableAdapter();
+			public Adapter caseStringToStringMap(Map.Entry<String, String> object) {
+				return createStringToStringMapAdapter();
 			}
 			@Override
-			public Adapter caseEIterableInterface(Iterable<EObject> object) {
-				return createEIterableInterfaceAdapter();
+			public Adapter caseRequest(Request object) {
+				return createRequestAdapter();
+			}
+			@Override
+			public Adapter caseResponse(Response object) {
+				return createResponseAdapter();
+			}
+			@Override
+			public Adapter caseSort(Sort object) {
+				return createSortAdapter();
+			}
+			@Override
+			public Adapter caseFilter(Filter object) {
+				return createFilterAdapter();
 			}
 			@Override
 			public Adapter defaultCase(EObject object) {
@@ -117,72 +131,114 @@ public class CollectionAdapterFactory extends AdapterFactoryImpl {
 
 
 	/**
-	 * Creates a new adapter for an object of class '{@link org.gecko.emf.collection.ECollection <em>ECollection</em>}'.
+	 * Creates a new adapter for an object of class '{@link org.gecko.emf.utilities.FeaturePath <em>Feature Path</em>}'.
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
-	 * @see org.gecko.emf.collection.ECollection
+	 * @see org.gecko.emf.utilities.FeaturePath
 	 * @generated
 	 */
-	public Adapter createECollectionAdapter() {
+	public Adapter createFeaturePathAdapter() {
 		return null;
 	}
 
 	/**
-	 * Creates a new adapter for an object of class '{@link org.gecko.emf.collection.EContainmentCollection <em>EContainment Collection</em>}'.
+	 * Creates a new adapter for an object of class '{@link org.gecko.emf.utilities.Converter <em>Converter</em>}'.
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
-	 * @see org.gecko.emf.collection.EContainmentCollection
+	 * @see org.gecko.emf.utilities.Converter
 	 * @generated
 	 */
-	public Adapter createEContainmentCollectionAdapter() {
+	public Adapter createConverterAdapter() {
 		return null;
 	}
 
 	/**
-	 * Creates a new adapter for an object of class '{@link org.gecko.emf.collection.EReferenceCollection <em>EReference Collection</em>}'.
+	 * Creates a new adapter for an object of class '{@link org.gecko.emf.utilities.LatLng <em>Lat Lng</em>}'.
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
-	 * @see org.gecko.emf.collection.EReferenceCollection
+	 * @see org.gecko.emf.utilities.LatLng
 	 * @generated
 	 */
-	public Adapter createEReferenceCollectionAdapter() {
+	public Adapter createLatLngAdapter() {
 		return null;
 	}
 
 	/**
-	 * Creates a new adapter for an object of class '{@link org.gecko.emf.collection.EIterable <em>EIterable</em>}'.
+	 * Creates a new adapter for an object of class '{@link java.util.Map.Entry <em>String To String Map</em>}'.
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
-	 * @see org.gecko.emf.collection.EIterable
+	 * @see java.util.Map.Entry
 	 * @generated
 	 */
-	public Adapter createEIterableAdapter() {
+	public Adapter createStringToStringMapAdapter() {
 		return null;
 	}
 
 	/**
-	 * Creates a new adapter for an object of class '{@link java.lang.Iterable <em>EIterable Interface</em>}'.
+	 * Creates a new adapter for an object of class '{@link org.gecko.emf.utilities.Request <em>Request</em>}'.
 	 * <!-- begin-user-doc -->
 	 * This default implementation returns null so that we can easily ignore cases;
 	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
 	 * <!-- end-user-doc -->
 	 * @return the new adapter.
-	 * @see java.lang.Iterable
+	 * @see org.gecko.emf.utilities.Request
 	 * @generated
 	 */
-	public Adapter createEIterableInterfaceAdapter() {
+	public Adapter createRequestAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.gecko.emf.utilities.Response <em>Response</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.gecko.emf.utilities.Response
+	 * @generated
+	 */
+	public Adapter createResponseAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.gecko.emf.utilities.Sort <em>Sort</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.gecko.emf.utilities.Sort
+	 * @generated
+	 */
+	public Adapter createSortAdapter() {
+		return null;
+	}
+
+	/**
+	 * Creates a new adapter for an object of class '{@link org.gecko.emf.utilities.Filter <em>Filter</em>}'.
+	 * <!-- begin-user-doc -->
+	 * This default implementation returns null so that we can easily ignore cases;
+	 * it's useful to ignore a case when inheritance will catch all the cases anyway.
+	 * <!-- end-user-doc -->
+	 * @return the new adapter.
+	 * @see org.gecko.emf.utilities.Filter
+	 * @generated
+	 */
+	public Adapter createFilterAdapter() {
 		return null;
 	}
 
@@ -198,4 +254,4 @@ public class CollectionAdapterFactory extends AdapterFactoryImpl {
 		return null;
 	}
 
-} //CollectionAdapterFactory
+} //UtilitiesAdapterFactory

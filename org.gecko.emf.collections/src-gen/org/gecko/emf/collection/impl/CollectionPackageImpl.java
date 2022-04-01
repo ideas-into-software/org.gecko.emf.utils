@@ -30,7 +30,6 @@ import org.gecko.emf.collection.ECollection;
 import org.gecko.emf.collection.EContainmentCollection;
 import org.gecko.emf.collection.EIterable;
 import org.gecko.emf.collection.EReferenceCollection;
-import org.gecko.emf.collection.FeaturePath;
 
 /**
  * <!-- begin-user-doc -->
@@ -73,13 +72,6 @@ public class CollectionPackageImpl extends EPackageImpl implements CollectionPac
 	 * @generated
 	 */
 	private EClass eIterableInterfaceEClass = null;
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	private EClass featurePathEClass = null;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -269,56 +261,6 @@ public class CollectionPackageImpl extends EPackageImpl implements CollectionPac
 	 * @generated
 	 */
 	@Override
-	public EClass getFeaturePath() {
-		return featurePathEClass;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EAttribute getFeaturePath_Name() {
-		return (EAttribute)featurePathEClass.getEStructuralFeatures().get(0);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EReference getFeaturePath_Feature() {
-		return (EReference)featurePathEClass.getEStructuralFeatures().get(1);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EOperation getFeaturePath__GetValue__EObject() {
-		return featurePathEClass.getEOperations().get(0);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
-	public EOperation getFeaturePath__IsValid__EObject() {
-		return featurePathEClass.getEOperations().get(1);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@Override
 	public EDataType getEList() {
 		return eListEDataType;
 	}
@@ -387,12 +329,6 @@ public class CollectionPackageImpl extends EPackageImpl implements CollectionPac
 		eIterableInterfaceEClass = createEClass(EITERABLE_INTERFACE);
 		createEOperation(eIterableInterfaceEClass, EITERABLE_INTERFACE___ITERATOR);
 
-		featurePathEClass = createEClass(FEATURE_PATH);
-		createEAttribute(featurePathEClass, FEATURE_PATH__NAME);
-		createEReference(featurePathEClass, FEATURE_PATH__FEATURE);
-		createEOperation(featurePathEClass, FEATURE_PATH___GET_VALUE__EOBJECT);
-		createEOperation(featurePathEClass, FEATURE_PATH___IS_VALID__EOBJECT);
-
 		// Create data types
 		eListEDataType = createEDataType(ELIST);
 		eIteratorEDataType = createEDataType(EITERATOR);
@@ -449,16 +385,6 @@ public class CollectionPackageImpl extends EPackageImpl implements CollectionPac
 
 		initEOperation(getEIterableInterface__Iterator(), this.getEIterator(), "iterator", 1, 1, IS_UNIQUE, IS_ORDERED);
 
-		initEClass(featurePathEClass, FeaturePath.class, "FeaturePath", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEAttribute(getFeaturePath_Name(), ecorePackage.getEString(), "name", null, 0, 1, FeaturePath.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getFeaturePath_Feature(), ecorePackage.getEStructuralFeature(), null, "feature", null, 0, -1, FeaturePath.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-
-		EOperation op = initEOperation(getFeaturePath__GetValue__EObject(), ecorePackage.getEJavaObject(), "getValue", 0, -1, IS_UNIQUE, IS_ORDERED);
-		addEParameter(op, ecorePackage.getEObject(), "object", 1, 1, IS_UNIQUE, IS_ORDERED);
-
-		op = initEOperation(getFeaturePath__IsValid__EObject(), ecorePackage.getEBoolean(), "isValid", 0, 1, IS_UNIQUE, IS_ORDERED);
-		addEParameter(op, ecorePackage.getEObject(), "object", 1, 1, IS_UNIQUE, IS_ORDERED);
-
 		// Initialize data types
 		initEDataType(eListEDataType, EList.class, "EList", IS_SERIALIZABLE, !IS_GENERATED_INSTANCE_CLASS, "org.eclipse.emf.common.util.EList<org.eclipse.emf.ecore.EObject>");
 		initEDataType(eIteratorEDataType, Iterator.class, "EIterator", IS_SERIALIZABLE, !IS_GENERATED_INSTANCE_CLASS, "java.util.Iterator<org.eclipse.emf.ecore.EObject>");
@@ -493,18 +419,6 @@ public class CollectionPackageImpl extends EPackageImpl implements CollectionPac
 		   source,
 		   new String[] {
 			   "body", "return getDelegate() != null ? getDelegate().iterator() : null;"
-		   });
-		addAnnotation
-		  (getFeaturePath__GetValue__EObject(),
-		   source,
-		   new String[] {
-			   "body", "<%java.util.List%><Object> result = <%org.gecko.emf.collection.helper.ECollectionsHelper%>.getFeaturePathValue(this, object);\nif (result != null) {\n\treturn <%org.eclipse.emf.common.util.ECollections%>.asEList(result);\n}\nreturn <%org.eclipse.emf.common.util.ECollections%>.emptyEList();"
-		   });
-		addAnnotation
-		  (getFeaturePath__IsValid__EObject(),
-		   source,
-		   new String[] {
-			   "body", "if (object == null) {\n\treturn false;\n}\nreturn <%org.gecko.emf.collection.helper.ECollectionsHelper%>.validateFeaturePath(this, object.eClass());"
 		   });
 	}
 

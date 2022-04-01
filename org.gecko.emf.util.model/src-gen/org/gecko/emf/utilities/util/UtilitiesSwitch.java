@@ -9,14 +9,16 @@
  * Contributors:
  * 	Data In Motion - initial API and implementation
  */
-package org.gecko.emf.collection.util;
+package org.gecko.emf.utilities.util;
+
+import java.util.Map;
 
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 
 import org.eclipse.emf.ecore.util.Switch;
 
-import org.gecko.emf.collection.*;
+import org.gecko.emf.utilities.*;
 
 /**
  * <!-- begin-user-doc -->
@@ -28,17 +30,17 @@ import org.gecko.emf.collection.*;
  * until a non-null result is returned,
  * which is the result of the switch.
  * <!-- end-user-doc -->
- * @see org.gecko.emf.collection.CollectionPackage
+ * @see org.gecko.emf.utilities.UtilitiesPackage
  * @generated
  */
-public class CollectionSwitch<T> extends Switch<T> {
+public class UtilitiesSwitch<T> extends Switch<T> {
 	/**
 	 * The cached model package
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	protected static CollectionPackage modelPackage;
+	protected static UtilitiesPackage modelPackage;
 
 	/**
 	 * Creates an instance of the switch.
@@ -46,9 +48,9 @@ public class CollectionSwitch<T> extends Switch<T> {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public CollectionSwitch() {
+	public UtilitiesSwitch() {
 		if (modelPackage == null) {
-			modelPackage = CollectionPackage.eINSTANCE;
+			modelPackage = UtilitiesPackage.eINSTANCE;
 		}
 	}
 
@@ -75,36 +77,51 @@ public class CollectionSwitch<T> extends Switch<T> {
 	@Override
 	protected T doSwitch(int classifierID, EObject theEObject) {
 		switch (classifierID) {
-			case CollectionPackage.ECOLLECTION: {
-				ECollection eCollection = (ECollection)theEObject;
-				T result = caseECollection(eCollection);
+			case UtilitiesPackage.FEATURE_PATH: {
+				FeaturePath featurePath = (FeaturePath)theEObject;
+				T result = caseFeaturePath(featurePath);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
-			case CollectionPackage.ECONTAINMENT_COLLECTION: {
-				EContainmentCollection eContainmentCollection = (EContainmentCollection)theEObject;
-				T result = caseEContainmentCollection(eContainmentCollection);
-				if (result == null) result = caseECollection(eContainmentCollection);
+			case UtilitiesPackage.CONVERTER: {
+				Converter converter = (Converter)theEObject;
+				T result = caseConverter(converter);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
-			case CollectionPackage.EREFERENCE_COLLECTION: {
-				EReferenceCollection eReferenceCollection = (EReferenceCollection)theEObject;
-				T result = caseEReferenceCollection(eReferenceCollection);
-				if (result == null) result = caseECollection(eReferenceCollection);
+			case UtilitiesPackage.LAT_LNG: {
+				LatLng latLng = (LatLng)theEObject;
+				T result = caseLatLng(latLng);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
-			case CollectionPackage.EITERABLE: {
-				EIterable eIterable = (EIterable)theEObject;
-				T result = caseEIterable(eIterable);
-				if (result == null) result = caseEIterableInterface(eIterable);
+			case UtilitiesPackage.STRING_TO_STRING_MAP: {
+				@SuppressWarnings("unchecked") Map.Entry<String, String> stringToStringMap = (Map.Entry<String, String>)theEObject;
+				T result = caseStringToStringMap(stringToStringMap);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
-			case CollectionPackage.EITERABLE_INTERFACE: {
-				@SuppressWarnings("unchecked") Iterable<EObject> eIterableInterface = (Iterable<EObject>)theEObject;
-				T result = caseEIterableInterface(eIterableInterface);
+			case UtilitiesPackage.REQUEST: {
+				Request request = (Request)theEObject;
+				T result = caseRequest(request);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
+			case UtilitiesPackage.RESPONSE: {
+				Response response = (Response)theEObject;
+				T result = caseResponse(response);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
+			case UtilitiesPackage.SORT: {
+				Sort sort = (Sort)theEObject;
+				T result = caseSort(sort);
+				if (result == null) result = defaultCase(theEObject);
+				return result;
+			}
+			case UtilitiesPackage.FILTER: {
+				Filter filter = (Filter)theEObject;
+				T result = caseFilter(filter);
 				if (result == null) result = defaultCase(theEObject);
 				return result;
 			}
@@ -113,77 +130,122 @@ public class CollectionSwitch<T> extends Switch<T> {
 	}
 
 	/**
-	 * Returns the result of interpreting the object as an instance of '<em>ECollection</em>'.
+	 * Returns the result of interpreting the object as an instance of '<em>Feature Path</em>'.
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>ECollection</em>'.
+	 * @return the result of interpreting the object as an instance of '<em>Feature Path</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
 	 */
-	public T caseECollection(ECollection object) {
+	public T caseFeaturePath(FeaturePath object) {
 		return null;
 	}
 
 	/**
-	 * Returns the result of interpreting the object as an instance of '<em>EContainment Collection</em>'.
+	 * Returns the result of interpreting the object as an instance of '<em>Converter</em>'.
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>EContainment Collection</em>'.
+	 * @return the result of interpreting the object as an instance of '<em>Converter</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
 	 */
-	public T caseEContainmentCollection(EContainmentCollection object) {
+	public T caseConverter(Converter object) {
 		return null;
 	}
 
 	/**
-	 * Returns the result of interpreting the object as an instance of '<em>EReference Collection</em>'.
+	 * Returns the result of interpreting the object as an instance of '<em>Lat Lng</em>'.
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>EReference Collection</em>'.
+	 * @return the result of interpreting the object as an instance of '<em>Lat Lng</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
 	 */
-	public T caseEReferenceCollection(EReferenceCollection object) {
+	public T caseLatLng(LatLng object) {
 		return null;
 	}
 
 	/**
-	 * Returns the result of interpreting the object as an instance of '<em>EIterable</em>'.
+	 * Returns the result of interpreting the object as an instance of '<em>String To String Map</em>'.
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>EIterable</em>'.
+	 * @return the result of interpreting the object as an instance of '<em>String To String Map</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
 	 */
-	public T caseEIterable(EIterable object) {
+	public T caseStringToStringMap(Map.Entry<String, String> object) {
 		return null;
 	}
 
 	/**
-	 * Returns the result of interpreting the object as an instance of '<em>EIterable Interface</em>'.
+	 * Returns the result of interpreting the object as an instance of '<em>Request</em>'.
 	 * <!-- begin-user-doc -->
 	 * This implementation returns null;
 	 * returning a non-null result will terminate the switch.
 	 * <!-- end-user-doc -->
 	 * @param object the target of the switch.
-	 * @return the result of interpreting the object as an instance of '<em>EIterable Interface</em>'.
+	 * @return the result of interpreting the object as an instance of '<em>Request</em>'.
 	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
 	 * @generated
 	 */
-	public T caseEIterableInterface(Iterable<EObject> object) {
+	public T caseRequest(Request object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Response</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Response</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseResponse(Response object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Sort</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Sort</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseSort(Sort object) {
+		return null;
+	}
+
+	/**
+	 * Returns the result of interpreting the object as an instance of '<em>Filter</em>'.
+	 * <!-- begin-user-doc -->
+	 * This implementation returns null;
+	 * returning a non-null result will terminate the switch.
+	 * <!-- end-user-doc -->
+	 * @param object the target of the switch.
+	 * @return the result of interpreting the object as an instance of '<em>Filter</em>'.
+	 * @see #doSwitch(org.eclipse.emf.ecore.EObject) doSwitch(EObject)
+	 * @generated
+	 */
+	public T caseFilter(Filter object) {
 		return null;
 	}
 
@@ -203,4 +265,4 @@ public class CollectionSwitch<T> extends Switch<T> {
 		return null;
 	}
 
-} //CollectionSwitch
+} //UtilitiesSwitch

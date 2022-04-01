@@ -9,11 +9,9 @@
  * Contributors:
  * 	Data In Motion - initial API and implementation
  */
-package org.gecko.emf.collection.impl;
+package org.gecko.emf.utilities.impl;
 
-import java.util.Iterator;
-
-import org.eclipse.emf.common.util.EList;
+import java.util.Map;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EDataType;
@@ -24,7 +22,7 @@ import org.eclipse.emf.ecore.impl.EFactoryImpl;
 
 import org.eclipse.emf.ecore.plugin.EcorePlugin;
 
-import org.gecko.emf.collection.*;
+import org.gecko.emf.utilities.*;
 
 /**
  * <!-- begin-user-doc -->
@@ -32,24 +30,24 @@ import org.gecko.emf.collection.*;
  * <!-- end-user-doc -->
  * @generated
  */
-public class CollectionFactoryImpl extends EFactoryImpl implements CollectionFactory {
+public class UtilitiesFactoryImpl extends EFactoryImpl implements UtilitiesFactory {
 	/**
 	 * Creates the default factory implementation.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public static CollectionFactory init() {
+	public static UtilitiesFactory init() {
 		try {
-			CollectionFactory theCollectionFactory = (CollectionFactory)EPackage.Registry.INSTANCE.getEFactory(CollectionPackage.eNS_URI);
-			if (theCollectionFactory != null) {
-				return theCollectionFactory;
+			UtilitiesFactory theUtilitiesFactory = (UtilitiesFactory)EPackage.Registry.INSTANCE.getEFactory(UtilitiesPackage.eNS_URI);
+			if (theUtilitiesFactory != null) {
+				return theUtilitiesFactory;
 			}
 		}
 		catch (Exception exception) {
 			EcorePlugin.INSTANCE.log(exception);
 		}
-		return new CollectionFactoryImpl();
+		return new UtilitiesFactoryImpl();
 	}
 
 	/**
@@ -58,7 +56,7 @@ public class CollectionFactoryImpl extends EFactoryImpl implements CollectionFac
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public CollectionFactoryImpl() {
+	public UtilitiesFactoryImpl() {
 		super();
 	}
 
@@ -70,9 +68,14 @@ public class CollectionFactoryImpl extends EFactoryImpl implements CollectionFac
 	@Override
 	public EObject create(EClass eClass) {
 		switch (eClass.getClassifierID()) {
-			case CollectionPackage.ECONTAINMENT_COLLECTION: return createEContainmentCollection();
-			case CollectionPackage.EREFERENCE_COLLECTION: return createEReferenceCollection();
-			case CollectionPackage.EITERABLE: return createEIterable();
+			case UtilitiesPackage.FEATURE_PATH: return createFeaturePath();
+			case UtilitiesPackage.CONVERTER: return createConverter();
+			case UtilitiesPackage.LAT_LNG: return createLatLng();
+			case UtilitiesPackage.STRING_TO_STRING_MAP: return (EObject)createStringToStringMap();
+			case UtilitiesPackage.REQUEST: return createRequest();
+			case UtilitiesPackage.RESPONSE: return createResponse();
+			case UtilitiesPackage.SORT: return createSort();
+			case UtilitiesPackage.FILTER: return createFilter();
 			default:
 				throw new IllegalArgumentException("The class '" + eClass.getName() + "' is not a valid classifier");
 		}
@@ -86,12 +89,8 @@ public class CollectionFactoryImpl extends EFactoryImpl implements CollectionFac
 	@Override
 	public Object createFromString(EDataType eDataType, String initialValue) {
 		switch (eDataType.getClassifierID()) {
-			case CollectionPackage.ELIST:
-				return createEListFromString(eDataType, initialValue);
-			case CollectionPackage.EITERATOR:
-				return createEIteratorFromString(eDataType, initialValue);
-			case CollectionPackage.ITERABLE:
-				return createIterableFromString(eDataType, initialValue);
+			case UtilitiesPackage.SORT_TYPE:
+				return createSortTypeFromString(eDataType, initialValue);
 			default:
 				throw new IllegalArgumentException("The datatype '" + eDataType.getName() + "' is not a valid classifier");
 		}
@@ -105,12 +104,8 @@ public class CollectionFactoryImpl extends EFactoryImpl implements CollectionFac
 	@Override
 	public String convertToString(EDataType eDataType, Object instanceValue) {
 		switch (eDataType.getClassifierID()) {
-			case CollectionPackage.ELIST:
-				return convertEListToString(eDataType, instanceValue);
-			case CollectionPackage.EITERATOR:
-				return convertEIteratorToString(eDataType, instanceValue);
-			case CollectionPackage.ITERABLE:
-				return convertIterableToString(eDataType, instanceValue);
+			case UtilitiesPackage.SORT_TYPE:
+				return convertSortTypeToString(eDataType, instanceValue);
 			default:
 				throw new IllegalArgumentException("The datatype '" + eDataType.getName() + "' is not a valid classifier");
 		}
@@ -122,9 +117,9 @@ public class CollectionFactoryImpl extends EFactoryImpl implements CollectionFac
 	 * @generated
 	 */
 	@Override
-	public EContainmentCollection createEContainmentCollection() {
-		EContainmentCollectionImpl eContainmentCollection = new EContainmentCollectionImpl();
-		return eContainmentCollection;
+	public FeaturePath createFeaturePath() {
+		FeaturePathImpl featurePath = new FeaturePathImpl();
+		return featurePath;
 	}
 
 	/**
@@ -133,9 +128,9 @@ public class CollectionFactoryImpl extends EFactoryImpl implements CollectionFac
 	 * @generated
 	 */
 	@Override
-	public EReferenceCollection createEReferenceCollection() {
-		EReferenceCollectionImpl eReferenceCollection = new EReferenceCollectionImpl();
-		return eReferenceCollection;
+	public Converter createConverter() {
+		ConverterImpl converter = new ConverterImpl();
+		return converter;
 	}
 
 	/**
@@ -144,9 +139,9 @@ public class CollectionFactoryImpl extends EFactoryImpl implements CollectionFac
 	 * @generated
 	 */
 	@Override
-	public EIterable createEIterable() {
-		EIterableImpl eIterable = new EIterableImpl();
-		return eIterable;
+	public LatLng createLatLng() {
+		LatLngImpl latLng = new LatLngImpl();
+		return latLng;
 	}
 
 	/**
@@ -154,56 +149,9 @@ public class CollectionFactoryImpl extends EFactoryImpl implements CollectionFac
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	@SuppressWarnings("unchecked")
-	public EList<EObject> createEListFromString(EDataType eDataType, String initialValue) {
-		return (EList<EObject>)super.createFromString(initialValue);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	public String convertEListToString(EDataType eDataType, Object instanceValue) {
-		return super.convertToString(instanceValue);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@SuppressWarnings("unchecked")
-	public Iterator<EObject> createEIteratorFromString(EDataType eDataType, String initialValue) {
-		return (Iterator<EObject>)super.createFromString(initialValue);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	public String convertEIteratorToString(EDataType eDataType, Object instanceValue) {
-		return super.convertToString(instanceValue);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	@SuppressWarnings("unchecked")
-	public Iterable<EObject> createIterableFromString(EDataType eDataType, String initialValue) {
-		return (Iterable<EObject>)super.createFromString(initialValue);
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	public String convertIterableToString(EDataType eDataType, Object instanceValue) {
-		return super.convertToString(instanceValue);
+	public Map.Entry<String, String> createStringToStringMap() {
+		StringToStringMapImpl stringToStringMap = new StringToStringMapImpl();
+		return stringToStringMap;
 	}
 
 	/**
@@ -212,8 +160,72 @@ public class CollectionFactoryImpl extends EFactoryImpl implements CollectionFac
 	 * @generated
 	 */
 	@Override
-	public CollectionPackage getCollectionPackage() {
-		return (CollectionPackage)getEPackage();
+	public Request createRequest() {
+		RequestImpl request = new RequestImpl();
+		return request;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Response createResponse() {
+		ResponseImpl response = new ResponseImpl();
+		return response;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Sort createSort() {
+		SortImpl sort = new SortImpl();
+		return sort;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public Filter createFilter() {
+		FilterImpl filter = new FilterImpl();
+		return filter;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public SortType createSortTypeFromString(EDataType eDataType, String initialValue) {
+		SortType result = SortType.get(initialValue);
+		if (result == null) throw new IllegalArgumentException("The value '" + initialValue + "' is not a valid enumerator of '" + eDataType.getName() + "'");
+		return result;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public String convertSortTypeToString(EDataType eDataType, Object instanceValue) {
+		return instanceValue == null ? null : instanceValue.toString();
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public UtilitiesPackage getUtilitiesPackage() {
+		return (UtilitiesPackage)getEPackage();
 	}
 
 	/**
@@ -223,8 +235,8 @@ public class CollectionFactoryImpl extends EFactoryImpl implements CollectionFac
 	 * @generated
 	 */
 	@Deprecated
-	public static CollectionPackage getPackage() {
-		return CollectionPackage.eINSTANCE;
+	public static UtilitiesPackage getPackage() {
+		return UtilitiesPackage.eINSTANCE;
 	}
 
-} //CollectionFactoryImpl
+} //UtilitiesFactoryImpl

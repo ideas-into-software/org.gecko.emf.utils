@@ -58,15 +58,6 @@ public interface CollectionFactory extends EFactory {
 	EIterable createEIterable();
 
 	/**
-	 * Returns a new object of class '<em>Feature Path</em>'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return a new object of class '<em>Feature Path</em>'.
-	 * @generated
-	 */
-	FeaturePath createFeaturePath();
-
-	/**
 	 * Returns the package supported by this factory.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->

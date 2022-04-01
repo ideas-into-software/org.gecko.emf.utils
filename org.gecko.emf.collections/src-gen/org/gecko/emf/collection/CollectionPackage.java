@@ -281,70 +281,6 @@ public interface CollectionPackage extends EPackage {
 	int EITERABLE_OPERATION_COUNT = EITERABLE_INTERFACE_OPERATION_COUNT + 0;
 
 	/**
-	 * The meta object id for the '{@link org.gecko.emf.collection.impl.FeaturePathImpl <em>Feature Path</em>}' class.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @see org.gecko.emf.collection.impl.FeaturePathImpl
-	 * @see org.gecko.emf.collection.impl.CollectionPackageImpl#getFeaturePath()
-	 * @generated
-	 */
-	int FEATURE_PATH = 5;
-
-	/**
-	 * The feature id for the '<em><b>Name</b></em>' attribute.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int FEATURE_PATH__NAME = 0;
-
-	/**
-	 * The feature id for the '<em><b>Feature</b></em>' reference list.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int FEATURE_PATH__FEATURE = 1;
-
-	/**
-	 * The number of structural features of the '<em>Feature Path</em>' class.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int FEATURE_PATH_FEATURE_COUNT = 2;
-
-	/**
-	 * The operation id for the '<em>Get Value</em>' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int FEATURE_PATH___GET_VALUE__EOBJECT = 0;
-
-	/**
-	 * The operation id for the '<em>Is Valid</em>' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int FEATURE_PATH___IS_VALID__EOBJECT = 1;
-
-	/**
-	 * The number of operations of the '<em>Feature Path</em>' class.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 * @ordered
-	 */
-	int FEATURE_PATH_OPERATION_COUNT = 2;
-
-	/**
 	 * The meta object id for the '<em>EList</em>' data type.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -352,7 +288,7 @@ public interface CollectionPackage extends EPackage {
 	 * @see org.gecko.emf.collection.impl.CollectionPackageImpl#getEList()
 	 * @generated
 	 */
-	int ELIST = 6;
+	int ELIST = 5;
 
 	/**
 	 * The meta object id for the '<em>EIterator</em>' data type.
@@ -362,7 +298,7 @@ public interface CollectionPackage extends EPackage {
 	 * @see org.gecko.emf.collection.impl.CollectionPackageImpl#getEIterator()
 	 * @generated
 	 */
-	int EITERATOR = 7;
+	int EITERATOR = 6;
 
 	/**
 	 * The meta object id for the '<em>Iterable</em>' data type.
@@ -372,7 +308,7 @@ public interface CollectionPackage extends EPackage {
 	 * @see org.gecko.emf.collection.impl.CollectionPackageImpl#getIterable()
 	 * @generated
 	 */
-	int ITERABLE = 8;
+	int ITERABLE = 7;
 
 
 	/**
@@ -478,58 +414,6 @@ public interface CollectionPackage extends EPackage {
 	 * @generated
 	 */
 	EOperation getEIterableInterface__Iterator();
-
-	/**
-	 * Returns the meta object for class '{@link org.gecko.emf.collection.FeaturePath <em>Feature Path</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for class '<em>Feature Path</em>'.
-	 * @see org.gecko.emf.collection.FeaturePath
-	 * @generated
-	 */
-	EClass getFeaturePath();
-
-	/**
-	 * Returns the meta object for the attribute '{@link org.gecko.emf.collection.FeaturePath#getName <em>Name</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the attribute '<em>Name</em>'.
-	 * @see org.gecko.emf.collection.FeaturePath#getName()
-	 * @see #getFeaturePath()
-	 * @generated
-	 */
-	EAttribute getFeaturePath_Name();
-
-	/**
-	 * Returns the meta object for the reference list '{@link org.gecko.emf.collection.FeaturePath#getFeature <em>Feature</em>}'.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the reference list '<em>Feature</em>'.
-	 * @see org.gecko.emf.collection.FeaturePath#getFeature()
-	 * @see #getFeaturePath()
-	 * @generated
-	 */
-	EReference getFeaturePath_Feature();
-
-	/**
-	 * Returns the meta object for the '{@link org.gecko.emf.collection.FeaturePath#getValue(org.eclipse.emf.ecore.EObject) <em>Get Value</em>}' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the '<em>Get Value</em>' operation.
-	 * @see org.gecko.emf.collection.FeaturePath#getValue(org.eclipse.emf.ecore.EObject)
-	 * @generated
-	 */
-	EOperation getFeaturePath__GetValue__EObject();
-
-	/**
-	 * Returns the meta object for the '{@link org.gecko.emf.collection.FeaturePath#isValid(org.eclipse.emf.ecore.EObject) <em>Is Valid</em>}' operation.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @return the meta object for the '<em>Is Valid</em>' operation.
-	 * @see org.gecko.emf.collection.FeaturePath#isValid(org.eclipse.emf.ecore.EObject)
-	 * @generated
-	 */
-	EOperation getFeaturePath__IsValid__EObject();
 
 	/**
 	 * Returns the meta object for data type '{@link org.eclipse.emf.common.util.EList <em>EList</em>}'.
@@ -676,48 +560,6 @@ public interface CollectionPackage extends EPackage {
 		 * @generated
 		 */
 		EOperation EITERABLE_INTERFACE___ITERATOR = eINSTANCE.getEIterableInterface__Iterator();
-
-		/**
-		 * The meta object literal for the '{@link org.gecko.emf.collection.impl.FeaturePathImpl <em>Feature Path</em>}' class.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @see org.gecko.emf.collection.impl.FeaturePathImpl
-		 * @see org.gecko.emf.collection.impl.CollectionPackageImpl#getFeaturePath()
-		 * @generated
-		 */
-		EClass FEATURE_PATH = eINSTANCE.getFeaturePath();
-
-		/**
-		 * The meta object literal for the '<em><b>Name</b></em>' attribute feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EAttribute FEATURE_PATH__NAME = eINSTANCE.getFeaturePath_Name();
-
-		/**
-		 * The meta object literal for the '<em><b>Feature</b></em>' reference list feature.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EReference FEATURE_PATH__FEATURE = eINSTANCE.getFeaturePath_Feature();
-
-		/**
-		 * The meta object literal for the '<em><b>Get Value</b></em>' operation.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EOperation FEATURE_PATH___GET_VALUE__EOBJECT = eINSTANCE.getFeaturePath__GetValue__EObject();
-
-		/**
-		 * The meta object literal for the '<em><b>Is Valid</b></em>' operation.
-		 * <!-- begin-user-doc -->
-		 * <!-- end-user-doc -->
-		 * @generated
-		 */
-		EOperation FEATURE_PATH___IS_VALID__EOBJECT = eINSTANCE.getFeaturePath__IsValid__EObject();
 
 		/**
 		 * The meta object literal for the '<em>EList</em>' data type.

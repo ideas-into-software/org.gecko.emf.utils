@@ -9,7 +9,7 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.collection.helper;
+package org.gecko.emf.util.helper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,14 +21,14 @@ import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
-import org.gecko.emf.collection.FeaturePath;
+import org.gecko.emf.utilities.FeaturePath;
 
 /**
  * Helper class for the Collections model
  * @author Mark Hoffmann
  * @since 24.11.2017
  */
-public class ECollectionsHelper {
+public class UtilModelHelper {
 	
 	/**
 	 * Returns a list of objects or <code>null</code>, in case of an error
@@ -128,7 +128,7 @@ public class ECollectionsHelper {
 	}
 	
 	/**
-	 * @see ECollectionsHelper#getFeaturePathFeature(FeaturePath, EClass)
+	 * @see UtilModelHelper#getFeaturePathFeature(FeaturePath, EClass)
 	 * The same but it return a boolean value instead of the {@link EStructuralFeature}
 	 */
 	public static boolean validateFeaturePath(FeaturePath featurePath, EClass contextClass) {

@@ -9,7 +9,7 @@
  * Contributors:
  * 	Data In Motion - initial API and implementation
  */
-package org.gecko.emf.collection.impl;
+package org.gecko.emf.utilities.impl;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -30,10 +30,10 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
 import org.eclipse.emf.ecore.util.EObjectResolvingEList;
 
-import org.gecko.emf.collection.CollectionPackage;
-import org.gecko.emf.collection.FeaturePath;
+import org.gecko.emf.util.helper.UtilModelHelper;
 
-import org.gecko.emf.collection.helper.ECollectionsHelper;
+import org.gecko.emf.utilities.FeaturePath;
+import org.gecko.emf.utilities.UtilitiesPackage;
 
 /**
  * <!-- begin-user-doc -->
@@ -43,8 +43,8 @@ import org.gecko.emf.collection.helper.ECollectionsHelper;
  * The following features are implemented:
  * </p>
  * <ul>
- *   <li>{@link org.gecko.emf.collection.impl.FeaturePathImpl#getName <em>Name</em>}</li>
- *   <li>{@link org.gecko.emf.collection.impl.FeaturePathImpl#getFeature <em>Feature</em>}</li>
+ *   <li>{@link org.gecko.emf.utilities.impl.FeaturePathImpl#getName <em>Name</em>}</li>
+ *   <li>{@link org.gecko.emf.utilities.impl.FeaturePathImpl#getFeature <em>Feature</em>}</li>
  * </ul>
  *
  * @generated
@@ -96,7 +96,7 @@ public class FeaturePathImpl extends MinimalEObjectImpl.Container implements Fea
 	 */
 	@Override
 	protected EClass eStaticClass() {
-		return CollectionPackage.Literals.FEATURE_PATH;
+		return UtilitiesPackage.Literals.FEATURE_PATH;
 	}
 
 	/**
@@ -119,7 +119,7 @@ public class FeaturePathImpl extends MinimalEObjectImpl.Container implements Fea
 		String oldName = name;
 		name = newName;
 		if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, CollectionPackage.FEATURE_PATH__NAME, oldName, name));
+			eNotify(new ENotificationImpl(this, Notification.SET, UtilitiesPackage.FEATURE_PATH__NAME, oldName, name));
 	}
 
 	/**
@@ -130,7 +130,7 @@ public class FeaturePathImpl extends MinimalEObjectImpl.Container implements Fea
 	@Override
 	public EList<EStructuralFeature> getFeature() {
 		if (feature == null) {
-			feature = new EObjectResolvingEList<EStructuralFeature>(EStructuralFeature.class, this, CollectionPackage.FEATURE_PATH__FEATURE);
+			feature = new EObjectResolvingEList<EStructuralFeature>(EStructuralFeature.class, this, UtilitiesPackage.FEATURE_PATH__FEATURE);
 		}
 		return feature;
 	}
@@ -142,7 +142,7 @@ public class FeaturePathImpl extends MinimalEObjectImpl.Container implements Fea
 	 */
 	@Override
 	public EList<Object> getValue(final EObject object) {
-		List<Object> result = ECollectionsHelper.getFeaturePathValue(this, object);
+		List<Object> result = UtilModelHelper.getFeaturePathValue(this, object);
 		if (result != null) {
 			return ECollections.asEList(result);
 		}
@@ -159,7 +159,7 @@ public class FeaturePathImpl extends MinimalEObjectImpl.Container implements Fea
 		if (object == null) {
 			return false;
 		}
-		return ECollectionsHelper.validateFeaturePath(this, object.eClass());
+		return UtilModelHelper.validateFeaturePath(this, object.eClass());
 	}
 
 	/**
@@ -170,9 +170,9 @@ public class FeaturePathImpl extends MinimalEObjectImpl.Container implements Fea
 	@Override
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
 		switch (featureID) {
-			case CollectionPackage.FEATURE_PATH__NAME:
+			case UtilitiesPackage.FEATURE_PATH__NAME:
 				return getName();
-			case CollectionPackage.FEATURE_PATH__FEATURE:
+			case UtilitiesPackage.FEATURE_PATH__FEATURE:
 				return getFeature();
 		}
 		return super.eGet(featureID, resolve, coreType);
@@ -187,10 +187,10 @@ public class FeaturePathImpl extends MinimalEObjectImpl.Container implements Fea
 	@Override
 	public void eSet(int featureID, Object newValue) {
 		switch (featureID) {
-			case CollectionPackage.FEATURE_PATH__NAME:
+			case UtilitiesPackage.FEATURE_PATH__NAME:
 				setName((String)newValue);
 				return;
-			case CollectionPackage.FEATURE_PATH__FEATURE:
+			case UtilitiesPackage.FEATURE_PATH__FEATURE:
 				getFeature().clear();
 				getFeature().addAll((Collection<? extends EStructuralFeature>)newValue);
 				return;
@@ -206,10 +206,10 @@ public class FeaturePathImpl extends MinimalEObjectImpl.Container implements Fea
 	@Override
 	public void eUnset(int featureID) {
 		switch (featureID) {
-			case CollectionPackage.FEATURE_PATH__NAME:
+			case UtilitiesPackage.FEATURE_PATH__NAME:
 				setName(NAME_EDEFAULT);
 				return;
-			case CollectionPackage.FEATURE_PATH__FEATURE:
+			case UtilitiesPackage.FEATURE_PATH__FEATURE:
 				getFeature().clear();
 				return;
 		}
@@ -224,9 +224,9 @@ public class FeaturePathImpl extends MinimalEObjectImpl.Container implements Fea
 	@Override
 	public boolean eIsSet(int featureID) {
 		switch (featureID) {
-			case CollectionPackage.FEATURE_PATH__NAME:
+			case UtilitiesPackage.FEATURE_PATH__NAME:
 				return NAME_EDEFAULT == null ? name != null : !NAME_EDEFAULT.equals(name);
-			case CollectionPackage.FEATURE_PATH__FEATURE:
+			case UtilitiesPackage.FEATURE_PATH__FEATURE:
 				return feature != null && !feature.isEmpty();
 		}
 		return super.eIsSet(featureID);
@@ -240,9 +240,9 @@ public class FeaturePathImpl extends MinimalEObjectImpl.Container implements Fea
 	@Override
 	public Object eInvoke(int operationID, EList<?> arguments) throws InvocationTargetException {
 		switch (operationID) {
-			case CollectionPackage.FEATURE_PATH___GET_VALUE__EOBJECT:
+			case UtilitiesPackage.FEATURE_PATH___GET_VALUE__EOBJECT:
 				return getValue((EObject)arguments.get(0));
-			case CollectionPackage.FEATURE_PATH___IS_VALID__EOBJECT:
+			case UtilitiesPackage.FEATURE_PATH___IS_VALID__EOBJECT:
 				return isValid((EObject)arguments.get(0));
 		}
 		return super.eInvoke(operationID, arguments);
