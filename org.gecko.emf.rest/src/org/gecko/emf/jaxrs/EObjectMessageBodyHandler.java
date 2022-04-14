@@ -26,11 +26,13 @@ import javax.ws.rs.ext.MessageBodyReader;
 import javax.ws.rs.ext.MessageBodyWriter;
 import javax.ws.rs.ext.Provider;
 
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.gecko.emf.jaxrs.annotations.AnnotationConverter;
 import org.gecko.emf.osgi.ResourceSetFactory;
-import org.osgi.annotation.bundle.Capability;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -42,30 +44,29 @@ import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsExtension;
 import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsName;
 
 /**
- * {@link MessageBodyReader} and {@link MessageBodyWriter} that handle {@link Resource}.
+ * {@link MessageBodyReader} and {@link MessageBodyWriter} that handle {@link EObject}.
  * This readers read and write XMI from a {@link org.eclipse.emf.ecore.resource.Resource}
- * @author Juergen Albert
- * @param <R> the reader type, must be an {@link Resource}
- * @param <W> the writer type, must be an {@link Resource}}
+ * @author Mark Hoffmann
+ * @param <R> the reader type, must be an {@link EObject}
+ * @param <W> the writer type, must be an {@link EObject}
  * @since 30.05.2012
  */
 @Component(
 		service = {MessageBodyReader.class, MessageBodyWriter.class},
 		enabled = true,
-		scope = ServiceScope.PROTOTYPE
-		)
-@Capability(namespace = "gecko.rest.addon", name = "messagebody.emf")
+		scope = ServiceScope.SINGLETON
+	)
 @JaxrsExtension
-@JaxrsName("EMFResourcesMessageBodyReaderWriter")
+@JaxrsName("EMFEObjectMessagebodyReaderWriter")
 @JaxrsApplicationSelect("(|(emf=true)("+ JaxrsWhiteboardConstants.JAX_RS_NAME + "=.default))")
 @Provider
 @Produces(MediaType.WILDCARD)
 @Consumes(MediaType.WILDCARD)
-public class EMFResourceMessageBodyHandler<R extends Resource, W extends Resource> extends AbstractEMFMessageBodyReaderWriter<R, W>{
+public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> extends AbstractEMFMessageBodyReaderWriter<R, W>{
 
 	@Reference
 	private ResourceSetFactory resourceSetFactory;
-	
+
 	
 	/*
 	 * (non-Javadoc)
@@ -74,17 +75,40 @@ public class EMFResourceMessageBodyHandler<R extends Resource, W extends Resourc
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return isReadWritable(type, mediaType);
+		ResourceSetFactory setFactory = getResourceSetFactory();
+		ResourceSet resourceSet = setFactory.createResourceSet();
+		return EObject.class.isAssignableFrom(type) && resourceSet.getResourceFactoryRegistry()
+				.getContentTypeToFactoryMap().containsKey(mediaType.getType() + "/" + mediaType.getSubtype());
 	}
 
 	/*
 	 * (non-Javadoc)
-	 * @see javax.ws.rs.ext.MessageBodyWriter#getSize(java.lang.Object, java.lang.Class, java.lang.reflect.Type, java.lang.annotation.Annotation[], javax.ws.rs.core.MediaType)
+	 * @see javax.ws.rs.ext.MessageBodyWriter#writeTo(java.lang.Object, java.lang.Class, java.lang.reflect.Type, java.lang.annotation.Annotation[], javax.ws.rs.core.MediaType, javax.ws.rs.core.MultivaluedMap, java.io.OutputStream)
 	 */
 	@Override
-	public long getSize(W t, Class<?> type, Type genericType,
-			Annotation[] annotations, MediaType mediaType) {
-		return -1;
+	public void writeTo(W t, Class<?> type, Type genericType,
+			Annotation[] annotations, MediaType mediaType,
+			MultivaluedMap<String, Object> httpHeaders,
+			OutputStream entityStream) throws IOException,
+			WebApplicationException {
+		ResourceSetFactory setFactory = getResourceSetFactory();
+		ResourceSet resourceSet = setFactory.createResourceSet();
+		Resource resource = t.eResource();
+		boolean cleanUp = false;
+		if(resource == null){
+			cleanUp = true;
+			ResourceFactoryImpl factory = (ResourceFactoryImpl) resourceSet.getResourceFactoryRegistry().getContentTypeToFactoryMap().get(mediaType.getType() + "/" + mediaType.getSubtype());
+			resource = factory.createResource(URI.createURI("http://test.test"));
+			resourceSet.getResources().add(resource);
+			resource.getContents().add(t);
+		}
+		
+		super.writeResourceTo(resource, Resource.class, genericType, annotations, mediaType, httpHeaders, entityStream);
+		
+		if(cleanUp){
+			resource.getContents().remove(t);
+			resource.getResourceSet().getResources().remove(resource);
+		}
 	}
 
 	/*
@@ -94,44 +118,43 @@ public class EMFResourceMessageBodyHandler<R extends Resource, W extends Resourc
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		return isReadWritable(type, mediaType);
-	}
-
-	/**
-	 * Checks if the MessageBodyReader / -Writer can be handled
-	 * @param type the class type
-	 * @param mediaType the media type
-	 * @return <code>true</code>, if the MBR/MBW can be used, otherwise <code>false</code>
-	 */
-	private boolean isReadWritable(Class<?> type, MediaType mediaType) {
 		ResourceSetFactory setFactory = getResourceSetFactory();
 		ResourceSet resourceSet = setFactory.createResourceSet();
-		return Resource.class.isAssignableFrom(type) && resourceSet.getResourceFactoryRegistry()
+		return EObject.class.isAssignableFrom(type) && resourceSet.getResourceFactoryRegistry()
 				.getContentTypeToFactoryMap().containsKey(mediaType.getType() + "/" + mediaType.getSubtype());
 	}
 
-	/* (non-Javadoc)
+	/*
+	 * (non-Javadoc)
 	 * @see javax.ws.rs.ext.MessageBodyReader#readFrom(java.lang.Class, java.lang.reflect.Type, java.lang.annotation.Annotation[], javax.ws.rs.core.MediaType, javax.ws.rs.core.MultivaluedMap, java.io.InputStream)
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public R readFrom(Class<R> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
-		return (R) super.readResourceFrom( (Class<Resource>) type, genericType, annotations, mediaType, httpHeaders, entityStream);
+	public R readFrom(Class<R> type, Type genericType,
+			Annotation[] annotations, MediaType mediaType,
+			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
+			throws IOException, WebApplicationException {
+		Resource resource = super.readResourceFrom(Resource.class, genericType, annotations, mediaType, httpHeaders, entityStream);
+
+		if(resource.getContents().size() > 0){
+			try {
+				R result = (R) resource.getContents().get(0);
+				return result;
+			} finally {
+				resource.getContents().clear();
+				ResourceSet rs = resource.getResourceSet();
+				rs.getResources().remove(resource);
+			}
+		}
+
+		return null;
 	}
 
-	/* (non-Javadoc)
-	 * @see javax.ws.rs.ext.MessageBodyWriter#writeTo(java.lang.Object, java.lang.Class, java.lang.reflect.Type, java.lang.annotation.Annotation[], javax.ws.rs.core.MediaType, javax.ws.rs.core.MultivaluedMap, java.io.OutputStream)
-	 */
 	@Override
-	public void writeTo(W t, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, Object> httpHeaders, OutputStream entityStream) throws IOException, WebApplicationException {
-		super.writeResourceTo(t, type, genericType, annotations, mediaType, httpHeaders, entityStream);
+	public long getSize(W t, Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType) {
+		return -1;
 	}
-	
-	
-	public ResourceSetFactory getResourceSetFactory() {
-		return resourceSetFactory;
-	}
-	
+
 	@Reference(unbind = "removeAnnotationConverter", cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
 	public void addAnnotationConverter(AnnotationConverter converter) {
 		annotationConverters.add(converter);
@@ -141,4 +164,11 @@ public class EMFResourceMessageBodyHandler<R extends Resource, W extends Resourc
 		annotationConverters.add(converter);
 	}
 
+	@Override
+	protected ResourceSetFactory getResourceSetFactory() {
+		return resourceSetFactory;
+	}
+
 }
+
+

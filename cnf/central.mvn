@@ -4,10 +4,12 @@ biz.aQute:biz.aQute.gogo.commands.provider:1.8.0
 biz.aQute:biz.aQute.wrapper.hamcrest:1.9.0
 
 jakarta.ws.rs:jakarta.ws.rs-api:2.1.6
-jakarta.ws.rs:jakarta.ws.rs-api:3.0.0
+#jakarta.ws.rs:jakarta.ws.rs-api:3.0.0
 jakarta.annotation:jakarta.annotation-api:2.0.0
-jakarta.xml.bind:jakarta.xml.bind-api:3.0.1
-jakarta.activation:jakarta.activation-api:2.0.1
+jakarta.xml.bind:jakarta.xml.bind-api:2.3.3
+#jakarta.xml.bind:jakarta.xml.bind-api:3.0.1
+jakarta.activation:jakarta.activation-api:1.2.2
+#jakarta.activation:jakarta.activation-api:2.0.1
 
 javax.json:javax.json-api:1.1.4
 

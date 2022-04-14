@@ -16,3 +16,4 @@ Export-Package: \
 	org.gecko.emf.jaxrs.annotations,\
 	org.gecko.emf.jaxrs.annotations.json
 Bundle-Version: 1.4.0.SNAPSHOT
+Provide-Capability: emf.rest;emf.rest=osgi
