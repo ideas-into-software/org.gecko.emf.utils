@@ -19,5 +19,5 @@ src src,src-gen
 -buildpath: ,\
 	${emf.lib},\
 
-Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Version: 2.1.0.SNAPSHOT
 

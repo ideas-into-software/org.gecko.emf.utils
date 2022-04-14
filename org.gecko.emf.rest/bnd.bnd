@@ -15,4 +15,4 @@ Bundle-Description: Extension to load and save EMF EObjects using a MessageBodyR
 Export-Package: \
 	org.gecko.emf.jaxrs.annotations,\
 	org.gecko.emf.jaxrs.annotations.json
-Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Version: 1.4.0.SNAPSHOT
