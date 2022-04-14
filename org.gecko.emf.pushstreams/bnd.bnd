@@ -23,4 +23,4 @@ javac.target: 11
 	${emf.lib},\
 	org.osgi.util.pushstream
 	
-Bundle-Version: 1.1.0.SNAPSHOT
+Bundle-Version: 1.1.1.SNAPSHOT

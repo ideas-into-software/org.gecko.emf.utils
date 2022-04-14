@@ -3,7 +3,7 @@
 javac.source: 11
 javac.target: 11
 
-Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Version: 1.0.1.SNAPSHOT
 -buildpath: \
 	${emf.lib},\
 	emfjson-jackson;version=latest
