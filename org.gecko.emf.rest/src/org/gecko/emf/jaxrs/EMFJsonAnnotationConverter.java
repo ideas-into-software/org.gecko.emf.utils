@@ -53,43 +53,40 @@ public class EMFJsonAnnotationConverter implements AnnotationConverter {
 	 */
 	@Override
 	public void convertAnnotation(Annotation annotation, boolean serialize, Map<Object, Object> options) {
-		ResourceSet set = setServiceObjects.getService();
-		try {
-			if(annotation instanceof RootElement) {
-				RootElement element = (RootElement) annotation;
-				
-				EClass eClass = (EClass) set.getEObject(URI.createURI(element.rootClassUri()), true);
-				
-				if(eClass == null) {
-					throw new IllegalArgumentException(String.format("%s can't be resolved to a EClass", element.rootClassUri()));
-				}
-				options.put(EMFContext.Attributes.ROOT_ELEMENT, eClass);
-			} else if(annotation instanceof EMFJSONConfig) {
-				EMFJSONConfig config = (EMFJSONConfig) annotation;
-				
-				options.put(EMFJs.OPTION_DATE_FORMAT, config.dateFormat());
-				options.put(EMFJs.OPTION_INDENT_OUTPUT, config.indentOutput());
-				options.put(EMFJs.OPTION_SERIALIZE_CONTAINMENT_AS_HREF, config.serializeContainmentAsHref());
-				options.put(EMFJs.OPTION_SERIALIZE_DEFAULT_VALUE, config.serializeDefaultValues());
-				options.put(EMFJs.OPTION_SERIALIZE_TYPE, config.serializeTypes());
-				options.put(EMFJs.OPTION_USE_ID, config.useId());
-				options.put(EMFJs.OPTION_TYPE_USE, config.typeUSE());
-				
-				if(!"".contentEquals(config.refFieldName())) {
-					options.put(EMFJs.OPTION_REF_FIELD, config.refFieldName());
-				}
-				if(!"".contentEquals(config.idFieldName())) {
-					options.put(EMFJs.OPTION_ID_FIELD, config.idFieldName());
-				}
-				if(!"".contentEquals(config.typeFieldName())) {
-					options.put(EMFJs.OPTION_TYPE_FIELD, config.typeFieldName());
-				}
-				if(!"".contentEquals(config.typePackageUri())) {
-					options.put(EMFJs.OPTION_TYPE_PACKAGE_URI, config.typePackageUri());
-				}
-			}
-		} finally {
+		if(annotation instanceof RootElement) {
+			RootElement element = (RootElement) annotation;
+			
+			ResourceSet set = setServiceObjects.getService();
+			EClass eClass = (EClass) set.getEObject(URI.createURI(element.rootClassUri()), true);
 			setServiceObjects.ungetService(set);
+			
+			if(eClass == null) {
+				throw new IllegalArgumentException(String.format("%s can't be resolved to a EClass", element.rootClassUri()));
+			}
+			options.put(EMFContext.Attributes.ROOT_ELEMENT, eClass);
+		} else if(annotation instanceof EMFJSONConfig) {
+			EMFJSONConfig config = (EMFJSONConfig) annotation;
+			
+			options.put(EMFJs.OPTION_DATE_FORMAT, config.dateFormat());
+			options.put(EMFJs.OPTION_INDENT_OUTPUT, config.indentOutput());
+			options.put(EMFJs.OPTION_SERIALIZE_CONTAINMENT_AS_HREF, config.serializeContainmentAsHref());
+			options.put(EMFJs.OPTION_SERIALIZE_DEFAULT_VALUE, config.serializeDefaultValues());
+			options.put(EMFJs.OPTION_SERIALIZE_TYPE, config.serializeTypes());
+			options.put(EMFJs.OPTION_USE_ID, config.useId());
+			options.put(EMFJs.OPTION_TYPE_USE, config.typeUSE());
+			
+			if(!"".contentEquals(config.refFieldName())) {
+				options.put(EMFJs.OPTION_REF_FIELD, config.refFieldName());
+			}
+			if(!"".contentEquals(config.idFieldName())) {
+				options.put(EMFJs.OPTION_ID_FIELD, config.idFieldName());
+			}
+			if(!"".contentEquals(config.typeFieldName())) {
+				options.put(EMFJs.OPTION_TYPE_FIELD, config.typeFieldName());
+			}
+			if(!"".contentEquals(config.typePackageUri())) {
+				options.put(EMFJs.OPTION_TYPE_PACKAGE_URI, config.typePackageUri());
+			}
 		}
 	}
 

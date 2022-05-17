@@ -1,5 +1,4 @@
 -buildpath: \
-	${emf.lib},\
 	com.fasterxml.jackson.core.jackson-core;version=latest,\
 	com.fasterxml.jackson.core.jackson-databind;version=latest,\
 	emfjson-jackson;version=latest,\
@@ -10,8 +9,4 @@ Bundle-Name: Gecko EMF Bson Extension
 Bundle-Description: Extension to de-/serialize EMF from/into Bson
 Bundle-Version: 1.2.1.SNAPSHOT
 
-Export-Package: \
-	org.gecko.emf.bson.handler,\
-	org.gecko.emf.bson.annotation
-
--privatepackage: org.gecko.emf.bson
+-library: enable-emf

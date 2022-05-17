@@ -46,14 +46,12 @@ import org.gecko.emf.jaxrs.annotations.EMFResourceOptions;
 import org.gecko.emf.jaxrs.annotations.ResourceEClass;
 import org.gecko.emf.jaxrs.annotations.ResourceOption;
 import org.gecko.emf.jaxrs.annotations.ValidateContent;
-import org.gecko.emf.json.annotation.RequireEMFJson;
 import org.gecko.emf.osgi.ResourceSetFactory;
 
 /**
  * The basic EMF {@link Resource} {@link MessageBodyReader} and {@link MessageBodyWriter}
  * @author Juergen Albert
  */
-@RequireEMFJson
 public abstract class AbstractEMFMessageBodyReaderWriter<R,W> implements MessageBodyReader<R>, MessageBodyWriter<W>{
 
 	protected List<AnnotationConverter> annotationConverters = new LinkedList<>();

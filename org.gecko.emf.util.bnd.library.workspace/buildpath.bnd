@@ -1,0 +1,5 @@
+-include: ${.}/required.bndrun
+
+-buildpath: ${-runbundles}
+-buildpath.extra: \
+	org.gecko.emf.rest;version=snapshot

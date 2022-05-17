@@ -1,7 +1,7 @@
 -enable-junit5: true
+-library: enable-emf
 
 -buildpath: \
-	${emf.lib},\
 	org.osgi.framework,\
 	org.osgi.service.cm,\
 	org.gecko.emf.osgi.example.model.basic,\
