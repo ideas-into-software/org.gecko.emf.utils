@@ -73,6 +73,7 @@ public class EMFJsonAnnotationConverter implements AnnotationConverter {
 				options.put(EMFJs.OPTION_SERIALIZE_DEFAULT_VALUE, config.serializeDefaultValues());
 				options.put(EMFJs.OPTION_SERIALIZE_TYPE, config.serializeTypes());
 				options.put(EMFJs.OPTION_USE_ID, config.useId());
+				options.put(EMFJs.OPTION_TYPE_USE, config.typeUSE());
 				
 				if(!"".contentEquals(config.refFieldName())) {
 					options.put(EMFJs.OPTION_REF_FIELD, config.refFieldName());
@@ -82,6 +83,9 @@ public class EMFJsonAnnotationConverter implements AnnotationConverter {
 				}
 				if(!"".contentEquals(config.typeFieldName())) {
 					options.put(EMFJs.OPTION_TYPE_FIELD, config.typeFieldName());
+				}
+				if(!"".contentEquals(config.typePackageUri())) {
+					options.put(EMFJs.OPTION_TYPE_PACKAGE_URI, config.typePackageUri());
 				}
 			}
 		} finally {

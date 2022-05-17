@@ -20,6 +20,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.eclipse.emfcloud.jackson.annotations.EcoreTypeInfo;
+
 /**
  * Provides a convinient Way to configure EMFJSON Serialization for JaxRS Endpoints.
  * @author Juergen Albert
@@ -76,5 +78,15 @@ public @interface EMFJSONConfig {
 	 * return @see {@link EMFJs#OPTION_TYPE_FIELD} default is eClass
 	 */
 	String typeFieldName() default "";
+	
+	/**
+	 * return @see {@link EMFJs#OPTION_TYPE_USE} default is eClass
+	 */
+	EcoreTypeInfo.USE typeUSE() default EcoreTypeInfo.USE.URI;
+	
+	/**
+	 * return @see {@link EMFJs#OPTION_TYPE_PACKAGE_URI} default is eClass
+	 */
+	String typePackageUri() default "";
 	
 }

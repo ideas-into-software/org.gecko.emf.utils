@@ -67,6 +67,20 @@ public final class EMFJs {
 	 */
 	public static final String OPTION_TYPE_FIELD = "OPTION_TYPE_FIELD";
 	/**
+	 * Specify the that will be use to denote the type of objects.
+	 * <p>
+	 * By default URI will be use
+	 * </p>
+	 */
+	public static final String OPTION_TYPE_USE = "OPTION_TYPE_USE";
+	/**
+	 * Specify the package uri that will be use to denote the type of objects.
+	 * <p>
+	 * By default null will be use
+	 * </p>
+	 */
+	public static final String OPTION_TYPE_PACKAGE_URI = "OPTION_TYPE_PACKAGE_URI";
+	/**
 	 * Specify the field name that will be use to denote a reference. This option is
 	 * use when a reference is created as a json object.
 	 * <p>
