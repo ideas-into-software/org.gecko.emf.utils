@@ -30,6 +30,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gecko.emf.jaxrs.annotations.AnnotationConverter;
 import org.gecko.emf.osgi.ResourceSetFactory;
+import org.osgi.annotation.bundle.Capability;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
@@ -53,6 +54,7 @@ import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsName;
 		enabled = true,
 		scope = ServiceScope.PROTOTYPE
 		)
+@Capability(namespace = "gecko.rest.addon", name = "messagebody.emf")
 @JaxrsExtension
 @JaxrsName("EMFResourcesMessageBodyReaderWriter")
 @JaxrsApplicationSelect("(|(emf=true)("+ JaxrsWhiteboardConstants.JAX_RS_NAME + "=.default))")

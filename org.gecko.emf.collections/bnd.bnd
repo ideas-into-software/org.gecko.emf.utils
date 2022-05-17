@@ -22,4 +22,4 @@ src src,src-gen
 
 Bundle-Name: Gecko EMF Collection Wrapper
 Bundle-Description: EMF Wrapper for several collection and iterable types
-Bundle-Version: 2.1.0.SNAPSHOT
+Bundle-Version: 2.1.1.SNAPSHOT

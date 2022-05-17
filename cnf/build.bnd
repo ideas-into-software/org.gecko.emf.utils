@@ -16,6 +16,12 @@ base-version: 1.0.0.SNAPSHOT
 # Maven Central Group-Id
 -groupid: org.geckoprojects.emf.utils
 
+# No simultanious release - We only release new version to Maven Central
+#releaseNotNeeded: ${findproviders;osgi.identity;(&(osgi.identity=${bsn})(version=${version}));REPOS}
+
+# If release not needed is empty, no Bundle has been found and for maven we do a release to the remote Repo. If not, we only do a release to the local .m2 Repo
+#-maven-release.local: ${if;${def;releaseNotNeeded};local;remote}
+
 javac.source: 11
 javac.target: 11
 

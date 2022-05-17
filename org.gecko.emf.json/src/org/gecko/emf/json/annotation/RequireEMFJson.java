@@ -30,7 +30,7 @@ import org.osgi.annotation.bundle.Requirement;
 @Requirement(
 		namespace = EMFNamespaces.EMF_CONFIGURATOR_NAMESPACE,
 		name = ResourceSetConfigurator.EMF_CONFIGURATOR_NAME,
-		filter = "(" + EMFNamespaces.EMF_CONFIGURATOR_NAME + "=EMFJson)"
+		filter = "(name=EMFJson)"
 		)
 @RequireEMF
 /**
