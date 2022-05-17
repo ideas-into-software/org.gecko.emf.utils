@@ -7,7 +7,7 @@ javac.target: 11
 	jakarta.ws.rs-api;version='2.1',\
 	org.osgi.service.jaxrs;version=latest,\
 	org.osgi.service.component;version=latest,\
-	emfjson-jackson;version=latest,\
+	org.eclipse.emfcloud.emfjson-jackson;version=latest,\
 	org.gecko.emf.json;version=project
 	
 Bundle-Name: Gecko EMF JaxRs Extension

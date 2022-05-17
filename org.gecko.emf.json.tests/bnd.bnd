@@ -6,4 +6,4 @@ javac.target: 11
 
 Bundle-Version: 1.0.1.SNAPSHOT
 -buildpath: \
-	emfjson-jackson;version=latest
+	org.eclipse.emfcloud.emfjson-jackson;version=latest
