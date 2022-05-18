@@ -20,9 +20,8 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.eclipse.emfcloud.jackson.annotations.EcoreTypeInfo;
 import org.gecko.emf.json.annotation.RequireEMFJson;
-import org.gecko.emf.osgi.annotation.require.RequireEMF;
+import org.gecko.emf.json.constants.EMFJs;
 
 /**
  * Provides a convinient Way to configure EMFJSON Serialization for JaxRS Endpoints.
