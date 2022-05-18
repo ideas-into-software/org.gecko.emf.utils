@@ -24,6 +24,7 @@ import org.gecko.emf.json.constants.EMFJs;
 import org.osgi.service.component.ComponentServiceObjects;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
+import org.eclipse.emfcloud.jackson.annotations.EcoreTypeInfo.USE;
 import org.eclipse.emfcloud.jackson.databind.EMFContext;
 
 /**
@@ -73,7 +74,7 @@ public class EMFJsonAnnotationConverter implements AnnotationConverter {
 			options.put(EMFJs.OPTION_SERIALIZE_DEFAULT_VALUE, config.serializeDefaultValues());
 			options.put(EMFJs.OPTION_SERIALIZE_TYPE, config.serializeTypes());
 			options.put(EMFJs.OPTION_USE_ID, config.useId());
-			options.put(EMFJs.OPTION_TYPE_USE, config.typeUSE());
+			options.put(EMFJs.OPTION_TYPE_USE, switchUse(config.typeUSE()));
 			
 			if(!"".contentEquals(config.refFieldName())) {
 				options.put(EMFJs.OPTION_REF_FIELD, config.refFieldName());
@@ -87,6 +88,17 @@ public class EMFJsonAnnotationConverter implements AnnotationConverter {
 			if(!"".contentEquals(config.typePackageUri())) {
 				options.put(EMFJs.OPTION_TYPE_PACKAGE_URI, config.typePackageUri());
 			}
+		}
+	}
+	
+	private USE switchUse(EMFJSONConfig.USE toSwitch) {
+		switch (toSwitch) {
+		case CLASS:
+			return USE.CLASS;
+		case NAME:
+			return USE.NAME;
+		default:
+			return USE.URI;
 		}
 	}
 

@@ -85,11 +85,17 @@ public @interface EMFJSONConfig {
 	/**
 	 * return @see {@link EMFJs#OPTION_TYPE_USE} default is eClass
 	 */
-	EcoreTypeInfo.USE typeUSE() default EcoreTypeInfo.USE.URI;
+	USE typeUSE() default USE.URI;
 	
 	/**
 	 * return @see {@link EMFJs#OPTION_TYPE_PACKAGE_URI} default is eClass
 	 */
 	String typePackageUri() default "";
+	
+	public enum USE {
+		URI,
+		NAME,
+		CLASS
+	}
 	
 }
