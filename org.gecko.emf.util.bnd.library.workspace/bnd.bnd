@@ -4,7 +4,7 @@ mavendeps: ${sjoin;\n; ${template;-maven-dependencies;${@}}}
 
 
 -includeresource: resources,\
-	{template/geckoEMF.maven=resources/template/geckoEMF.maven}	
+	{template/geckoEMFUtil.maven=resources/template/geckoEMFUtil.maven}	
 	
 Provide-Capability: \
 	${gecko-base}
