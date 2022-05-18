@@ -1,0 +1,13 @@
+Bundle-Version: 1.1.0-SNAPSHOT
+
+-buildpath: \
+	org.gecko.emf.bson;version=snapshot,\
+	org.gecko.emf.json;version=snapshot,\
+	org.gecko.emf.rest;version=snapshot
+	
+Export-Package: \
+	org.gecko.emf.osgi.bson.annotation,\
+	org.gecko.emf.osgi.json.annotation,\
+	org.gecko.emf.osgi.rest.jaxrs.annotation,\
+	org.gecko.emf.osgi.rest.jaxrs.annotation.json,\
+	org.gecko.emf.osgi.json.constants

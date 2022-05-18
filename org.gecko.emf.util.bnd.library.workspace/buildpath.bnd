@@ -2,4 +2,5 @@
 
 -buildpath: ${-runbundles}
 -buildpath.extra: \
-	org.gecko.emf.rest;version=snapshot
+	org.gecko.emf.rest;version=snapshot,\
+	org.gecko.emf.util.annotations;version=snapshot
