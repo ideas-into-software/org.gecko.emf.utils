@@ -1,6 +1,20 @@
 javac.source: 11
 javac.target: 11
 
+-testpath: \
+	assertj-core,\
+	junit-jupiter-api,\
+	junit-jupiter-params;version=latest,\
+	junit-jupiter-engine;version=latest,\
+	junit-platform-commons,\
+	junit-platform-engine;version=latest,\
+	org.opentest4j;version='[1.2.0,1.2.1)',\
+	org.mockito.mockito-core,\
+	org.apiguardian.api,\
+	net.bytebuddy.byte-buddy;version=latest,\
+	org.objenesis;version=latest,\
+	org.mockito.junit-jupiter
+	
 -library: enable-emf
 
 -buildpath: \

@@ -91,7 +91,7 @@ public class EMFJsonAnnotationConverter implements AnnotationConverter {
 		}
 	}
 	
-	private USE switchUse(EMFJSONConfig.USE toSwitch) {
+	static USE switchUse(EMFJSONConfig.USE toSwitch) {
 		switch (toSwitch) {
 		case CLASS:
 			return USE.CLASS;
