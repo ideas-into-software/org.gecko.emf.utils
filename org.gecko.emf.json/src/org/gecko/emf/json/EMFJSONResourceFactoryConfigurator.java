@@ -19,6 +19,7 @@ import org.eclipse.emf.ecore.resource.Resource.Factory.Registry;
 import org.eclipse.emfcloud.jackson.module.EMFModule;
 import org.eclipse.emfcloud.jackson.resource.JsonResourceFactory;
 import org.gecko.emf.json.configuration.ConfigurableJsonResourceFactory;
+import org.gecko.emf.json.constants.EMFJs;
 import org.gecko.emf.osgi.ResourceFactoryConfigurator;
 import org.gecko.emf.osgi.annotation.EMFResourceFactoryConfigurator;
 import org.gecko.emf.osgi.annotation.provide.ProvideEMFResourceConfigurator;
@@ -44,7 +45,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
  * @since 27.06.2014
  */
 @Component(name="EMFJsonConfigurator", immediate=true, service=ResourceFactoryConfigurator.class)
-@ProvideEMFResourceConfigurator(name="EMFJson", 
+@ProvideEMFResourceConfigurator(
+	name= EMFJs.EMFSJON_CAPABILITY_NAME, 
 	contentType = {
 			"application/yml",
 			"application/yaml",
@@ -62,7 +64,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 	version = "1.0.1"
 )
 @EMFResourceFactoryConfigurator(
-		name ="EMFJson",
+		name =EMFJs. EMFSJON_CAPABILITY_NAME,
 		fileExtension = {
 				"json",
 				"yml",

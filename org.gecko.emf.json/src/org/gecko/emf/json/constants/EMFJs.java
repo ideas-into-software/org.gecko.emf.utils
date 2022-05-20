@@ -15,6 +15,10 @@ package org.gecko.emf.json.constants;
  * Constants used as options during load/save operations on a Resource.
  */
 public final class EMFJs {
+	
+	/** Constant for the general Capability Namespace **/	
+	public static final String EMFSJON_CAPABILITY_NAME = "EMFJson";
+	
 	/**
 	 * Sets the root element to be loaded from a JSON document without type field.
 	 * <p>
