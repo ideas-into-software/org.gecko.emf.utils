@@ -7,7 +7,7 @@
     complianceLevel="11.0" copyrightFields="false" operationReflection="true" importOrganizing="true"
     oSGiCompatible="true">
   <foreignModel>pushstream.ecore</foreignModel>
-  <genPackages prefix="Pushstream" basePackage="org.gecko.emf" disposableProviderFactory="true"
+  <genPackages prefix="PushStream" basePackage="org.gecko.emf" disposableProviderFactory="true"
       ecorePackage="pushstream.ecore#/">
     <genDataTypes ecoreDataType="pushstream.ecore#//EPushStream"/>
     <genDataTypes ecoreDataType="pushstream.ecore#//PushStreamProvider"/>
