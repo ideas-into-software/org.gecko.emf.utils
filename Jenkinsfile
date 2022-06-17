@@ -6,9 +6,22 @@ pipeline  {
     }
     options {
         buildDiscarder(logRotator(numToKeepStr: '5'))
+        skipDefaultCheckout()
     }
 
     stages {
+    	stage('Clean Workspace') {
+            steps {
+                // Cleanup before starting the stage
+                cleanWs()
+            }
+        }
+    	stage('Checkout') {
+            steps {
+                // Checkout the repository
+                checkout scm 
+            }
+        }
         stage('Main branch release') {
             when { 
                 branch 'main' 
@@ -31,5 +44,4 @@ pipeline  {
             }
         }
     }
-
 }

@@ -69,14 +69,14 @@ public class BsonConfiguratorTest {
 	}
 
 	@Test
-	public void testBson(@InjectService(filter = "(component.name=EMFBsonConfigurator)") ServiceAware<ResourceFactoryConfigurator>  sa) {
+	public void testBson(@InjectService(filter = "(component.name=EMFBsonConfigurator)") ServiceAware<ResourceFactoryConfigurator>  sa, @InjectService BasicFactory bf, @InjectService BasicPackage bp) {
 		
 		System.out.println(sa.getServiceReference().getPropertyKeys());
-		ResourceSet resourceSet = createResourceSet();
+		ResourceSet resourceSet = createResourceSet(bp);
 		ResourceFactoryConfigurator configurator  = sa.getService();
 		configurator.configureResourceFactory(resourceSet.getResourceFactoryRegistry());
 	
-		Person p = createSamplePerson();
+		Person p = createSamplePerson(bf);
 		Resource xmiResource = resourceSet.createResource(URI.createURI("person.test"));
 		assertNotNull(xmiResource);
 		xmiResource.getContents().add(p);
@@ -139,14 +139,14 @@ public class BsonConfiguratorTest {
 	/**
 	 * 
 	 */
-	private Person createSamplePerson() {
-		Person p = BasicFactory.eINSTANCE.createPerson();
+	private Person createSamplePerson(BasicFactory bf) {
+		Person p = bf.createPerson();
 		p.setId("mh");
 		p.setFirstName("Mark");
 		p.setLastName("Hoffmann");
 		p.setGender(GenderType.MALE);
 		
-		Contact email = BasicFactory.eINSTANCE.createContact();
+		Contact email = bf.createContact();
 		email.setContext(ContactContextType.WORK);
 		email.setType(ContactType.EMAIL);
 		email.setValue("mh@mycomp.de");
@@ -156,11 +156,12 @@ public class BsonConfiguratorTest {
 	}
 
 	/**
+	 * @param bp 
 	 * @return
 	 */
-	private ResourceSet createResourceSet() {
+	private ResourceSet createResourceSet(BasicPackage bp) {
 		ResourceSet resourceSet = new ResourceSetImpl();
-		resourceSet.getPackageRegistry().put(BasicPackage.eNS_URI, BasicPackage.eINSTANCE);
+		resourceSet.getPackageRegistry().put(BasicPackage.eNS_URI, bp);
 		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("test", new BasicResourceFactoryImpl());
 		resourceSet.getResourceFactoryRegistry().getContentTypeToFactoryMap().put(BasicPackage.eCONTENT_TYPE, new BasicResourceFactoryImpl());
 		return resourceSet;

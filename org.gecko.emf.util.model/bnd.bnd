@@ -16,8 +16,7 @@ src src,src-gen
 # Bundle Annotations		
 -includeresource.model: model=model
 
--buildpath: ,\
-	${emf.lib},\
+-library: enable-emf
 
 Bundle-Version: 2.1.1.SNAPSHOT
 

@@ -20,6 +20,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.gecko.emf.json.annotation.RequireEMFJson;
+import org.gecko.emf.json.constants.EMFJs;
+
 /**
  * Provides a convinient Way to configure EMFJSON Serialization for JaxRS Endpoints.
  * @author Juergen Albert
@@ -28,6 +31,7 @@ import java.lang.annotation.Target;
 @Documented
 @Target({METHOD, PARAMETER, CONSTRUCTOR})
 @Retention(RetentionPolicy.RUNTIME)
+@RequireEMFJson
 public @interface EMFJSONConfig {
 	
 	/**
@@ -76,5 +80,21 @@ public @interface EMFJSONConfig {
 	 * return @see {@link EMFJs#OPTION_TYPE_FIELD} default is eClass
 	 */
 	String typeFieldName() default "";
+	
+	/**
+	 * return @see {@link EMFJs#OPTION_TYPE_USE} default is eClass
+	 */
+	USE typeUSE() default USE.URI;
+	
+	/**
+	 * return @see {@link EMFJs#OPTION_TYPE_PACKAGE_URI} default is eClass
+	 */
+	String typePackageUri() default "";
+	
+	public enum USE {
+		URI,
+		NAME,
+		CLASS
+	}
 	
 }

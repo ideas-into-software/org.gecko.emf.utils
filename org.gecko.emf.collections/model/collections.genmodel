@@ -7,7 +7,7 @@
     suppressGenModelAnnotations="false" copyrightFields="false" operationReflection="true"
     importOrganizing="true" oSGiCompatible="true">
   <foreignModel>collections.ecore</foreignModel>
-  <genPackages prefix="Collection" basePackage="org.gecko.emf" resource="XMI" disposableProviderFactory="true"
+  <genPackages prefix="Collection" basePackage="org.gecko" resource="XMI" disposableProviderFactory="true"
       ecorePackage="collections.ecore#/">
     <genDataTypes ecoreDataType="collections.ecore#//EList"/>
     <genDataTypes ecoreDataType="collections.ecore#//EIterator"/>

@@ -24,17 +24,22 @@ import java.util.Map;
 import java.util.TimeZone;
 
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.URIConverter;
 import org.eclipse.emf.ecore.xmi.XMLResource;
 import org.eclipse.emfcloud.jackson.annotations.EcoreIdentityInfo;
 import org.eclipse.emfcloud.jackson.annotations.EcoreReferenceInfo;
 import org.eclipse.emfcloud.jackson.annotations.EcoreTypeInfo;
+import org.eclipse.emfcloud.jackson.annotations.EcoreTypeInfo.USE;
 import org.eclipse.emfcloud.jackson.databind.EMFContext;
 import org.eclipse.emfcloud.jackson.handlers.URIHandler;
 import org.eclipse.emfcloud.jackson.module.EMFModule;
 import org.eclipse.emfcloud.jackson.module.EMFModule.Feature;
 import org.eclipse.emfcloud.jackson.resource.JsonResource;
+import org.eclipse.emfcloud.jackson.utils.ValueReader;
+import org.eclipse.emfcloud.jackson.utils.ValueWriter;
 import org.gecko.emf.json.constants.EMFJs;
 
 import com.fasterxml.jackson.databind.MapperFeature;
@@ -49,7 +54,7 @@ import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
  * @since 27 Jun 2018
  */
 public class ConfigurableJsonResource extends JsonResource {
-	
+
 	private final ObjectMapper srcMapper;
 
 	/**
@@ -59,18 +64,18 @@ public class ConfigurableJsonResource extends JsonResource {
 		super(uri, null);
 		srcMapper = null;
 	}
-	
+
 	public ConfigurableJsonResource(URI uri, ObjectMapper mapper) {
 		super(uri, mapper);
 		this.srcMapper = mapper;
 	}
-	
-	public ObjectMapper configureMapper(Map<?,?> options) {
+
+	public ObjectMapper configureMapper(Map<?, ?> options) {
 		boolean isNew = srcMapper == null;
 		final ObjectMapper mapper = isNew ? new ObjectMapper() : srcMapper.copy();
-		
+
 		mapper.configure(MapperFeature.IGNORE_DUPLICATE_MODULE_REGISTRATIONS, false);
-		
+
 		/*
 		 * Setting mapper options
 		 */
@@ -80,7 +85,7 @@ public class ConfigurableJsonResource extends JsonResource {
 			dateFormat.setTimeZone(TimeZone.getDefault());
 			mapper.setDateFormat(dateFormat);
 		}
-		
+
 		/*
 		 * Add a problem handler
 		 */
@@ -88,17 +93,22 @@ public class ConfigurableJsonResource extends JsonResource {
 		if (problemHandler instanceof DeserializationProblemHandler) {
 			mapper.addHandler((DeserializationProblemHandler) problemHandler);
 		}
-		
+
 		Boolean indentOutput = getOrDefault(options, EMFJs.OPTION_INDENT_OUTPUT, isNew ? true : null);
 		if (indentOutput != null) {
 			mapper.configure(SerializationFeature.INDENT_OUTPUT, indentOutput);
 		}
-		
-		/*
-		 * Setting module options
-		 */
+
+		EMFModule module = createInitModule(options, isNew);
+		mapper.registerModule(module);
+
+		return mapper;
+	}
+
+	private EMFModule createInitModule(Map<?, ?> options, boolean isNew) {
 		EMFModule module = new EMFModule();
-		Boolean serContainment = getOrDefault(options, EMFJs.OPTION_SERIALIZE_CONTAINMENT_AS_HREF, isNew ? false : null);
+		Boolean serContainment = getOrDefault(options, EMFJs.OPTION_SERIALIZE_CONTAINMENT_AS_HREF,
+				isNew ? false : null);
 		if (serContainment != null) {
 			module.configure(Feature.OPTION_SERIALIZE_CONTAINMENT_AS_HREF, serContainment);
 		}
@@ -114,42 +124,69 @@ public class ConfigurableJsonResource extends JsonResource {
 		if (useId != null) {
 			module.configure(Feature.OPTION_USE_ID, useId);
 		}
-		
+
 		Object uriHandlerObject = options.get(XMLResource.OPTION_URI_HANDLER);
-		
+
 		URIHandler uriHandler = null;
-		if(uriHandlerObject != null) {
-			if(uriHandlerObject instanceof XMLResource.URIHandler) {
+		if (uriHandlerObject != null) {
+			if (uriHandlerObject instanceof XMLResource.URIHandler) {
 				uriHandler = new XMLResourceUriHandlerWrapper((XMLResource.URIHandler) uriHandlerObject);
 			} else {
-				uriHandler = (URIHandler) uriHandlerObject; 
+				uriHandler = (URIHandler) uriHandlerObject;
 			}
 			module.setUriHandler(uriHandler);
 		}
 		String refField = getOrDefault(options, EMFJs.OPTION_REF_FIELD, null);
 		String idField = getOrDefault(options, EMFJs.OPTION_ID_FIELD, null);
 		String typeField = getOrDefault(options, EMFJs.OPTION_TYPE_FIELD, null);
-		
-		if(refField != null && uriHandler != null) {
+
+		if (refField != null && uriHandler != null) {
 			module.setReferenceInfo(new EcoreReferenceInfo(refField, uriHandler));
-		} else if(refField != null && uriHandler == null) {
+		} else if (refField != null && uriHandler == null) {
 			module.setReferenceInfo(new EcoreReferenceInfo(refField));
 		} else if (refField == null && uriHandler != null) {
 			module.setReferenceInfo(new EcoreReferenceInfo(uriHandler));
 		}
-		
-		if(typeField != null) {
+
+		if (typeField != null) {
 			module.setTypeInfo(new EcoreTypeInfo(typeField));
 		}
-		
-		if(idField != null) {
+
+		if (idField != null) {
 			module.setIdentityInfo(new EcoreIdentityInfo(idField));
 		}
-		mapper.registerModule(module);
-		
-		return mapper;
+		USE typeUse = getOrDefault(options, EMFJs.OPTION_TYPE_USE, EcoreTypeInfo.USE.URI);
+		if (typeUse != null) {
+			module.setTypeInfo(getTypeInfo(options, typeField, typeUse));
+		}
+		return module;
 	}
-	
+
+	private EcoreTypeInfo getTypeInfo(Map<?, ?> options, String typeField, USE typeUse) {
+		ValueReader<String, EClass> reader;
+		ValueWriter<EClass, String> writer;
+		switch (typeUse) {
+		case NAME:
+			reader = EcoreTypeInfo.READ_BY_NAME;
+			writer = EcoreTypeInfo.WRITE_BY_NAME;
+			break;
+		case CLASS:
+			reader = EcoreTypeInfo.READ_BY_CLASS;
+			writer = EcoreTypeInfo.WRITE_BY_CLASS_NAME;
+			break;
+		default:
+			reader = EcoreTypeInfo.DEFAULT_VALUE_READER;
+			writer = EcoreTypeInfo.DEFAULT_VALUE_WRITER;
+		}
+		String typePackageURI = getOrDefault(options, EMFJs.OPTION_TYPE_PACKAGE_URI, null);
+		if (typePackageURI != null) {
+			EPackage ePackage = (EPackage) getResourceSet().getEObject(URI.createURI(typePackageURI), true);
+			reader = (value, context) -> EMFContext.findEClassByName(value, ePackage);
+
+		}
+		return new EcoreTypeInfo(typeField, reader, writer);
+	}
+
 	/**
 	 * @param options
 	 * @param optionDateFormat
@@ -159,7 +196,7 @@ public class ConfigurableJsonResource extends JsonResource {
 	@SuppressWarnings("unchecked")
 	private <T> T getOrDefault(Map<?, ?> options, String key, T defaultvalue) {
 		Object value = options.get(key);
-		if(value == null) {
+		if (value == null) {
 			return defaultvalue;
 		}
 		return (T) value;
@@ -177,16 +214,10 @@ public class ConfigurableJsonResource extends JsonResource {
 
 		} else {
 
-			ContextAttributes attributes = EMFContext
-					.from(options)
-					.withPerCallAttribute(RESOURCE_SET, getResourceSet())
+			ContextAttributes attributes = EMFContext.from(options).withPerCallAttribute(RESOURCE_SET, getResourceSet())
 					.withPerCallAttribute(RESOURCE, this);
 
-			
-			configureMapper(options).reader()
-					.with(attributes)
-					.forType(Resource.class)
-					.withValueToUpdate(this)
+			configureMapper(options).reader().with(attributes).forType(Resource.class).withValueToUpdate(this)
 					.readValue(inputStream);
 
 		}
@@ -204,11 +235,9 @@ public class ConfigurableJsonResource extends JsonResource {
 
 		} else {
 
-			configureMapper(options).writer()
-					.with(EMFContext.from(options))
-					.writeValue(outputStream, this);
+			configureMapper(options).writer().with(EMFContext.from(options)).writeValue(outputStream, this);
 
 		}
 	}
-	
+
 }

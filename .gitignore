@@ -5,3 +5,4 @@ generated/
 /build/
 cnf/release/
 cnf/local/
+src-gen

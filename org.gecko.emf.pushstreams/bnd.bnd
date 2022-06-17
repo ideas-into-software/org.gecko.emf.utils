@@ -19,8 +19,9 @@ src src,src-gen
 javac.source: 11
 javac.target: 11
 
+-library: enable-emf
+
 -buildpath: ,\
-	${emf.lib},\
 	org.osgi.util.pushstream
 	
 Bundle-Version: 1.1.1.SNAPSHOT
