@@ -2,7 +2,7 @@
 	${emf.lib},\
 	com.fasterxml.jackson.core.jackson-core;version=latest,\
 	com.fasterxml.jackson.core.jackson-databind;version=latest,\
-	emfjson-jackson;version=latest,\
+	org.eclipse.emfcloud.emfjson-jackson;version=latest,\
 	de.undercouch.bson4jackson;version=latest,\
 	org.gecko.emf.json;version=snapshot
 
