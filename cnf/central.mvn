@@ -157,7 +157,6 @@ org.geckoprojects.bnd:org.gecko.bnd.jacoco.library:1.1.1
 
 #org.geckoprojects.emf:org.gecko.emf.osgi.api:4.1.1.202202162308
 org.geckoprojects.emf:org.gecko.emf.osgi.bnd.library.workspace:4.1.1-SNAPSHOT
-org.geckoprojects.emf:org.gecko.emf.osgi.example.model.basic:4.1.1-SNAPSHOT
 
 com.fasterxml.jackson.core:jackson-core:2.13.2
 com.fasterxml.jackson.core:jackson-databind:2.13.2
@@ -168,3 +167,4 @@ org.eclipse.emfcloud:emfjson-jackson:2.1.0-SNAPSHOT
 de.undercouch:bson4jackson:2.13.1
 org.yaml:snakeyaml:1.30
 #org.emfjson:emfjson-jackson:1.3.0
+org.geckoprojects.emf:org.gecko.emf.osgi.example.model.basic:4.1.1.202202162309
