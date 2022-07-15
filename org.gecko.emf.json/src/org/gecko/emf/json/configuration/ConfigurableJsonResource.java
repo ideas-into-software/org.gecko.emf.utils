@@ -11,6 +11,7 @@
  */
 package org.gecko.emf.json.configuration;
 
+import static org.eclipse.emfcloud.jackson.databind.EMFContext.Attributes.ROOT_ELEMENT;
 import static org.eclipse.emfcloud.jackson.databind.EMFContext.Attributes.RESOURCE;
 import static org.eclipse.emfcloud.jackson.databind.EMFContext.Attributes.RESOURCE_SET;
 
@@ -216,6 +217,10 @@ public class ConfigurableJsonResource extends JsonResource {
 
 			ContextAttributes attributes = EMFContext.from(options).withPerCallAttribute(RESOURCE_SET, getResourceSet())
 					.withPerCallAttribute(RESOURCE, this);
+			EClass eclass = getOrDefault(options, EMFJs.OPTION_ROOT_ELEMENT, null);
+			if (eclass != null) {
+				attributes = attributes.withPerCallAttribute(ROOT_ELEMENT, eclass);
+			}
 
 			configureMapper(options).reader().with(attributes).forType(Resource.class).withValueToUpdate(this)
 					.readValue(inputStream);
