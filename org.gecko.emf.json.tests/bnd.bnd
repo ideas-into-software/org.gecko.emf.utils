@@ -6,4 +6,8 @@ javac.target: 11
 
 Bundle-Version: 1.0.1.SNAPSHOT
 -buildpath: \
-	org.eclipse.emfcloud.emfjson-jackson;version=latest
+	org.eclipse.emfcloud.emfjson-jackson;version=latest,\
+	org.gecko.emf.osgi.component,\
+	org.eclipse.emf.ecore.xmi,\
+	org.eclipse.emf.ecore,\
+	org.gecko.emf.osgi.example.model.basic
