@@ -11,18 +11,22 @@
  */
 package org.gecko.emf.json.configuration;
 
-import static org.eclipse.emfcloud.jackson.databind.EMFContext.Attributes.ROOT_ELEMENT;
 import static org.eclipse.emfcloud.jackson.databind.EMFContext.Attributes.RESOURCE;
 import static org.eclipse.emfcloud.jackson.databind.EMFContext.Attributes.RESOURCE_SET;
+import static org.eclipse.emfcloud.jackson.databind.EMFContext.Attributes.ROOT_ELEMENT;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TimeZone;
+import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
@@ -179,12 +183,21 @@ public class ConfigurableJsonResource extends JsonResource {
 			reader = EcoreTypeInfo.DEFAULT_VALUE_READER;
 			writer = EcoreTypeInfo.DEFAULT_VALUE_WRITER;
 		}
-		String typePackageURI = getOrDefault(options, EMFJs.OPTION_TYPE_PACKAGE_URI, null);
-		if (typePackageURI != null) {
-			EPackage ePackage = (EPackage) getResourceSet().getEObject(URI.createURI(typePackageURI), true);
-			reader = (value, context) -> EMFContext.findEClassByName(value, ePackage);
+		List<String> typePackageURIS = getOrDefaultAsList(options, EMFJs.OPTION_TYPE_PACKAGE_URIS, Collections.emptyList());
 
-		}
+		List<EPackage> ePackages = typePackageURIS.stream().map(typePackageURI -> {
+			if(typePackageURI != null) {
+				EPackage ePackage = (EPackage) getResourceSet().getPackageRegistry().getEPackage(typePackageURI);
+				return ePackage;
+			}
+			return null;
+		}).filter(ePackage -> ePackage != null).collect(Collectors.toList());
+
+		reader = (value, context) -> ePackages.stream()
+				.map(ePackage-> {
+					return EMFContext.findEClassByName(value, ePackage);						
+				}).filter(eClass -> eClass != null).findFirst().orElse(null);
+
 		return new EcoreTypeInfo(typeField, reader, writer);
 	}
 
@@ -201,6 +214,21 @@ public class ConfigurableJsonResource extends JsonResource {
 			return defaultvalue;
 		}
 		return (T) value;
+	}
+
+	@SuppressWarnings("unchecked")
+	private <T> List<T> getOrDefaultAsList(Map<?, ?> options, String key, List<T> defaultvalue) {
+		Object value = options.get(key);
+		if(value == null) {
+			return (List<T>) defaultvalue;
+		}
+		if(value instanceof List) {
+			return (List<T>) value;
+		}
+		else if(value instanceof Array) {
+			return (List<T>) Arrays.asList(value);
+		}
+		return List.of((T) value);
 	}
 
 	@Override
@@ -223,7 +251,7 @@ public class ConfigurableJsonResource extends JsonResource {
 			}
 
 			configureMapper(options).reader().with(attributes).forType(Resource.class).withValueToUpdate(this)
-					.readValue(inputStream);
+			.readValue(inputStream);
 
 		}
 	}

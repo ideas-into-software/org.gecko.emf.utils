@@ -87,9 +87,9 @@ public @interface EMFJSONConfig {
 	USE typeUSE() default USE.URI;
 	
 	/**
-	 * return @see {@link EMFJs#OPTION_TYPE_PACKAGE_URI} default is eClass
+	 * return @see {@link EMFJs#OPTION_TYPE_PACKAGE_URIS} default is eClass
 	 */
-	String typePackageUri() default "";
+	String typePackageUris() default "";
 	
 	public enum USE {
 		URI,
