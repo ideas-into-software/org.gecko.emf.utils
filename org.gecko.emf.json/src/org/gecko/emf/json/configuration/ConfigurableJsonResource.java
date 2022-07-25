@@ -193,10 +193,13 @@ public class ConfigurableJsonResource extends JsonResource {
 			return null;
 		}).filter(ePackage -> ePackage != null).collect(Collectors.toList());
 
-		reader = (value, context) -> ePackages.stream()
-				.map(ePackage-> {
-					return EMFContext.findEClassByName(value, ePackage);						
-				}).filter(eClass -> eClass != null).findFirst().orElse(null);
+		if(!ePackages.isEmpty()) {
+			reader = (value, context) -> ePackages.stream()
+					.map(ePackage-> {
+						return EMFContext.findEClassByName(value, ePackage);						
+					}).filter(eClass -> eClass != null).findFirst().orElse(null);
+		}
+		
 
 		return new EcoreTypeInfo(typeField, reader, writer);
 	}
