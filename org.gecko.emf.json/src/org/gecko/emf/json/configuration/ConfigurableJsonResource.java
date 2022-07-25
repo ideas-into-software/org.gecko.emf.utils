@@ -222,7 +222,7 @@ public class ConfigurableJsonResource extends JsonResource {
 	private <T> List<T> getOrDefaultAsList(Map<?, ?> options, String key, List<T> defaultvalue) {
 		Object value = options.get(key);
 		if(value == null) {
-			return (List<T>) defaultvalue;
+			return defaultvalue;
 		}
 		if(value instanceof List) {
 			return (List<T>) value;
