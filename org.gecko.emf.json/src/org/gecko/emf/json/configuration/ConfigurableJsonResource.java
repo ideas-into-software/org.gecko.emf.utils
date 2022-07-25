@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TimeZone;
 import java.util.stream.Collectors;
 
@@ -187,17 +188,15 @@ public class ConfigurableJsonResource extends JsonResource {
 
 		List<EPackage> ePackages = typePackageURIS.stream().map(typePackageURI -> {
 			if(typePackageURI != null) {
-				EPackage ePackage = (EPackage) getResourceSet().getPackageRegistry().getEPackage(typePackageURI);
-				return ePackage;
+				return getResourceSet().getPackageRegistry().getEPackage(typePackageURI);
 			}
 			return null;
-		}).filter(ePackage -> ePackage != null).collect(Collectors.toList());
+		}).filter(Objects::nonNull).collect(Collectors.toList());
 
 		if(!ePackages.isEmpty()) {
 			reader = (value, context) -> ePackages.stream()
-					.map(ePackage-> {
-						return EMFContext.findEClassByName(value, ePackage);						
-					}).filter(eClass -> eClass != null).findFirst().orElse(null);
+					.map(ePackage-> EMFContext.findEClassByName(value, ePackage))
+					.filter(Objects::nonNull).findFirst().orElse(null);
 		}
 		
 
