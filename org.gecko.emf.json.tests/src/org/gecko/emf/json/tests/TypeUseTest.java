@@ -46,28 +46,77 @@ public class TypeUseTest {
 	public void testServices(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
 			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware) {
 		
-		assertNotNull(examplePackageAware);
-		assertThat(examplePackageAware.getServices()).hasSize(1);
+		checkServices(rsAware, examplePackageAware);
+	}
+	
+	@Test
+	public void testTypeUseByNameEmpty(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
+			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware) {
+		
+		checkServices(rsAware, examplePackageAware);
+		
 		ExampleModelPackage modelPackage = examplePackageAware.getService();
 		assertNotNull(modelPackage);
 		
-		assertNotNull(rsAware);
-		assertThat(rsAware.getServices()).hasSize(1);
 		ResourceSet resourceSet = rsAware.getService();
 		assertNotNull(resourceSet);
+		
+		String pathToJsonInputFile = System.getProperty("base.path") + "/data/exampleTypeByName.json";
+		Resource inRes = resourceSet.createResource(URI.createFileURI(pathToJsonInputFile));
+		
+		Map<Object, Object> loadOptions = new HashMap<Object, Object>();
+		loadOptions.put(EMFContext.Attributes.ROOT_ELEMENT, (EClass) modelPackage.getEClassifier("Building"));
+		loadOptions.put(EMFJs.OPTION_TYPE_USE, EcoreTypeInfo.USE.NAME);
+		loadOptions.put(EMFJs.OPTION_TYPE_FIELD, "type");
+		
+		try {
+			inRes.load(loadOptions);
+		} catch (Exception e) {
+			fail("Error loading Resource! " + e);
+		}
+		
+		checkResource(inRes);		
+	}
+	
+	@Test
+	public void testTypeUseByNameNullURI(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
+			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware) {
+		
+		checkServices(rsAware, examplePackageAware);
+		
+		ExampleModelPackage modelPackage = examplePackageAware.getService();
+		assertNotNull(modelPackage);
+		
+		ResourceSet resourceSet = rsAware.getService();
+		assertNotNull(resourceSet);
+		
+		String pathToJsonInputFile = System.getProperty("base.path") + "/data/exampleTypeByName.json";
+		Resource inRes = resourceSet.createResource(URI.createFileURI(pathToJsonInputFile));
+		
+		Map<Object, Object> loadOptions = new HashMap<Object, Object>();
+		loadOptions.put(EMFContext.Attributes.ROOT_ELEMENT, (EClass) modelPackage.getEClassifier("Building"));
+		loadOptions.put(EMFJs.OPTION_TYPE_USE, EcoreTypeInfo.USE.NAME);
+		loadOptions.put(EMFJs.OPTION_TYPE_FIELD, "type");
+		loadOptions.put(EMFJs.OPTION_TYPE_PACKAGE_URIS, null);
+		
+		try {
+			inRes.load(loadOptions);
+		} catch (Exception e) {
+			fail("Error loading Resource! " + e);
+		}
+		
+		checkResource(inRes);	
 	}
 	
 	@Test
 	public void testTypeUseByName(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
 			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware) {
 		
-		assertNotNull(examplePackageAware);
-		assertThat(examplePackageAware.getServices()).hasSize(1);
+		checkServices(rsAware, examplePackageAware);
+		
 		ExampleModelPackage modelPackage = examplePackageAware.getService();
 		assertNotNull(modelPackage);
 		
-		assertNotNull(rsAware);
-		assertThat(rsAware.getServices()).hasSize(1);
 		ResourceSet resourceSet = rsAware.getService();
 		assertNotNull(resourceSet);
 		
@@ -86,27 +135,18 @@ public class TypeUseTest {
 			fail("Error loading Resource! " + e);
 		}
 		
-		assertThat(inRes.getContents()).isNotEmpty();
-		assertThat(inRes.getContents()).hasSize(1);
-		assertThat(inRes.getContents().get(0)).isInstanceOf(Building.class);
-		
-		Building loadedObj = (Building) inRes.getContents().get(0);
-		
-		assertThat(loadedObj.getLocation()).isNotNull();
-		assertThat(loadedObj.getLocation()).isInstanceOf(Polygon.class);		
+		checkResource(inRes);	
 	}
 	
 	@Test
 	public void testTypeUseByNameArray(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
 			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware) {
 		
-		assertNotNull(examplePackageAware);
-		assertThat(examplePackageAware.getServices()).hasSize(1);
+		checkServices(rsAware, examplePackageAware);
+		
 		ExampleModelPackage modelPackage = examplePackageAware.getService();
 		assertNotNull(modelPackage);
 		
-		assertNotNull(rsAware);
-		assertThat(rsAware.getServices()).hasSize(1);
 		ResourceSet resourceSet = rsAware.getService();
 		assertNotNull(resourceSet);
 		
@@ -125,27 +165,18 @@ public class TypeUseTest {
 			fail("Error loading Resource! " + e);
 		}
 		
-		assertThat(inRes.getContents()).isNotEmpty();
-		assertThat(inRes.getContents()).hasSize(1);
-		assertThat(inRes.getContents().get(0)).isInstanceOf(Building.class);
-		
-		Building loadedObj = (Building) inRes.getContents().get(0);
-		
-		assertThat(loadedObj.getLocation()).isNotNull();
-		assertThat(loadedObj.getLocation()).isInstanceOf(Polygon.class);		
+		checkResource(inRes);	
 	}
 	
 	@Test
 	public void testTypeUseByNameSigle(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
 			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware) {
 		
-		assertNotNull(examplePackageAware);
-		assertThat(examplePackageAware.getServices()).hasSize(1);
+		checkServices(rsAware, examplePackageAware);
+		
 		ExampleModelPackage modelPackage = examplePackageAware.getService();
 		assertNotNull(modelPackage);
 		
-		assertNotNull(rsAware);
-		assertThat(rsAware.getServices()).hasSize(1);
 		ResourceSet resourceSet = rsAware.getService();
 		assertNotNull(resourceSet);
 		
@@ -164,27 +195,77 @@ public class TypeUseTest {
 			fail("Error loading Resource! " + e);
 		}
 		
-		assertThat(inRes.getContents()).isNotEmpty();
-		assertThat(inRes.getContents()).hasSize(1);
-		assertThat(inRes.getContents().get(0)).isInstanceOf(Building.class);
+		checkResource(inRes);	
+	}
+	
+	@Test
+	public void testTypeUseByClassEmpty(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
+			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware) {
 		
-		Building loadedObj = (Building) inRes.getContents().get(0);
+		checkServices(rsAware, examplePackageAware);
 		
-		assertThat(loadedObj.getLocation()).isNotNull();
-		assertThat(loadedObj.getLocation()).isInstanceOf(Polygon.class);		
+		ExampleModelPackage modelPackage = examplePackageAware.getService();
+		assertNotNull(modelPackage);
+		
+		ResourceSet resourceSet = rsAware.getService();
+		assertNotNull(resourceSet);
+		
+		String pathToJsonInputFile = System.getProperty("base.path") + "/data/exampleTypeByClass.json";
+		Resource inRes = resourceSet.createResource(URI.createFileURI(pathToJsonInputFile));
+		
+		Map<Object, Object> loadOptions = new HashMap<Object, Object>();
+		loadOptions.put(EMFContext.Attributes.ROOT_ELEMENT, (EClass) modelPackage.getEClassifier("Building"));
+		loadOptions.put(EMFJs.OPTION_TYPE_USE, EcoreTypeInfo.USE.CLASS);
+		loadOptions.put(EMFJs.OPTION_TYPE_FIELD, "type");
+		
+		try {
+			inRes.load(loadOptions);
+		} catch (Exception e) {
+			fail("Error loading Resource! " + e);
+		}
+		
+		checkResource(inRes);
+	}
+	
+	@Test
+	public void testTypeUseByClassNullURI(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
+			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware) {
+		
+		checkServices(rsAware, examplePackageAware);
+		
+		ExampleModelPackage modelPackage = examplePackageAware.getService();
+		assertNotNull(modelPackage);
+		
+		ResourceSet resourceSet = rsAware.getService();
+		assertNotNull(resourceSet);
+		
+		String pathToJsonInputFile = System.getProperty("base.path") + "/data/exampleTypeByClass.json";
+		Resource inRes = resourceSet.createResource(URI.createFileURI(pathToJsonInputFile));
+		
+		Map<Object, Object> loadOptions = new HashMap<Object, Object>();
+		loadOptions.put(EMFContext.Attributes.ROOT_ELEMENT, (EClass) modelPackage.getEClassifier("Building"));
+		loadOptions.put(EMFJs.OPTION_TYPE_USE, EcoreTypeInfo.USE.CLASS);
+		loadOptions.put(EMFJs.OPTION_TYPE_FIELD, "type");
+		loadOptions.put(EMFJs.OPTION_TYPE_PACKAGE_URIS, null);
+		
+		try {
+			inRes.load(loadOptions);
+		} catch (Exception e) {
+			fail("Error loading Resource! " + e);
+		}
+		
+		checkResource(inRes);	
 	}
 	
 	@Test
 	public void testTypeUseByClass(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
 			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware) {
 		
-		assertNotNull(examplePackageAware);
-		assertThat(examplePackageAware.getServices()).hasSize(1);
+		checkServices(rsAware, examplePackageAware);
+		
 		ExampleModelPackage modelPackage = examplePackageAware.getService();
 		assertNotNull(modelPackage);
 		
-		assertNotNull(rsAware);
-		assertThat(rsAware.getServices()).hasSize(1);
 		ResourceSet resourceSet = rsAware.getService();
 		assertNotNull(resourceSet);
 		
@@ -203,14 +284,7 @@ public class TypeUseTest {
 			fail("Error loading Resource! " + e);
 		}
 		
-		assertThat(inRes.getContents()).isNotEmpty();
-		assertThat(inRes.getContents()).hasSize(1);
-		assertThat(inRes.getContents().get(0)).isInstanceOf(Building.class);
-		
-		Building loadedObj = (Building) inRes.getContents().get(0);
-		
-		assertThat(loadedObj.getLocation()).isNotNull();
-		assertThat(loadedObj.getLocation()).isInstanceOf(Polygon.class);		
+		checkResource(inRes);	
 	}
 	
 	
@@ -218,13 +292,11 @@ public class TypeUseTest {
 	public void testTypeUseByClassArray(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
 			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware) {
 		
-		assertNotNull(examplePackageAware);
-		assertThat(examplePackageAware.getServices()).hasSize(1);
+		checkServices(rsAware, examplePackageAware);
+		
 		ExampleModelPackage modelPackage = examplePackageAware.getService();
 		assertNotNull(modelPackage);
 		
-		assertNotNull(rsAware);
-		assertThat(rsAware.getServices()).hasSize(1);
 		ResourceSet resourceSet = rsAware.getService();
 		assertNotNull(resourceSet);
 		
@@ -243,27 +315,18 @@ public class TypeUseTest {
 			fail("Error loading Resource! " + e);
 		}
 		
-		assertThat(inRes.getContents()).isNotEmpty();
-		assertThat(inRes.getContents()).hasSize(1);
-		assertThat(inRes.getContents().get(0)).isInstanceOf(Building.class);
-		
-		Building loadedObj = (Building) inRes.getContents().get(0);
-		
-		assertThat(loadedObj.getLocation()).isNotNull();
-		assertThat(loadedObj.getLocation()).isInstanceOf(Polygon.class);		
+		checkResource(inRes);
 	}
 	
 	@Test
 	public void testTypeUseByClassSingle(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
 			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware) {
 		
-		assertNotNull(examplePackageAware);
-		assertThat(examplePackageAware.getServices()).hasSize(1);
+		checkServices(rsAware, examplePackageAware);
+		
 		ExampleModelPackage modelPackage = examplePackageAware.getService();
 		assertNotNull(modelPackage);
 		
-		assertNotNull(rsAware);
-		assertThat(rsAware.getServices()).hasSize(1);
 		ResourceSet resourceSet = rsAware.getService();
 		assertNotNull(resourceSet);
 		
@@ -282,27 +345,18 @@ public class TypeUseTest {
 			fail("Error loading Resource! " + e);
 		}
 		
-		assertThat(inRes.getContents()).isNotEmpty();
-		assertThat(inRes.getContents()).hasSize(1);
-		assertThat(inRes.getContents().get(0)).isInstanceOf(Building.class);
-		
-		Building loadedObj = (Building) inRes.getContents().get(0);
-		
-		assertThat(loadedObj.getLocation()).isNotNull();
-		assertThat(loadedObj.getLocation()).isInstanceOf(Polygon.class);		
+		checkResource(inRes);
 	}
 	
 	@Test
 	public void testTypeUseByURI(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
 			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware) {
 		
-		assertNotNull(examplePackageAware);
-		assertThat(examplePackageAware.getServices()).hasSize(1);
+		checkServices(rsAware, examplePackageAware);
+		
 		ExampleModelPackage modelPackage = examplePackageAware.getService();
 		assertNotNull(modelPackage);
-		
-		assertNotNull(rsAware);
-		assertThat(rsAware.getServices()).hasSize(1);
+	
 		ResourceSet resourceSet = rsAware.getService();
 		assertNotNull(resourceSet);
 		
@@ -322,6 +376,21 @@ public class TypeUseTest {
 			fail("Error loading Resource! " + e);
 		}
 		
+		checkResource(inRes);	
+	}
+
+	
+	private void checkServices(ServiceAware<ResourceSet> rsAware, ServiceAware<ExampleModelPackage> examplePackageAware) {
+		
+		assertNotNull(examplePackageAware);
+		assertThat(examplePackageAware.getServices()).hasSize(1);
+		
+		assertNotNull(rsAware);
+		assertThat(rsAware.getServices()).hasSize(1);
+	}
+	
+	private void checkResource(Resource inRes) {
+		
 		assertThat(inRes.getContents()).isNotEmpty();
 		assertThat(inRes.getContents()).hasSize(1);
 		assertThat(inRes.getContents().get(0)).isInstanceOf(Building.class);
@@ -331,5 +400,4 @@ public class TypeUseTest {
 		assertThat(loadedObj.getLocation()).isNotNull();
 		assertThat(loadedObj.getLocation()).isInstanceOf(Polygon.class);		
 	}
-
 }
