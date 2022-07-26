@@ -19,9 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -238,7 +236,7 @@ public class ConfigurableJsonResource extends JsonResource {
 			return (List<T>) value;
 		}
 		else if(value.getClass().isArray()) {
-			return (List<T>) Arrays.asList((T[])value);
+			return Arrays.asList((T[])value);
 		}
 		return List.of((T) value);
 	}
