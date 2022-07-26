@@ -171,19 +171,37 @@ public class ConfigurableJsonResource extends JsonResource {
 	private EcoreTypeInfo getTypeInfo(Map<?, ?> options, String typeField, USE typeUse) {
 		ValueReader<String, EClass> reader;
 		ValueWriter<EClass, String> writer;
+		List<EPackage> ePackages;
 		switch (typeUse) {
 		case NAME:
 			reader = EcoreTypeInfo.READ_BY_NAME;
 			writer = EcoreTypeInfo.WRITE_BY_NAME;
+			ePackages = extractTypePackageURIs(options);
+			if(!ePackages.isEmpty()) {
+				reader = (value, context) -> ePackages.stream()
+						.map(ePackage-> EMFContext.findEClassByName(value, ePackage))
+						.filter(Objects::nonNull).findFirst().orElse(null);
+			}
 			break;
 		case CLASS:
 			reader = EcoreTypeInfo.READ_BY_CLASS;
 			writer = EcoreTypeInfo.WRITE_BY_CLASS_NAME;
+			ePackages = extractTypePackageURIs(options);
+			if(!ePackages.isEmpty()) {
+				reader = (value, context) -> ePackages.stream()
+						.map(ePackage-> EMFContext.findEClassByQualifiedName(value, ePackage))
+						.filter(Objects::nonNull).findFirst().orElse(null);
+			}
 			break;
 		default:
 			reader = EcoreTypeInfo.DEFAULT_VALUE_READER;
 			writer = EcoreTypeInfo.DEFAULT_VALUE_WRITER;
-		}
+		}		
+
+		return new EcoreTypeInfo(typeField, reader, writer);
+	}
+	
+	private List<EPackage> extractTypePackageURIs(Map<?, ?> options) {
 		List<String> typePackageURIS = getOrDefaultAsList(options, EMFJs.OPTION_TYPE_PACKAGE_URIS, Collections.emptyList());
 
 		List<EPackage> ePackages = typePackageURIS.stream().map(typePackageURI -> {
@@ -193,14 +211,8 @@ public class ConfigurableJsonResource extends JsonResource {
 			return null;
 		}).filter(Objects::nonNull).collect(Collectors.toList());
 
-		if(!ePackages.isEmpty()) {
-			reader = (value, context) -> ePackages.stream()
-					.map(ePackage-> EMFContext.findEClassByName(value, ePackage))
-					.filter(Objects::nonNull).findFirst().orElse(null);
-		}
+		return ePackages;
 		
-
-		return new EcoreTypeInfo(typeField, reader, writer);
 	}
 
 	/**
