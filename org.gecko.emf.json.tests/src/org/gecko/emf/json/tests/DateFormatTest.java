@@ -15,6 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -72,7 +73,7 @@ public class DateFormatTest {
 			fail("Error loading Resource! " + e);
 		}
 
-		checkResource(inRes, "Tue Jul 26 00:00:00 CEST 2022");	
+		checkResource(inRes,  Instant.parse("2022-07-25T22:00:00Z"));	
 	}
 	
 	@Test
@@ -100,8 +101,8 @@ public class DateFormatTest {
 		} catch (Exception e) {
 			fail("Error loading Resource! " + e);
 		}
-
-		checkResource(inRes, "Tue Jul 26 08:46:53 CEST 2022");	
+		
+		checkResource(inRes, Instant.parse("2022-07-26T06:46:53Z"));	
 	}
 
 	private void checkServices(ServiceAware<ResourceSet> rsAware, ServiceAware<ExampleModelPackage> examplePackageAware) {
@@ -113,7 +114,7 @@ public class DateFormatTest {
 		assertThat(rsAware.getServices()).hasSize(1);
 	}
 
-	private void checkResource(Resource inRes, String expectedResult) {
+	private void checkResource(Resource inRes, Instant expectedResult) {
 
 		assertThat(inRes.getContents()).isNotEmpty();
 		assertThat(inRes.getContents()).hasSize(1);
@@ -122,7 +123,7 @@ public class DateFormatTest {
 		Building loadedObj = (Building) inRes.getContents().get(0);
 
 		assertThat(loadedObj.getStartDate()).isNotNull();
-		assertThat(loadedObj.getStartDate().toString()).isEqualTo(expectedResult);
+		assertThat(loadedObj.getStartDate().toInstant()).isEqualTo(expectedResult);
 	}
 	
 	
