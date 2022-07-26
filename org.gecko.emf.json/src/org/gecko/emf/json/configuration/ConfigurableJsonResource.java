@@ -18,9 +18,10 @@ import static org.eclipse.emfcloud.jackson.databind.EMFContext.Attributes.ROOT_E
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -204,15 +205,12 @@ public class ConfigurableJsonResource extends JsonResource {
 	private List<EPackage> extractTypePackageURIs(Map<?, ?> options) {
 		List<String> typePackageURIS = getOrDefaultAsList(options, EMFJs.OPTION_TYPE_PACKAGE_URIS, Collections.emptyList());
 
-		List<EPackage> ePackages = typePackageURIS.stream().map(typePackageURI -> {
+		return typePackageURIS.stream().map(typePackageURI -> {
 			if(typePackageURI != null) {
 				return getResourceSet().getPackageRegistry().getEPackage(typePackageURI);
 			}
 			return null;
-		}).filter(Objects::nonNull).collect(Collectors.toList());
-
-		return ePackages;
-		
+		}).filter(Objects::nonNull).collect(Collectors.toList());		
 	}
 
 	/**
@@ -239,8 +237,8 @@ public class ConfigurableJsonResource extends JsonResource {
 		if(value instanceof List) {
 			return (List<T>) value;
 		}
-		else if(value instanceof Array) {
-			return (List<T>) Arrays.asList(value);
+		else if(value.getClass().isArray()) {
+			return (List<T>) Arrays.asList((T[])value);
 		}
 		return List.of((T) value);
 	}
