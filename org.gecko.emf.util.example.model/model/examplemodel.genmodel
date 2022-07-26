@@ -7,32 +7,13 @@
   <foreignModel>examplemodel.ecore</foreignModel>
   <genPackages prefix="ExampleModel" basePackage="org.gecko.emf.util.example.model"
       resource="XMI" disposableProviderFactory="true" literalsInterface="false" ecorePackage="examplemodel.ecore#/">
-    <genEnums typeSafeEnumCompatible="false" ecoreEnum="examplemodel.ecore#//FeatureType">
-      <genEnumLiterals ecoreEnumLiteral="examplemodel.ecore#//FeatureType/Feature"/>
-    </genEnums>
     <genEnums typeSafeEnumCompatible="false" ecoreEnum="examplemodel.ecore#//BuildingType">
       <genEnumLiterals ecoreEnumLiteral="examplemodel.ecore#//BuildingType/Building"/>
     </genEnums>
     <genDataTypes ecoreDataType="examplemodel.ecore#//Array1D"/>
     <genDataTypes ecoreDataType="examplemodel.ecore#//Array2D"/>
     <genDataTypes ecoreDataType="examplemodel.ecore#//Array3D"/>
-    <genClasses ecoreClass="examplemodel.ecore#//GeoJSON">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute examplemodel.ecore#//GeoJSON/bbox"/>
-    </genClasses>
-    <genClasses image="false" ecoreClass="examplemodel.ecore#//AbstractGeometry"/>
-    <genClasses ecoreClass="examplemodel.ecore#//GeometryCollection">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference examplemodel.ecore#//GeometryCollection/geometries"/>
-    </genClasses>
     <genClasses ecoreClass="examplemodel.ecore#//Geometry"/>
-    <genClasses ecoreClass="examplemodel.ecore#//Feature">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute examplemodel.ecore#//Feature/type"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute examplemodel.ecore#//Feature/id"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference examplemodel.ecore#//Feature/geometry"/>
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference examplemodel.ecore#//Feature/properties"/>
-    </genClasses>
-    <genClasses ecoreClass="examplemodel.ecore#//FeatureCollection">
-      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference examplemodel.ecore#//FeatureCollection/features"/>
-    </genClasses>
     <genClasses ecoreClass="examplemodel.ecore#//Point">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute examplemodel.ecore#//Point/coordinates"/>
     </genClasses>
@@ -51,13 +32,10 @@
     <genClasses ecoreClass="examplemodel.ecore#//MultiPolygon">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute examplemodel.ecore#//MultiPolygon/coordinates"/>
     </genClasses>
-    <genClasses ecoreClass="examplemodel.ecore#//StringToStringMap">
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute examplemodel.ecore#//StringToStringMap/key"/>
-      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute examplemodel.ecore#//StringToStringMap/value"/>
-    </genClasses>
     <genClasses ecoreClass="examplemodel.ecore#//Building">
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute examplemodel.ecore#//Building/type"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference examplemodel.ecore#//Building/location"/>
+      <genFeatures createChild="false" ecoreFeature="ecore:EAttribute examplemodel.ecore#//Building/startDate"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>
