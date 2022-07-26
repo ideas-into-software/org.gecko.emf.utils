@@ -15,7 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -73,7 +74,13 @@ public class DateFormatTest {
 			fail("Error loading Resource! " + e);
 		}
 
-		checkResource(inRes,  Instant.parse("2022-07-25T22:00:00Z"));	
+		Building loadedObj = getLoadedObject(inRes);	
+		
+		assertThat(loadedObj.getStartDate()).isNotNull();
+		LocalDateTime ldt = loadedObj.getStartDate().toInstant()
+			      .atZone(ZoneId.systemDefault())
+			      .toLocalDateTime();
+		assertThat(ldt.getMinute()).isEqualTo(0);
 	}
 	
 	@Test
@@ -102,7 +109,14 @@ public class DateFormatTest {
 			fail("Error loading Resource! " + e);
 		}
 		
-		checkResource(inRes, Instant.parse("2022-07-26T06:46:53Z"));	
+		
+		Building loadedObj = getLoadedObject(inRes);	
+		
+		assertThat(loadedObj.getStartDate()).isNotNull();
+		LocalDateTime ldt = loadedObj.getStartDate().toInstant()
+			      .atZone(ZoneId.systemDefault())
+			      .toLocalDateTime();
+		assertThat(ldt.getMinute()).isNotEqualTo(0);
 	}
 
 	private void checkServices(ServiceAware<ResourceSet> rsAware, ServiceAware<ExampleModelPackage> examplePackageAware) {
@@ -114,16 +128,13 @@ public class DateFormatTest {
 		assertThat(rsAware.getServices()).hasSize(1);
 	}
 
-	private void checkResource(Resource inRes, Instant expectedResult) {
+	private Building getLoadedObject(Resource inRes) {
 
 		assertThat(inRes.getContents()).isNotEmpty();
 		assertThat(inRes.getContents()).hasSize(1);
 		assertThat(inRes.getContents().get(0)).isInstanceOf(Building.class);
 
-		Building loadedObj = (Building) inRes.getContents().get(0);
-
-		assertThat(loadedObj.getStartDate()).isNotNull();
-		assertThat(loadedObj.getStartDate().toInstant()).isEqualTo(expectedResult);
+		return (Building) inRes.getContents().get(0);
 	}
 	
 	
