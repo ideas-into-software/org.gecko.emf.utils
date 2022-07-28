@@ -48,3 +48,5 @@ javac.target: 11
 		pretty = true; \
 		local = ${build}/cache/temp
 
+-include: \
+	https://gitlab.com/gecko.io/jersey_jaxrs_whiteboard/-/raw/master/cnf/geckoRest/geckoRest.bnd

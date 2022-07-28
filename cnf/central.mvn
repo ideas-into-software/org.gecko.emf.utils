@@ -168,3 +168,6 @@ de.undercouch:bson4jackson:2.13.1
 org.yaml:snakeyaml:1.30
 #org.emfjson:emfjson-jackson:1.3.0
 org.geckoprojects.emf:org.gecko.emf.osgi.example.model.basic:4.1.1-SNAPSHOT
+
+org.gecko.runtime:org.gecko.templates:1.0.31
+org.mockito:mockito-inline:4.2.0

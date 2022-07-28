@@ -1,0 +1,22 @@
+-enable-junit5: true
+-library: enable-emf
+
+javac.source: 11
+javac.target: 11
+
+-buildpath: \
+	org.eclipse.emf.ecore.xmi,\
+	org.eclipse.emf.ecore,\
+	org.gecko.emf.rest;version=latest,\
+	org.gecko.emf.util.example.model;version=latest,\
+	org.eclipse.emfcloud.emfjson-jackson,\
+	org.gecko.emf.json,\
+	org.mockito:mockito-inline
+-includeresource.resources: \
+	data=data/
+	
+-runproperties.properties: \
+	base.path=${.}
+
+Bundle-Version: 1.0.0.SNAPSHOT
+Private-Package: org.gecko.emf.rest.tests

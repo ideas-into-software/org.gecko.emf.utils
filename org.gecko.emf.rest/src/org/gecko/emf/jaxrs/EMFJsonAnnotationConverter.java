@@ -33,7 +33,7 @@ import org.eclipse.emfcloud.jackson.databind.EMFContext;
  * @author Juergen Albert
  * @since 24 Jun 2018
  */
-@Component
+@Component(name="EMFJsonAnnotationConverter")
 public class EMFJsonAnnotationConverter implements AnnotationConverter {
 
 	@Reference
