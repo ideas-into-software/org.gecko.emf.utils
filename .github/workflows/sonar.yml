@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - snapshot
+      - improve-test-coverage
   pull_request:
     types: [opened, synchronize, reopened]
 jobs:
