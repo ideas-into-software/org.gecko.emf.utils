@@ -170,4 +170,3 @@ org.yaml:snakeyaml:1.30
 org.geckoprojects.emf:org.gecko.emf.osgi.example.model.basic:4.1.1-SNAPSHOT
 
 org.gecko.runtime:org.gecko.templates:1.0.31
-org.mockito:mockito-inline:4.2.0
