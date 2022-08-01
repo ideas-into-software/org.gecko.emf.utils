@@ -11,7 +11,8 @@ Bundle-Version: 1.0.1.SNAPSHOT
 	org.eclipse.emf.ecore.xmi,\
 	org.eclipse.emf.ecore,\
 	org.gecko.emf.osgi.example.model.basic,\
-	org.gecko.emf.util.example.model;version=latest
+	org.gecko.emf.util.example.model;version=latest,\
+	com.fasterxml.jackson.core.jackson-databind
 	
 -includeresource.resources: \
 	data=data/

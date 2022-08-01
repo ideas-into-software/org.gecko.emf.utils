@@ -8,10 +8,10 @@ javac.target: 11
 	org.eclipse.emf.ecore.xmi,\
 	org.eclipse.emf.ecore,\
 	org.gecko.emf.rest;version=latest,\
-	org.gecko.emf.util.example.model;version=latest,\
 	org.eclipse.emfcloud.emfjson-jackson,\
 	org.gecko.emf.json,\
-	org.mockito:mockito-inline
+	org.apache.felix.scr,\
+	org.apache.servicemix.bundles.junit
 -includeresource.resources: \
 	data=data/
 	

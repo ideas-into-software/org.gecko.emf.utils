@@ -12,71 +12,60 @@
 package org.gecko.emf.rest.tests;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
-import java.util.Dictionary;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.emf.common.util.URI;
-import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emfcloud.jackson.annotations.EcoreTypeInfo.USE;
 import org.eclipse.emfcloud.jackson.databind.EMFContext;
 import org.gecko.emf.jaxrs.annotations.AnnotationConverter;
 import org.gecko.emf.jaxrs.annotations.json.EMFJSONConfig;
 import org.gecko.emf.jaxrs.annotations.json.RootElement;
 import org.gecko.emf.json.constants.EMFJs;
-import org.gecko.emf.util.example.model.examplemodel.ExampleModelPackage;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.function.Executable;
-import org.mockito.MockedStatic;
-import org.mockito.Mockito;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.PrototypeServiceFactory;
-import org.osgi.framework.ServiceRegistration;
-import org.osgi.test.common.annotation.InjectBundleContext;
+import org.osgi.annotation.bundle.Capability;
 import org.osgi.test.common.annotation.InjectService;
 import org.osgi.test.common.service.ServiceAware;
 
+@Capability(namespace = "emf.core", name = "osgi", version = "2.1")
+@Capability(namespace = "osgi.implementation", name = "osgi.jaxrs", version = "1.1")
 public class EMFJsonAnnotationConverterTest  {
-	
-	@InjectBundleContext
-	BundleContext bundleContext;
+
 
 	List<Method> methodList;
 
-
 	@BeforeEach
-	public void beforeEach(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
-			@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
-
-		checkServices(examplePackageAware, annotationConverterAware);
+	public void beforeEach() {
 		Method[] methods = EMFJsonAnnotationConverterTest.class.getDeclaredMethods();
-		methodList = List.of(methods);
+		methodList = List.of(methods);		
 	}
 
 	@Test
-	public void testCanHandleRootElement(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
-			@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
+	public void testCanHandleRootElement(@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
 
 		AnnotationConverter annotationConverter = annotationConverterAware.getService();
-		String methodName = "rootElementValid";
-		Method method =  getMethod(methodName);
-		Annotation annotation = method.getAnnotation(RootElement.class);
+		Annotation annotation = new RootElement() {
+
+			@Override
+			public Class<? extends Annotation> annotationType() {
+				return null;
+			}
+
+			@Override
+			public String rootClassUri() {
+				return "http://datainmotion.com/emf/util/examplemodel/1.0#//Building";
+			}
+		};
 		assertThat(annotationConverter.canHandle(annotation, false));
 	}
 
 	@Test
-	public void testCanHandleEMFJsonConfig(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
-			@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
+	public void testCanHandleEMFJsonConfig(@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
 
 		AnnotationConverter annotationConverter = annotationConverterAware.getService();
 		String methodName = "emfJsonConfigDefault";
@@ -86,8 +75,7 @@ public class EMFJsonAnnotationConverterTest  {
 	}
 
 	@Test
-	public void testCanHandleNotValidAnnotation(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
-			@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
+	public void testCanHandleNotValidAnnotation(@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
 
 		AnnotationConverter annotationConverter = annotationConverterAware.getService();
 		String methodName = "beforeEach";
@@ -96,68 +84,32 @@ public class EMFJsonAnnotationConverterTest  {
 		assertThat(annotationConverter.canHandle(annotation, false)).isFalse();
 	}
 
-
 	@Test
-	public void testRootElementAnnotationValid(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
-			@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
+	public void testRootElementAnnotationValid(@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
 
 		AnnotationConverter annotationConverter = annotationConverterAware.getService();
-		String methodName = "rootElementValid";
-		Method method =  getMethod(methodName);
-		Annotation annotation = method.getAnnotation(RootElement.class);
+		Annotation annotation = new RootElement() {
+
+			@Override
+			public Class<? extends Annotation> annotationType() {
+				return null;
+			}
+
+			@Override
+			public String rootClassUri() {
+				return "http://datainmotion.com/emf/util/examplemodel/1.0#//Building";
+			}
+		};
 		Map<Object, Object> options = new HashMap<>();
 		assertThat(options).isEmpty();
 		annotationConverter.convertAnnotation(annotation, false, options);
 		assertThat(options).isNotEmpty();
 		assertThat(options.containsKey(EMFContext.Attributes.ROOT_ELEMENT));
-		assertThat(options.get(EMFContext.Attributes.ROOT_ELEMENT)).isEqualTo(examplePackageAware.getService().getEClassifier("Building"));
-	}
-
-	@Disabled("This test requires mocking of static method URI.createURI(), which in turns requires as dependency mockito-inline which is not a bundle!")
-	@Test
-	public void testRootElementAnnotationInvalid(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
-			@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
-
-		ResourceSet resourceSetMock = Mockito.mock(ResourceSet.class);
-		assertThat(resourceSetMock).isNotNull();
-		Mockito.when(resourceSetMock.getEObject(Mockito.any(URI.class), Mockito.anyBoolean())).thenReturn(null);
-		Dictionary<String, Object> properties = new Hashtable<String, Object>();
-		properties.put("service.ranking", Integer.MAX_VALUE);
-		bundleContext.registerService(ResourceSet.class, new PrototypeServiceFactory<ResourceSet>() {
-
-			@Override
-			public ResourceSet getService(Bundle bundle, ServiceRegistration<ResourceSet> registration) {
-				return resourceSetMock;
-			}
-
-			@Override
-			public void ungetService(Bundle bundle, ServiceRegistration<ResourceSet> registration, ResourceSet service) {
-				return;
-			}
-		}, properties);
-		MockedStatic<URI> uriMock = Mockito.mockStatic(URI.class);
-		assertThat(uriMock).isNotNull();
-		Mockito.when(URI.createURI(Mockito.anyString(), Mockito.anyBoolean())).thenReturn(null);
-		
-		AnnotationConverter annotationConverter = annotationConverterAware.getService();
-		String methodName = "rootElementInvalid";
-		Method method =  getMethod(methodName);
-
-		Annotation annotation = method.getAnnotation(RootElement.class);
-		Map<Object, Object> options = new HashMap<>();
-		assertThat(options).isEmpty();
-		assertThrows(IllegalArgumentException.class, new Executable() {
-
-			@Override
-			public void execute() throws Throwable {
-				annotationConverter.convertAnnotation(annotation, false, options);					
-			}
-		});
+		assertThat(options.get(EMFContext.Attributes.ROOT_ELEMENT)).isInstanceOf(EClass.class);
 	}
 
 	@Test
-	public void testEMFJsonConfigDefault(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
-			@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
+	public void testEMFJsonConfigDefault(@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
 
 		AnnotationConverter annotationConverter = annotationConverterAware.getService();
 		String methodName = "emfJsonConfigDefault";
@@ -194,12 +146,10 @@ public class EMFJsonAnnotationConverterTest  {
 		assertThat(options.containsKey(EMFJs.OPTION_ID_FIELD)).isFalse();
 		assertThat(options.containsKey(EMFJs.OPTION_TYPE_FIELD)).isFalse();
 		assertThat(options.containsKey(EMFJs.OPTION_TYPE_PACKAGE_URIS)).isFalse();
-
 	}
 
 	@Test
-	public void testEMFJsonConfigNotDefault(@InjectService(timeout = 2000) ServiceAware<ExampleModelPackage> examplePackageAware,
-			@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
+	public void testEMFJsonConfigNotDefault(@InjectService(timeout = 2000, filter = "(component.name=EMFJsonAnnotationConverter)") ServiceAware<AnnotationConverter> annotationConverterAware) {
 
 		AnnotationConverter annotationConverter = annotationConverterAware.getService();
 		String methodName = "emfJsonConfigNotDefault";
@@ -261,28 +211,10 @@ public class EMFJsonAnnotationConverterTest  {
 
 	}
 
-	@RootElement(rootClassUri = "http://datainmotion.com/emf/util/examplemodel/1.0#//Building")
-	private void rootElementValid() {
-
-	}
-
-	@RootElement(rootClassUri = "")
-	private void rootElementInvalid() {
-
-	}
-	
 	private Method getMethod(String methodName) {
 		Method method =  methodList.stream().filter(m -> m.getName().equals(methodName)).findFirst().orElse(null);
 		assertThat(method).isNotNull();
 		return method;
 	}
 
-	private void checkServices(ServiceAware<ExampleModelPackage> examplePackageAware, ServiceAware<AnnotationConverter> annotationConverterAware) {
-
-		assertNotNull(examplePackageAware);
-		assertThat(examplePackageAware.getServices()).hasSize(1);
-
-		assertNotNull(annotationConverterAware);
-		assertThat(annotationConverterAware.getServices()).hasSize(1);
-	}
 }
