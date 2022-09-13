@@ -47,11 +47,6 @@ public @interface EMFJSONConfig {
 	boolean indentOutput() default true;
 	
 	/**
-	 * return @see {@link EMFJs#OPTION_SERIALIZE_CONTAINMENT_AS_HREF} default is false
-	 */
-	boolean serializeContainmentAsHref() default false;
-	
-	/**
 	 * return @see {@link EMFJs#OPTION_SERIALIZE_DEFAULT_VALUE} default is false
 	 */
 	boolean serializeDefaultValues() default false;

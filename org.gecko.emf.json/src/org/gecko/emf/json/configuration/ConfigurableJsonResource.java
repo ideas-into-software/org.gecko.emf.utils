@@ -108,11 +108,6 @@ public class ConfigurableJsonResource extends JsonResource {
 
 	private EMFModule createInitModule(Map<?, ?> options, boolean isNew) {
 		EMFModule module = new EMFModule();
-		Boolean serContainment = getOrDefault(options, EMFJs.OPTION_SERIALIZE_CONTAINMENT_AS_HREF,
-				isNew ? false : null);
-		if (serContainment != null) {
-			module.configure(Feature.OPTION_SERIALIZE_CONTAINMENT_AS_HREF, serContainment);
-		}
 		Boolean serDefaults = getOrDefault(options, EMFJs.OPTION_SERIALIZE_DEFAULT_VALUE, isNew ? false : null);
 		if (serDefaults != null) {
 			module.configure(Feature.OPTION_SERIALIZE_DEFAULT_VALUE, serDefaults);
