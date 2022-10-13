@@ -59,7 +59,7 @@ public abstract class AbstractEMFMessageBodyReaderWriter<R,W> implements Message
 	/**
 	 * default constructor
 	 */
-	public AbstractEMFMessageBodyReaderWriter() {
+	protected AbstractEMFMessageBodyReaderWriter() {
 	}
 
 	/**

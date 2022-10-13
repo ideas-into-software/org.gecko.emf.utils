@@ -127,9 +127,6 @@ public class EMFJsonAnnotationConverterTest  {
 		assertThat(options.containsKey(EMFJs.OPTION_INDENT_OUTPUT));
 		assertThat(options.get(EMFJs.OPTION_INDENT_OUTPUT)).isEqualTo(true);
 
-		assertThat(options.containsKey(EMFJs.OPTION_SERIALIZE_CONTAINMENT_AS_HREF));
-		assertThat(options.get(EMFJs.OPTION_SERIALIZE_CONTAINMENT_AS_HREF)).isEqualTo(false);
-
 		assertThat(options.containsKey(EMFJs.OPTION_SERIALIZE_DEFAULT_VALUE));
 		assertThat(options.get(EMFJs.OPTION_SERIALIZE_DEFAULT_VALUE)).isEqualTo(false);
 
@@ -155,7 +152,6 @@ public class EMFJsonAnnotationConverterTest  {
 		String methodName = "emfJsonConfigNotDefault";
 		Method method =  getMethod(methodName);
 		Annotation annotation = method.getAnnotation(EMFJSONConfig.class);
-
 		Map<Object, Object> options = new HashMap<>();
 		assertThat(options).isEmpty();
 		annotationConverter.convertAnnotation(annotation, false, options);
@@ -166,9 +162,6 @@ public class EMFJsonAnnotationConverterTest  {
 
 		assertThat(options.containsKey(EMFJs.OPTION_INDENT_OUTPUT));
 		assertThat(options.get(EMFJs.OPTION_INDENT_OUTPUT)).isEqualTo(false);
-
-		assertThat(options.containsKey(EMFJs.OPTION_SERIALIZE_CONTAINMENT_AS_HREF));
-		assertThat(options.get(EMFJs.OPTION_SERIALIZE_CONTAINMENT_AS_HREF)).isEqualTo(true);
 
 		assertThat(options.containsKey(EMFJs.OPTION_SERIALIZE_DEFAULT_VALUE));
 		assertThat(options.get(EMFJs.OPTION_SERIALIZE_DEFAULT_VALUE)).isEqualTo(true);
@@ -199,7 +192,7 @@ public class EMFJsonAnnotationConverterTest  {
 	}
 
 
-	@EMFJSONConfig(dateFormat = "yyyy-MM-dd", indentOutput = false, serializeContainmentAsHref = true, serializeDefaultValues = true,
+	@EMFJSONConfig(dateFormat = "yyyy-MM-dd", indentOutput = false, serializeDefaultValues = true,
 			serializeTypes = false, useId = true, typeUSE = EMFJSONConfig.USE.NAME, idFieldName = "id", typeFieldName = "field", 
 			refFieldName = "ref_field", typePackageUris = {"packURI1", "packURI2"})
 	private void emfJsonConfigNotDefault() {

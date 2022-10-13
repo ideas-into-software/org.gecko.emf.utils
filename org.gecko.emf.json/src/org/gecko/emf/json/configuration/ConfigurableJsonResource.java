@@ -112,11 +112,6 @@ public class ConfigurableJsonResource extends JsonResource {
 
 	private EMFModule createInitModule(Map<?, ?> options, boolean isNew) {
 		EMFModule module = new EMFModule();
-		Boolean serContainment = getOrDefault(options, EMFJs.OPTION_SERIALIZE_CONTAINMENT_AS_HREF,
-				isNew ? false : null);
-		if (serContainment != null) {
-			module.configure(Feature.OPTION_SERIALIZE_CONTAINMENT_AS_HREF, serContainment);
-		}
 		Boolean serDefaults = getOrDefault(options, EMFJs.OPTION_SERIALIZE_DEFAULT_VALUE, isNew ? false : null);
 		if (serDefaults != null) {
 			module.configure(Feature.OPTION_SERIALIZE_DEFAULT_VALUE, serDefaults);
@@ -130,17 +125,8 @@ public class ConfigurableJsonResource extends JsonResource {
 			module.configure(Feature.OPTION_USE_ID, useId);
 		}
 
-		Object uriHandlerObject = options.get(XMLResource.OPTION_URI_HANDLER);
-
-		URIHandler uriHandler = null;
-		if (uriHandlerObject != null) {
-			if (uriHandlerObject instanceof XMLResource.URIHandler) {
-				uriHandler = new XMLResourceUriHandlerWrapper((XMLResource.URIHandler) uriHandlerObject);
-			} else {
-				uriHandler = (URIHandler) uriHandlerObject;
-			}
-			module.setUriHandler(uriHandler);
-		}
+		URIHandler uriHandler = setURIHandler(module, options);
+		
 		String refField = getOrDefault(options, EMFJs.OPTION_REF_FIELD, null);
 		String idField = getOrDefault(options, EMFJs.OPTION_ID_FIELD, null);
 		String typeField = getOrDefault(options, EMFJs.OPTION_TYPE_FIELD, null);
@@ -165,6 +151,20 @@ public class ConfigurableJsonResource extends JsonResource {
 			module.setTypeInfo(getTypeInfo(options, typeField, typeUse));
 		}
 		return module;
+	}
+
+	private URIHandler setURIHandler(EMFModule module, Map<?, ?> options) {
+		Object uriHandlerObject = options.get(XMLResource.OPTION_URI_HANDLER);
+		URIHandler uriHandler = null;
+		if (uriHandlerObject != null) {
+			if (uriHandlerObject instanceof XMLResource.URIHandler) {
+				uriHandler = new XMLResourceUriHandlerWrapper((XMLResource.URIHandler) uriHandlerObject);
+			} else {
+				uriHandler = (URIHandler) uriHandlerObject;
+			}
+			module.setUriHandler(uriHandler);
+		}
+		return uriHandler;
 	}
 
 	private EcoreTypeInfo getTypeInfo(Map<?, ?> options, String typeField, USE typeUse) {

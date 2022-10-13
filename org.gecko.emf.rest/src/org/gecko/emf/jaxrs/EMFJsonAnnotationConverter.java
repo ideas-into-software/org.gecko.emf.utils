@@ -70,7 +70,6 @@ public class EMFJsonAnnotationConverter implements AnnotationConverter {
 			
 			options.put(EMFJs.OPTION_DATE_FORMAT, config.dateFormat());
 			options.put(EMFJs.OPTION_INDENT_OUTPUT, config.indentOutput());
-			options.put(EMFJs.OPTION_SERIALIZE_CONTAINMENT_AS_HREF, config.serializeContainmentAsHref());
 			options.put(EMFJs.OPTION_SERIALIZE_DEFAULT_VALUE, config.serializeDefaultValues());
 			options.put(EMFJs.OPTION_SERIALIZE_TYPE, config.serializeTypes());
 			options.put(EMFJs.OPTION_USE_ID, config.useId());

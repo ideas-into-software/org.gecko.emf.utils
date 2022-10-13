@@ -52,10 +52,6 @@ public final class EMFJs {
 	public static final String OPTION_INDENT_OUTPUT = "OPTION_INDENT_OUTPUT";
 
 	/**
-	 * Option used to indicate the module to serialize containments as references.
-	 */
-	public static final String OPTION_SERIALIZE_CONTAINMENT_AS_HREF = "OPTION_SERIALIZE_CONTAINMENT_AS_HREF";
-	/**
 	 * When value is true, the writer will include an _id key to each json objects
 	 * and sets as value the fragment identifier.
 	 * <p>

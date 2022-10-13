@@ -28,6 +28,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.function.Executable;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatcher;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
@@ -59,7 +60,7 @@ public class EMFJsonAnnotationConverterRootElementInvalidTest {
 		MockitoAnnotations.openMocks(this);
 		assertThat(resourceSetMock).isNotNull();
 	
-		Dictionary<String, Object> properties = new Hashtable<String, Object>();
+		Dictionary<String, Object> properties = new Hashtable<>();
 		properties.put("service.ranking", Integer.MAX_VALUE);
 		bundleContext.registerService(ResourceSet.class, new PrototypeServiceFactory<ResourceSet>() {
 
@@ -67,10 +68,8 @@ public class EMFJsonAnnotationConverterRootElementInvalidTest {
 			public ResourceSet getService(Bundle bundle, ServiceRegistration<ResourceSet> registration) {
 				return resourceSetMock;
 			}
-
 			@Override
 			public void ungetService(Bundle bundle, ServiceRegistration<ResourceSet> registration, ResourceSet service) {
-				return;
 			}
 		}, properties);						
 		Mockito.when(resourceSetMock.getEObject(Mockito.any(URI.class), Mockito.anyBoolean())).thenReturn(null);

@@ -10,6 +10,8 @@ javac.target: 11
 	org.eclipse.emfcloud.emfjson-jackson;version=latest,\
 	org.gecko.emf.json;version=project
 	
+-testpath: ${junit5}
+	
 Bundle-Name: Gecko EMF JaxRs Extension
 Bundle-Description: Extension to load and save EMF EObjects using a MessageBodyReader or -Writer
 Bundle-Version: 1.4.1.SNAPSHOT

@@ -52,4 +52,6 @@
 	org.mockito.mockito-core;version='[4.4.0,4.4.1)',\
 	org.objenesis;version='[3.2.0,3.2.1)',\
 	org.apache.servicemix.bundles.junit;version='[4.13.2,4.13.3)',\
-	org.gecko.emf.util.example.model;version=snapshot
+	org.gecko.emf.util.example.model;version=snapshot,\
+	org.gecko.emf.bson;version=snapshot,\
+	org.gecko.emf.collections;version=snapshot

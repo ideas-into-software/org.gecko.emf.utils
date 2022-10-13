@@ -75,10 +75,7 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 	@Override
 	public boolean isWriteable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		ResourceSetFactory setFactory = getResourceSetFactory();
-		ResourceSet resourceSet = setFactory.createResourceSet();
-		return EObject.class.isAssignableFrom(type) && resourceSet.getResourceFactoryRegistry()
-				.getContentTypeToFactoryMap().containsKey(mediaType.getType() + "/" + mediaType.getSubtype());
+		return isReadWritable(type, mediaType);
 	}
 
 	/*
@@ -118,10 +115,7 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 	@Override
 	public boolean isReadable(Class<?> type, Type genericType,
 			Annotation[] annotations, MediaType mediaType) {
-		ResourceSetFactory setFactory = getResourceSetFactory();
-		ResourceSet resourceSet = setFactory.createResourceSet();
-		return EObject.class.isAssignableFrom(type) && resourceSet.getResourceFactoryRegistry()
-				.getContentTypeToFactoryMap().containsKey(mediaType.getType() + "/" + mediaType.getSubtype());
+		return isReadWritable(type, mediaType);
 	}
 
 	/*
@@ -136,10 +130,9 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 			throws IOException, WebApplicationException {
 		Resource resource = super.readResourceFrom(Resource.class, genericType, annotations, mediaType, httpHeaders, entityStream);
 
-		if(resource.getContents().size() > 0){
+		if(!resource.getContents().isEmpty()){
 			try {
-				R result = (R) resource.getContents().get(0);
-				return result;
+				return (R) resource.getContents().get(0);
 			} finally {
 				resource.getContents().clear();
 				ResourceSet rs = resource.getResourceSet();
@@ -169,6 +162,18 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 		return resourceSetFactory;
 	}
 
+	/**
+	 * Checks if the MessageBodyReader / -Writer can be handled
+	 * @param type the class type
+	 * @param mediaType the media type
+	 * @return <code>true</code>, if the MBR/MBW can be used, otherwise <code>false</code>
+	 */
+	private boolean isReadWritable(Class<?> type, MediaType mediaType) {
+		ResourceSetFactory setFactory = getResourceSetFactory();
+		ResourceSet resourceSet = setFactory.createResourceSet();
+		return EObject.class.isAssignableFrom(type) && resourceSet.getResourceFactoryRegistry()
+				.getContentTypeToFactoryMap().containsKey(mediaType.getType() + "/" + mediaType.getSubtype());
+	}
 }
 
 

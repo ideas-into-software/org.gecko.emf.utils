@@ -1,3 +1,5 @@
 eclipse.preferences.version=1
 encoding/bnd.bnd=UTF-8
 encoding/launch.bndrun=UTF-8
+encoding//test/org/gecko/emf/rest/EMFURIHandlerTest.java=UTF-8
+

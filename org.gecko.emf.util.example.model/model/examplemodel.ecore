@@ -35,6 +35,8 @@
     <eStructuralFeatures xsi:type="ecore:EReference" name="location" eType="#//Geometry"
         containment="true"/>
     <eStructuralFeatures xsi:type="ecore:EAttribute" name="startDate" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="testRef" upperBound="-1"
+        eType="#//LineString" containment="true"/>
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EEnum" name="BuildingType">
     <eLiterals name="Building"/>

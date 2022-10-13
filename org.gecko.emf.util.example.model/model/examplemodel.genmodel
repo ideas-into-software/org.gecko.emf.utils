@@ -36,6 +36,7 @@
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute examplemodel.ecore#//Building/type"/>
       <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference examplemodel.ecore#//Building/location"/>
       <genFeatures createChild="false" ecoreFeature="ecore:EAttribute examplemodel.ecore#//Building/startDate"/>
+      <genFeatures property="None" children="true" createChild="true" ecoreFeature="ecore:EReference examplemodel.ecore#//Building/testRef"/>
     </genClasses>
   </genPackages>
 </genmodel:GenModel>

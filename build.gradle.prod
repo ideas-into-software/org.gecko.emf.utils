@@ -7,17 +7,14 @@ plugins {
 
 sonarqube {
   properties {
-    property "sonar.login", "sqp_775777110540c0509ea87c00a0e0fcf065a4bf70"
     property "sonar.projectName", "Gecko EMF Utilities"
-    property "sonar.projectKey", "geckoEMFUtil"
-    property "sonar.host.url", "http://localhost:9000"
+    property "sonar.projectKey", "geckoprojects-org_org.gecko.emf.utils"
+    property "sonar.organization", "geckoprojects-org"
+    property "sonar.host.url", "https://sonarcloud.io"
     property "sonar.coverage.jacoco.xmlReportPaths", "${rootDir}/build/reports/jacoco/codeCoverageReport/codeCoverageReport.xml"
-    //property "sonar.junit.reportPaths", "${project.buildDir}/reports/jacoco.xml"
-    property "sonar.test.inclusions", "**/*Test.java"
-    property "sonar.exclusions", "org.gecko.emf.collections/**/*.java, org.gecko.emf.pushstreams/**/*.java, org.gecko.emf.util.model/**/*.java, **/*Test.java"
+    property "sonar.exclusions", "org.gecko.emf.collections/**/*.java, org.gecko.emf.pushstreams/**/*.java, org.gecko.emf.util.model/**/*.java, org.gecko.emf.json.tests/**/*.java, org.gecko.emf.bson.tests/**/*.java, org.gecko.emf.rest.tests/**/*.java, org.gecko.emf.rest/test/**/*.java"
   }
 }
-
 
 repositories {
     mavenCentral()
@@ -28,7 +25,7 @@ tasks.named('wrapper') {
 }
 
 // Disable bnd plugin built-in task 'testOSGi' and register custom task for testing
-/*gradle.startParameter.excludedTaskNames += "testOSGi"
+gradle.startParameter.excludedTaskNames += "testOSGi"
 
 tasks.register('itest'){
   subprojects.each { sp ->
@@ -52,25 +49,10 @@ tasks.register('itest'){
       }
     }
   }
-}*/
-
-
-subprojects {
-	tasks.withType(Test) {
-		useJUnitPlatform()
-		testLogging {
-			setExceptionFormat("full")
-			info {
-				events("STANDARD_OUT", "STANDARD_ERROR", "STARTED", "FAILED", "PASSED", "SKIPPED")
-			}
-		}
-	}
 }
 
-
 task codeCoverageReport(type: JacocoReport) {
-   //dependsOn itest
-   dependsOn test
+    dependsOn itest
     // Gather execution data from all subprojects
     executionData fileTree(project.rootDir.absolutePath).include("**/**/jacoco.exec")
 
