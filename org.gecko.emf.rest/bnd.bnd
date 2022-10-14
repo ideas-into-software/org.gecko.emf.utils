@@ -3,12 +3,15 @@ javac.target: 11
 
 -library: enable-emf
 
+-dsannotations-options: inherit
+
 -buildpath: \
 	jakarta.ws.rs-api;version='2.1',\
 	org.osgi.service.jaxrs;version=latest,\
 	org.osgi.service.component;version=latest,\
 	org.eclipse.emfcloud.emfjson-jackson;version=latest,\
-	org.gecko.emf.json;version=project
+	org.gecko.emf.json;version=project,\
+	org.gecko.emf.osgi.model.info
 	
 Bundle-Name: Gecko EMF JaxRs Extension
 Bundle-Description: Extension to load and save EMF EObjects using a MessageBodyReader or -Writer
