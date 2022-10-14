@@ -46,7 +46,10 @@ import org.gecko.emf.jaxrs.annotations.EMFResourceOptions;
 import org.gecko.emf.jaxrs.annotations.ResourceEClass;
 import org.gecko.emf.jaxrs.annotations.ResourceOption;
 import org.gecko.emf.jaxrs.annotations.ValidateContent;
+import org.gecko.emf.json.constants.EMFJs;
 import org.gecko.emf.osgi.ResourceSetFactory;
+import org.gecko.emf.osgi.model.info.EMFModelInfo;
+import org.osgi.service.component.annotations.Reference;
 
 /**
  * The basic EMF {@link Resource} {@link MessageBodyReader} and {@link MessageBodyWriter}
@@ -55,6 +58,9 @@ import org.gecko.emf.osgi.ResourceSetFactory;
 public abstract class AbstractEMFMessageBodyReaderWriter<R,W> implements MessageBodyReader<R>, MessageBodyWriter<W>{
 
 	protected List<AnnotationConverter> annotationConverters = new LinkedList<>();
+	
+	@Reference
+	EMFModelInfo modelInfo;
 
 	/**
 	 * default constructor
@@ -281,11 +287,12 @@ public abstract class AbstractEMFMessageBodyReaderWriter<R,W> implements Message
 	 * @param mediaType
 	 * @param httpHeaders
 	 * @param entityStream
+	 * @param modelInfo 
 	 * @return
 	 * @throws IOException
 	 * @throws WebApplicationException
 	 */
-	public Resource readResourceFrom(Class<Resource> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
+	public Resource readResourceFrom(Class<?> type, Type genericType, Annotation[] annotations, MediaType mediaType, MultivaluedMap<String, String> httpHeaders, InputStream entityStream) throws IOException, WebApplicationException {
 		try {
 			ResourceSetFactory setFactory = getResourceSetFactory();
 			ResourceSet resourceSet = setFactory.createResourceSet();	
@@ -299,6 +306,10 @@ public abstract class AbstractEMFMessageBodyReaderWriter<R,W> implements Message
 
 			handleAnnotedOptions(annotations, options, resourceSet, false);
 
+			if(!options.containsKey(EMFJs.OPTION_ROOT_ELEMENT)) {
+				modelInfo.getEClassifierForClass(type).ifPresent(ec -> options.put(EMFJs.OPTION_ROOT_ELEMENT, ec));
+			}
+			
 			resource.load(entityStream, options);
 			checkResourceByAnnotation(resource, annotations);
 			return resource;

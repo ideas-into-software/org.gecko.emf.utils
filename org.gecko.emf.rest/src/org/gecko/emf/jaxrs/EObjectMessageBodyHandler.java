@@ -134,7 +134,7 @@ public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> ext
 			Annotation[] annotations, MediaType mediaType,
 			MultivaluedMap<String, String> httpHeaders, InputStream entityStream)
 			throws IOException, WebApplicationException {
-		Resource resource = super.readResourceFrom(Resource.class, genericType, annotations, mediaType, httpHeaders, entityStream);
+		Resource resource = super.readResourceFrom(type, genericType, annotations, mediaType, httpHeaders, entityStream);
 
 		if(resource.getContents().size() > 0){
 			try {
