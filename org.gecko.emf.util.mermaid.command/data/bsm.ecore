@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="bsm" nsURI="http://www.example.org/bsm" nsPrefix="bsm">
+  <eClassifiers xsi:type="ecore:EClass" name="Plan">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Ein Plan einer Trägers, in dem für einen vorgegebenen Zeitraum Wirtschaftliche tätigkeitsfelder aufgelistet werden.&#xA;Beispiel, Wirtschaftplan, Mittelfrist-Finanzplan."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="start" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Beginn des Zeitraums für den der Plan gilt."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ende" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Ende des Zeitraums für den der Plan gilt."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="traeger" lowerBound="1"
+        eType="#//Traeger">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Der Träger, der den Plan erstellt."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="type" eType="#//PlanTyp">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Typisierung des Wirtschaftsplanes."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="stand" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Zeitpunkt zu dem der Plan gültig ist."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="PlanTyp">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Typisiert die Art des Plans"/>
+    </eAnnotations>
+    <eLiterals name="WIRTSCHAFTSPLAN">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Wirtschaftsplan Fokus Folgejahr"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="INVESTPLAN" value="1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Fokus mittelfristige Investitionen"/>
+      </eAnnotations>
+    </eLiterals>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="PlanPosition">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Eine Zeile in einem Plan."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="plan" lowerBound="1" eType="#//Plan">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Verweis auf den Plan der die Planpositionen Gruppiert."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="nummer" eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//String">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Die Nummer zur ermögliches eines schnellen Erfasses einer Position in einer Liste mehrerer Positionen."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="massnahmeanteil" upperBound="-1"
+        eType="#//MassnahmeAnteil"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="order" eType="ecore:EDataType http://www.eclipse.org/emf/2003/XMLType#//Integer">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Sortiert die Positionen im Plan."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="titel" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Die Kurzbezeichnung der Position.&#xA;"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="beschreibung" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Eine erklärende Beschreibung der der Position."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="start" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Start der Position, wenn leer wird ist das Startdatum des Plans gemeint.&#xA;"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ende" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Start der Position, wenn leer wird ist das Enddatum des Plans gemeint.&#xA;"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="MassnahmeAnteil">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Der Anteil mit dem eine Massnahme in einer Planposition enthalten ist."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="massnahme" lowerBound="1"
+        eType="#//Massnahme">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Die Massnehme dem der Anteil zugeordnet ist."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="anteil" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDoubleObject">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Der Anteil in Prozent."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="beschreibung" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Textliche beschreibung des Anteils."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="StrukturObjekt">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Eine räumlich und zeitlich abgrenzbare Aktion eines Trägers."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="parent" eType="#//StrukturObjekt">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Verweis auf die übergeordnete Massnahme."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="uuid" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Eindeutlige und unveränderliche ID der Massnahnme."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="traeger" lowerBound="1"
+        eType="#//Traeger"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="zeitraum" lowerBound="1"
+        upperBound="-1" eType="#//Zeitraum">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Verweis aus die Massnahme des Zeitraums"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="bezeichnung" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Kurzer schnell verständlicher Name der Massnahme, der in der Regel auf jedem offiziellen Dokument verwendet wird.&#xA;Für Straßenbaumaßnahmen idealerweise im Muster Straßenname: Art d. Maßnahme.&#xA;"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="beschreibung" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Text, der hilft, der öffentlichkeit die Masnahme näher zu erklären. Länge des textes sollte 500 zeichen nicht überschreiten."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="externe_id" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Id im Quellsystem dieses Datensatzes."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="parkplatzBetroffen" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EBoolean"
+        defaultValueLiteral="false">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Gibt an, ob die Baumassnahme zu Einschänkungen an Parkplätzen führt."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Traeger">
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="title" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Eine kurze übersichtliuche Bezeichnung des Trägers."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EEnum" name="ZeitraumTyp">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Liste an Markern, die verwendet werden muss um Zeiträume zu klassifizieren."/>
+    </eAnnotations>
+    <eLiterals name="IDEE_TRAEGER">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Markiert den Zeitraum, den sich der Täger initial und unamgestimmt Vorschlägt. Idee des Trägers&#xA;"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="KOORDINIERT_BSM" value="1">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Markiert den Zeitraum, der nach Abstimmung innerhalb des Baustellenmanagements festgelegt wurde."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="BEAUFTRAGT" value="2">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Markiert den Zeitraum, in dem das Unternehmen mit der Umsetzung beauftragt ist."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="ZWANG" value="3">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Markiert einen Zeitraum in dem die Massnahme zwingend erledigt erden muss. Kann gleichzeitig zum VORSSCHLAG_TRAEGER erstellt werden.&#xA;"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="FREIGABE_STRASSE" value="4">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Der Zeitraum für die die Baustelle eine Freigabe der Straßen/Verkehrsbehörde hat.&#xA;"/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="IST" value="5">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Tatsächlicher Zeitpunkt der realen Ausführung."/>
+      </eAnnotations>
+    </eLiterals>
+    <eLiterals name="PLANUNG" value="6">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Markiert den jeweils genausten Zeitraum vor IST"/>
+      </eAnnotations>
+    </eLiterals>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Zeitraum">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Historisierter Zeitraum einer Massnahme. Genauigkeit von 'start' und 'ende' ist abhängig von dem Horizint der Umsetzung&#xA;- >4 Jahre mindestens jährlich&#xA;- 2-4 Jahre mindestens halbjährlich&#xA;- &lt;2 Jahre monatsscharf&#xA;&#xA;Gültig ist,&#xA;- je Typ, immer der Zeitraum mit dem spätesten 'erstellt' , der keine 'aufgehoben' hat.&#xA;- typübergreifend, wie 'je Typ'  und dann in folgender Rangordnung der Zeitraumtypen: &#xA;> ZWANG&#xA;> IDEE_TRAEGER&#xA;> KOORDINIERT_BSM&#xA;> BEAUFTRAGT&#xA;> FREIGABE_STRASSE&#xA;> PLANUNG&#xA;> IST&#xA;"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="erstellt" lowerBound="1"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate"/>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="start" lowerBound="1" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Markiert den in der Realität stattfindenden ZeitraumStart."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="ende" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Markiert den in der Realität stattfindenden ZeitraumEnde.&#xA;Nur im IST ist das Ende Optional"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="typ" lowerBound="1" eType="#//ZeitraumTyp">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Markiert die art des Zeitraumes"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="aufgehoben" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Datum, an dem dieser Zeitraum als als aufgehoben markiert wird."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="hinweis" eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EString">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Hinweis darauf, wieso ein neuer Zeitabschnitt erstellt wird."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="aenderungsTyp" eType="#//ZeitraumAenderungsTyp">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Typisiete Begründung für die Änderung des vorhergehenden Zeitraum."/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Massnahme" eSuperTypes="#//StrukturObjekt">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Baumassnahme eines Trägers."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="the_geom" eType="#//PolygonGeom">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Das Polygon&#xA;"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Freihalteflaeche" eSuperTypes="#//StrukturObjekt">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Bereiche, die freigehalten werden sollen. Sollten Massnahmen auf einer Freihaltefläche stattfinden, muss derr Massnahmeträger und das Baustellenmanagement darüber informiert werden und einen Ausnahmegrund formulieren."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="the_geom" eType="#//PolygonGeom">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Das Polygon&#xA;"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Umleitung" eSuperTypes="#//StrukturObjekt">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Bescheiben Wege, die als Umleitung für massnahmen dienen. Umleitungen die sich oberschneiden sollen dem zuständigen angezeigt werden."/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="the_geom" eType="#//LineGeom">
+      <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+        <details key="documentation" value="Die Linie"/>
+      </eAnnotations>
+    </eStructuralFeatures>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EDataType" name="PolygonGeom" instanceClassName="java.lang.Object"/>
+  <eClassifiers xsi:type="ecore:EDataType" name="LineGeom" instanceTypeName="newDataType4"/>
+  <eClassifiers xsi:type="ecore:EEnum" name="ZeitraumAenderungsTyp">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Typisiete Begründung für die Änderung des  eines Zeitraums&#xA;."/>
+    </eAnnotations>
+    <eLiterals name="Witterung"/>
+    <eLiterals name="Finanzielle Engpässe" value="1"/>
+    <eLiterals name="Fehlplanung" value="2"/>
+    <eLiterals name="Auschreibung" value="3"/>
+    <eLiterals name="Personal Engpässe" value="4"/>
+    <eLiterals name="NONE" value="5"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Asset">
+    <eAnnotations source="http://www.eclipse.org/emf/2002/GenModel">
+      <details key="documentation" value="Ein Gegenstand im Stadtraum.&#xA;- Wird unter führung von Frau Dietsch im SmartCityProjekt zusammen mit KIJ und Stadt separat und Detailierter Modeliert.&#xA;Betrifft:&#xA;- Straßen&#xA;- Gebäude&#xA;- Haltestellen&#xA;- Mülleiner&#xA;- technische Anlagen&#xA;- ....&#xA;&#xA;und deren Metadaten, Zustände und Prüfintervalle!&#xA;&#xA;"/>
+    </eAnnotations>
+    <eStructuralFeatures xsi:type="ecore:EAttribute" name="gewaehrleistungsDatum"
+        eType="ecore:EDataType http://www.eclipse.org/emf/2002/Ecore#//EDate"/>
+  </eClassifiers>
+</ecore:EPackage>
+

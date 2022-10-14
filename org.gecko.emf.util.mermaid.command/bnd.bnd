@@ -1,0 +1,11 @@
+javac.source: 11
+javac.target: 11
+
+-library: enable-emf
+
+Bundle-Version: 1.0.0.SNAPSHOT
+Private-Package: org.gecko.emf.util.mermaid.command
+
+-includeresource.resources: \
+	data=data/
+-buildpath: org.gecko.emf.util.mermaid;version=latest
