@@ -7,27 +7,20 @@ import org.eclipse.emf.ecore.EClassifier
 import org.eclipse.emf.ecore.EEnum
 import org.eclipse.emf.ecore.EPackage
 import org.eclipse.emf.ecore.EReference
+import org.gecko.emf.util.documentation.generators.apis.EcoreToClassDiagramCodeGenerator
 
-class MermaidCodeGen {
+class MermaidCodeGen implements EcoreToClassDiagramCodeGenerator{
 	
 	def toMermaidClassDiagram(EPackage epackage)
 	'''
 «startMermaidClassDiagram()»
 «toEClassifierDiagram(epackage.EClassifiers)»
-«endMermaidClassDiagram()»
 	'''
 	
 	def startMermaidClassDiagram()
 	'''
-```mermaid 
 classDiagram
 	'''
-	
-	def endMermaidClassDiagram()
-	'''
-```
-	'''
-	
 	
 	def toEClassifierDiagram(EList<EClassifier> eclassifiers) {
 var List<EClass> classes = eclassifiers.filter[ec | ec instanceof EClass].map[ec | ec as EClass].toList;	
@@ -50,13 +43,18 @@ var List<EEnum> enums = eclassifiers.filter[ec | ec instanceof EEnum].map[ec | e
 	def toClassDiagram(EClass eclass) 
 	'''
 «" "»class «eclass.name» {
-«toClassMembers(eclass as EClass)»
+«IF eclass.isInterface»
+«" <<interface>>"»
+«ELSEIF eclass.isAbstract»	
+«" <<abstract>>"»
+«ENDIF»	
+«toClassMembers(eclass)»
 }
 «"\n"»
-«toClassReferences(eclass as EClass)»
+«toClassReferences(eclass)»
 «"\n"»
-«IF !(eclass as EClass).ESuperTypes.isEmpty»
-«toSuperTypes(eclass as EClass)»
+«IF !eclass.ESuperTypes.isEmpty»
+«toSuperTypes(eclass)»
 «"\n"»
 «ENDIF»	
 	'''
@@ -81,7 +79,7 @@ var List<EEnum> enums = eclassifiers.filter[ec | ec instanceof EEnum].map[ec | e
 		var isInRefModel = isInRefModel(ref, eclass)
 		'''
 «IF isInRefModel»
-«" "»«eclass.name» «' .. '» «'\"'»«multiplicity»«'\"'» «refType»«' : '»«ref.name»
+«" "»«eclass.name» «' ..> '» «'\"'»«multiplicity»«'\"'» «refType»«' : '»«ref.name»
 «ELSE»
 «" "»«eclass.name» «' --> '» «'\"'»«multiplicity»«'\"'» «refType»«' : '»«ref.name»
 «ENDIF»	
@@ -134,5 +132,15 @@ var List<EEnum> enums = eclassifiers.filter[ec | ec instanceof EEnum].map[ec | e
 «ENDFOR»
 }
 	'''
-
+	
+	override generateClassDiagram(EPackage ePackage) {
+		toMermaidClassDiagram(ePackage);
+	}
+	
+	override generateClassDiagram(EClass eClass) {
+		'''
+«startMermaidClassDiagram()»
+«toClassDiagram(eClass)»
+		'''
+	}
 }

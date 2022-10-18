@@ -3,8 +3,7 @@
 	bnd.identity;id='org.apache.felix.gogo.command',\
 	bnd.identity;id='org.apache.felix.gogo.runtime',\
 	bnd.identity;id='org.apache.felix.gogo.shell',\
-	bnd.identity;id='org.gecko.emf.util.documentation.generators.mermaid.component',\
-	bnd.identity;id='org.gecko.emf.util.documentation.generators.plantuml.component'
+	bnd.identity;id='org.gecko.emf.util.documentation.generators.markdown.component'
 	
 -runproperties.properties: \
 	base.path=${.}
@@ -40,11 +39,11 @@
 	org.gecko.emf.util.documentation.generators.apis;version=snapshot,\
 	org.gecko.emf.util.documentation.generators.commands;version=snapshot,\
 	org.gecko.emf.util.documentation.generators.mermaid;version=snapshot,\
-	org.gecko.emf.util.documentation.generators.mermaid.component;version=snapshot,\
 	org.gecko.emf.util.documentation.generators.plantuml;version=snapshot,\
-	org.gecko.emf.util.documentation.generators.plantuml.component;version=snapshot,\
 	org.osgi.service.cm;version='[1.6.0,1.6.1)',\
 	org.osgi.util.function;version='[1.1.0,1.1.1)',\
 	org.osgi.util.promise;version='[1.2.0,1.2.1)',\
 	org.osgi.util.pushstream;version='[1.0.1,1.0.2)',\
-	org.yaml.snakeyaml;version='[1.30.0,1.30.1)'
+	org.yaml.snakeyaml;version='[1.30.0,1.30.1)',\
+	org.gecko.emf.util.documentation.generators.markdown;version=snapshot,\
+	org.gecko.emf.util.documentation.generators.markdown.component;version=snapshot

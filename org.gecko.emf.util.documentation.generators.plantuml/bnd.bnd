@@ -6,7 +6,8 @@ src.xtend-gen=xtend-gen
 
 -buildpath: \
 	org.eclipse.xtext.builder,\
-	org.eclipse.xtext.xbase.lib
+	org.eclipse.xtext.xbase.lib,\
+	org.gecko.emf.util.documentation.generators.apis;version=latest
 	
 -library: \
 	enable-emf

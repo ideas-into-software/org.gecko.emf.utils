@@ -11,6 +11,7 @@
  */
 package org.gecko.emf.util.documentation.generators.commands;
 
+import org.gecko.emf.util.documentation.generators.apis.EcoreToDocumentationConstants;
 import org.gecko.emf.util.documentation.generators.apis.EcoreToDocumentationService;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
@@ -20,22 +21,23 @@ import org.osgi.service.component.annotations.Reference;
 @Component(name = "EcoreToDocumentationCommand", service=EcoreToDocumentationCommand.class, property= {
 		"osgi.command.scope=EcoreToDocumentation",
 		"osgi.command.function=ecoreToPlantuml",
-		"osgi.command.function=ecoreToMermaid"
+		"osgi.command.function=ecoreToMermaid",
+		"osgi.command.function=ecoreToPlainMd"
 })
 public class EcoreToDocumentationCommand {
 
-	@Reference(target = "(component.name=EcoreToPlantumlComponent)")
-	EcoreToDocumentationService ecoreToPlantumlComponent;
-	
-	@Reference(target = "(component.name=EcoreToMermaidComponent)")
-	EcoreToDocumentationService ecoreToMermaidComponent;
-
+	@Reference(target = "(component.name=EcoreToMarkdownComponent)")
+	EcoreToDocumentationService ecoreToMarkdownComponent;
 	
 	public void ecoreToPlantuml(String ecoreFilePath) {
-		ecoreToPlantumlComponent.ecoreToDocumentation(ecoreFilePath);
+		ecoreToMarkdownComponent.ecoreToDocumentation(ecoreFilePath, EcoreToDocumentationConstants.CLASS_DIAGRAM_GEN_PLANTUML_OPTION);
 	}
 	
 	public void ecoreToMermaid(String ecoreFilePath) {
-		ecoreToMermaidComponent.ecoreToDocumentation(ecoreFilePath);
+		ecoreToMarkdownComponent.ecoreToDocumentation(ecoreFilePath, EcoreToDocumentationConstants.CLASS_DIAGRAM_GEN_MERMAID_OPTION);
+	}
+	
+	public void ecoreToPlainMd(String ecoreFilePath) {
+		ecoreToMarkdownComponent.ecoreToDocumentation(ecoreFilePath, EcoreToDocumentationConstants.ONLY_MARKDOWN_DOCS);
 	}
 }
