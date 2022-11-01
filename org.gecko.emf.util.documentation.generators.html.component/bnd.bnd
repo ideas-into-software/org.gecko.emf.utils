@@ -5,9 +5,8 @@ javac.target: 11
 
 Bundle-Version: 1.0.0.SNAPSHOT
 
--includeresource.resources: \
-	data=data/
 -buildpath: \
 	org.gecko.emf.util.documentation.generators.apis;version=latest,\
+	org.gecko.emf.util.documentation.generators.html;version=latest
 	
-Private-Package: org.gecko.emf.util.documentation.generators.commands
+Private-Package: org.gecko.emf.util.documentation.generators.html.component

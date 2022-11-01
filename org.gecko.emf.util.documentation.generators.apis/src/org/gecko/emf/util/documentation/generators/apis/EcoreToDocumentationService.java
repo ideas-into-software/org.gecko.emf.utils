@@ -11,63 +11,47 @@
  */
 package org.gecko.emf.util.documentation.generators.apis;
 
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+import org.eclipse.emf.ecore.EClass;
+import org.eclipse.emf.ecore.EPackage;
 import org.osgi.annotation.versioning.ProviderType;
 
 @ProviderType
 public interface EcoreToDocumentationService{
 
-	public static final String ECORE_FILE_EXTENSION = ".ecore";
-	public static final Logger LOGGER = Logger.getLogger(EcoreToDocumentationService.class.getName());
-	
+	boolean canHandleMediaType(String mediaType);
 	String getOutputFileExtension();
-	String getOutputFolder(EcoreToDocumentationConstants mode);
-	void doGenerateDocumentation(Path ecoreFilePath, EcoreToDocumentationConstants mode);
-	
-	default boolean canHandleFileFormat(String fileName) {
-		Objects.requireNonNull(fileName, "File name cannot be null!");
-		if(fileName.endsWith(ECORE_FILE_EXTENSION)) {
-			return true;
-		}
-		return false;
-	}	
-	
-	default void ecoreToDocumentation(String ecoreFilePath, EcoreToDocumentationConstants mode) {
-		Path path = Paths.get(ecoreFilePath);
-		if(Files.isDirectory(path)) {
-			try {
-				Files.list(path).filter(p -> Files.isRegularFile(p)).forEach(p -> doGenerateDocumentation(p, mode));
-			} catch (IOException e) {
-				LOGGER.log(Level.SEVERE, "IOException while getting files from folder " + ecoreFilePath + " " + e.getMessage());
-			}
-			
-		} else if(Files.isRegularFile(path)) {
-			doGenerateDocumentation(path, mode);
-		}
+	String getOutputFolder(EcoreToDocumentationOptions mode);
+	OutputStream doGenerateDocumentation(EPackage ePackage, EcoreToDocumentationOptions mode, String outputFolderRoot) throws IOException;
+	OutputStream doGenerateDocumentation(EClass eClass, EcoreToDocumentationOptions mode, String outputFolderRoot) throws IOException;
+
+	default File generateOutputFile(EPackage ePackage, CharSequence generatedDoc, EcoreToDocumentationOptions mode, String outputFolderRoot) throws IOException {
+		String outputFileName = ePackage.getName().concat(getOutputFileExtension());
+		return doCreateOutputFile(outputFileName, generatedDoc, mode, outputFolderRoot);
 	}
 	
-	default void generateOutputFile(Path ecoreFilePath, CharSequence generatedCharSeq, EcoreToDocumentationConstants mode) {
-		Path parentFolder = Paths.get(ecoreFilePath.toString()).getParent().getParent();
-		String outputFileName = ecoreFilePath.getFileName().toString().replace(ECORE_FILE_EXTENSION, getOutputFileExtension());
-		Path outputPath = Paths.get(parentFolder.toString(), getOutputFolder(mode), outputFileName);
-		try {
-			Files.deleteIfExists(outputPath);
-			Files.createDirectories(outputPath.getParent());
-			Files.createFile(outputPath);
-			try(PrintWriter pw = new PrintWriter(outputPath.toFile())) {
-				pw.write(generatedCharSeq.toString());
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}	
+	default File generateOutputFile(EClass eClass, CharSequence generatedDoc, EcoreToDocumentationOptions mode, String outputFolderRoot) throws IOException {
+		String outputFileName = eClass.getEPackage().getName().concat("_").concat(eClass.getName()).concat(getOutputFileExtension());
+		return doCreateOutputFile(outputFileName, generatedDoc, mode, outputFolderRoot);
+	}
+	
+	default File doCreateOutputFile(String outputFileName, CharSequence generatedDoc, EcoreToDocumentationOptions mode, String outputFolderRoot) throws IOException {
+		Path outputPath = Paths.get(outputFolderRoot, getOutputFolder(mode), outputFileName);
+		Files.deleteIfExists(outputPath);
+		Files.createDirectories(outputPath.getParent());
+		File outputFile = Files.createFile(outputPath).toFile();
+		try(PrintWriter pw = new PrintWriter(new FileWriter(outputFile))) {
+			pw.write(generatedDoc.toString());
+		}
+		return outputFile;
 	}
 
 }

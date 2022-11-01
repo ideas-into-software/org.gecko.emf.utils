@@ -1,26 +1,35 @@
-package org.gecko.emf.util.documentation.generators.mermaid;
+package org.gecko.emf.util.documentation.generators.plantuml;
 
 import java.util.List
 import org.eclipse.emf.common.util.EList
+import org.eclipse.emf.common.util.EMap
+import org.eclipse.emf.ecore.EAnnotation
 import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EClassifier
 import org.eclipse.emf.ecore.EEnum
+import org.eclipse.emf.ecore.EModelElement
 import org.eclipse.emf.ecore.EPackage
 import org.eclipse.emf.ecore.EReference
 import org.gecko.emf.util.documentation.generators.apis.EcoreToClassDiagramCodeGenerator
 
-class MermaidCodeGen implements EcoreToClassDiagramCodeGenerator{
-	
-	def toMermaidClassDiagram(EPackage epackage)
+class PlantumlClassDiagramCodeGen implements EcoreToClassDiagramCodeGenerator{
+	def toPlantumlClassDiagram(EPackage epackage)
 	'''
-«startMermaidClassDiagram()»
+«startPlantumlClassDiagram()»
 «toEClassifierDiagram(epackage.EClassifiers)»
+«endPlantumlClassDiagram()»
 	'''
 	
-	def startMermaidClassDiagram()
+	def startPlantumlClassDiagram()
 	'''
-classDiagram
+@startuml
 	'''
+	
+	def endPlantumlClassDiagram()
+	'''
+@enduml
+	'''
+	
 	
 	def toEClassifierDiagram(EList<EClassifier> eclassifiers) {
 var List<EClass> classes = eclassifiers.filter[ec | ec instanceof EClass].map[ec | ec as EClass].toList;	
@@ -28,28 +37,26 @@ var List<EEnum> enums = eclassifiers.filter[ec | ec instanceof EEnum].map[ec | e
 '''
 «FOR eclass: classes»
 «toClassDiagram(eclass)»
-«"\n"»
-«"\n"»
 «ENDFOR»
 «FOR enumerator: enums»
 «toEnumerator(enumerator)»
-«"\n"»
-«"\n"»
 «ENDFOR»
 '''
 }
 	
-	
 	def toClassDiagram(EClass eclass) 
 	'''
-«" "»class «eclass.name» {
 «IF eclass.isInterface»
-«" <<interface>>"»
+«" "»interface «eclass.name» {
 «ELSEIF eclass.isAbstract»	
-«" <<abstract>>"»
+«" "»abstract class «eclass.name» {
+«ELSE»	
+«" "»class «eclass.name» {
 «ENDIF»	
 «toClassMembers(eclass)»
 }
+«"\n"»
+«toOnTopDescription(eclass)»
 «"\n"»
 «toClassReferences(eclass)»
 «"\n"»
@@ -62,7 +69,7 @@ var List<EEnum> enums = eclassifiers.filter[ec | ec instanceof EEnum].map[ec | e
 	def toClassMembers(EClass eclass)
 	'''
 «FOR attribute: eclass.EAttributes»
-«" "»«attribute.EType.name» «attribute.name»
+«" "»«attribute.name» : «attribute.EType.name» 
 «ENDFOR»	
 	'''
 	
@@ -75,26 +82,25 @@ var List<EEnum> enums = eclassifiers.filter[ec | ec instanceof EEnum].map[ec | e
 
 	def toClassRef(EClass eclass, EReference ref)  {
 		var multiplicity = extractMultiplicity(ref.lowerBound, ref.upperBound)
-		var refType = extractRefType(ref, eclass)
 		var isInRefModel = isInRefModel(ref, eclass)
 		'''
 «IF isInRefModel»
-«" "»«eclass.name» «' ..> '» «'\"'»«multiplicity»«'\"'» «refType»«' : '»«ref.name»
+«createRefPackage(ref)»
+«"\n"»
+«" "»«eclass.name» «' ..> '» «'\"'»«multiplicity»«'\"'» «ref.EType.name»«' : '»«ref.name»
 «ELSE»
-«" "»«eclass.name» «' --> '» «'\"'»«multiplicity»«'\"'» «refType»«' : '»«ref.name»
+«" "»«eclass.name» «' --> '» «'\"'»«multiplicity»«'\"'» «ref.EType.name»«' : '»«ref.name»
 «ENDIF»	
+«"\n"»
 		'''
 	}
 	
-	def String extractRefType(EReference ref, EClass containerClass) {
-		if(ref.EType.EPackage.name === containerClass.EPackage.name) {
-			return ref.EType.name
-		} else {
-//			TODO this should be the correct form when linking to a reference model (https://github.com/mermaid-js/mermaid/issues/1052)
-//			return ref.EType.EPackage.nsURI + "#//" + ref.EType.name;
-			return ref.EType.name
-		}
-	}
+	def createRefPackage(EReference ref)
+	'''
+«" "»package "«ref.EType.EPackage.nsURI»" #DDDDDD {
+«" "»«ref.EType.name» : «ref.name»
+}
+	'''
 	
 	def boolean isInRefModel(EReference ref, EClass containerClass) {
 		if(ref.EType.EPackage.name === containerClass.EPackage.name) {
@@ -125,22 +131,62 @@ var List<EEnum> enums = eclassifiers.filter[ec | ec instanceof EEnum].map[ec | e
 	
 	def toEnumerator(EEnum enumerator)
 	'''
-«" "»class «enumerator.name» {
-«" <<enumeration>>"»
+«" "»enum «enumerator.name» {
 «FOR value: enumerator.ELiterals»
 «" "»«value.name»
 «ENDFOR»
 }
+«"\n"»
+«toOnTopDescription(enumerator)»
+«"\n"»
 	'''
 	
+	def toOnTopDescription(EClassifier eclassifier) {
+		var description = toModelElementDescription(eclassifier)
+		if(description !== "None.") {
+			'''
+note top of «eclassifier.name»
+«" "»«description»
+end note
+			'''
+		}
+	}
+	
+	def String toModelElementDescription(EModelElement element) {
+		for(EAnnotation annotation : element.EAnnotations) {
+			var EMap<String, String> details = annotation.details;
+			if(details.containsKey("documentation")) {
+				var descr = details.get("documentation").replace("\n", "").trim;
+				if(descr.length > 30) {
+					var splitStr = descr.split(" ");
+					var counter = 0;
+					descr = "";
+					for(sp : splitStr) {
+						counter += sp.length;
+						descr += " " + sp;
+						if(counter > 30) {
+							descr += " \n";
+							counter = 0;
+						}						
+					}
+				}
+				return descr.trim;
+			}
+			
+		}	
+		return "None."	
+	}
+	
 	override generateClassDiagram(EPackage ePackage) {
-		toMermaidClassDiagram(ePackage);
+		toPlantumlClassDiagram(ePackage)
 	}
 	
 	override generateClassDiagram(EClass eClass) {
 		'''
-«startMermaidClassDiagram()»
+«startPlantumlClassDiagram()»
 «toClassDiagram(eClass)»
+«endPlantumlClassDiagram()»
 		'''
 	}
+	
 }

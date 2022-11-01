@@ -1,4 +1,4 @@
-package org.gecko.emf.util.documentation.generators.markdown;
+package org.gecko.emf.util.documentation.generators.html;
 
 import java.util.List;
 import org.eclipse.emf.common.util.EList;
@@ -20,49 +20,65 @@ import org.gecko.emf.util.documentation.generators.apis.EcoreToClassDiagramCodeG
 import org.gecko.emf.util.documentation.generators.apis.EcoreToDocumentationCodeGenerator;
 import org.gecko.emf.util.documentation.generators.apis.EcoreToDocumentationOptions;
 import org.gecko.emf.util.documentation.generators.mermaid.MermaidClassDiagramCodeGen;
-import org.gecko.emf.util.documentation.generators.plantuml.PlantumlClassDiagramCodeGen;
 
 @SuppressWarnings("all")
-public class MarkdownCodeGen implements EcoreToDocumentationCodeGenerator {
+public class HtmlCodeGen implements EcoreToDocumentationCodeGenerator {
   private EcoreToClassDiagramCodeGenerator classDiagramCodeGen;
 
-  private String diagramStartSyntax;
+  private String docStart = ((((("<html>\n" + 
+    "\t<head>\n") + 
+    "\t\t<script src=\'https://unpkg.com/mermaid@8.5.2/dist/mermaid.min.js\'></script>\n") + 
+    "\t\t<script type=\'module\' src=\'https://md-block.verou.me/md-block.js\'></script>\n") + 
+    "\t</head>\n") + 
+    "\t<body>");
 
-  private String diagramEndSyntax = "```";
+  private String docEnd = "\t</body>\n</html>";
 
-  public CharSequence generateMarkdownDoc(final EPackage epackage, final EcoreToDocumentationOptions mode) {
+  private String diagramStartSyntax = "";
+
+  private String diagramEndSyntax = "";
+
+  private String mdBlockStart = "\t\t<md-block>";
+
+  private String mdBlockEnd = "\t\t</md-block>";
+
+  public CharSequence generateHtmlDoc(final EPackage epackage, final EcoreToDocumentationOptions mode) {
     CharSequence _xblockexpression = null;
     {
-      boolean _equals = EcoreToDocumentationOptions.MARKDOWN_WITH_MERMAID_CLASS_DIAGRAM.equals(mode);
+      boolean _equals = EcoreToDocumentationOptions.HTML_WITH_MERMAID_CLASS_DIAGRAM.equals(mode);
       if (_equals) {
         MermaidClassDiagramCodeGen _mermaidClassDiagramCodeGen = new MermaidClassDiagramCodeGen();
         this.classDiagramCodeGen = _mermaidClassDiagramCodeGen;
-        this.diagramStartSyntax = "```mermaid";
-      } else {
-        boolean _equals_1 = EcoreToDocumentationOptions.MARKDOWN_WITH_PLANTUML_CLASS_DIAGRAM.equals(mode);
-        if (_equals_1) {
-          PlantumlClassDiagramCodeGen _plantumlClassDiagramCodeGen = new PlantumlClassDiagramCodeGen();
-          this.classDiagramCodeGen = _plantumlClassDiagramCodeGen;
-          this.diagramStartSyntax = "```plantuml";
-        }
+        this.diagramStartSyntax = "\t\t\t<div class=\'mermaid\'>";
+        this.diagramEndSyntax = "\t\t\t</div>";
       }
       StringConcatenation _builder = new StringConcatenation();
+      _builder.append(this.docStart);
+      _builder.newLineIfNotEmpty();
+      _builder.append(this.mdBlockStart);
+      _builder.newLineIfNotEmpty();
       _builder.append("# Package: ");
       String _name = epackage.getName();
       _builder.append(_name);
       _builder.newLineIfNotEmpty();
       _builder.append("\n");
       _builder.newLineIfNotEmpty();
+      _builder.append(this.mdBlockEnd);
+      _builder.newLineIfNotEmpty();
       {
         if ((this.classDiagramCodeGen != null)) {
+          _builder.append(this.mdBlockStart);
+          _builder.newLineIfNotEmpty();
           _builder.append("## Class Diagram");
           _builder.newLine();
           _builder.append("\n");
           _builder.newLineIfNotEmpty();
+          _builder.append(this.mdBlockEnd);
+          _builder.newLineIfNotEmpty();
           _builder.append(this.diagramStartSyntax);
           _builder.newLineIfNotEmpty();
-          CharSequence _generateClassDiagram = this.classDiagramCodeGen.generateClassDiagram(epackage);
-          _builder.append(_generateClassDiagram);
+          String _replace = this.classDiagramCodeGen.generateClassDiagram(epackage).toString().replace("<", "&lt").replace(">", "&gt");
+          _builder.append(_replace);
           _builder.newLineIfNotEmpty();
           _builder.append(this.diagramEndSyntax);
           _builder.newLineIfNotEmpty();
@@ -72,6 +88,8 @@ public class MarkdownCodeGen implements EcoreToDocumentationCodeGenerator {
       }
       CharSequence _eClassifierOverview = this.toEClassifierOverview(epackage.getEClassifiers());
       _builder.append(_eClassifierOverview);
+      _builder.newLineIfNotEmpty();
+      _builder.append(this.docEnd);
       _builder.newLineIfNotEmpty();
       _xblockexpression = _builder;
     }
@@ -96,32 +114,52 @@ public class MarkdownCodeGen implements EcoreToDocumentationCodeGenerator {
       };
       List<EEnum> enums = IterableExtensions.<EEnum>toList(IterableExtensions.<EClassifier, EEnum>map(IterableExtensions.<EClassifier>filter(eclassifiers, _function_2), _function_3));
       StringConcatenation _builder = new StringConcatenation();
-      _builder.append("## Classes Overview");
-      _builder.newLine();
-      _builder.append("\n");
-      _builder.newLineIfNotEmpty();
       {
-        for(final EClass eclass : classes) {
-          CharSequence _classOverview = this.toClassOverview(eclass);
-          _builder.append(_classOverview);
+        boolean _isEmpty = classes.isEmpty();
+        boolean _not = (!_isEmpty);
+        if (_not) {
+          _builder.append(this.mdBlockStart);
           _builder.newLineIfNotEmpty();
+          _builder.append("## Classes Overview");
+          _builder.newLine();
           _builder.append("\n");
           _builder.newLineIfNotEmpty();
+          _builder.append(this.mdBlockEnd);
+          _builder.newLineIfNotEmpty();
+          {
+            for(final EClass eclass : classes) {
+              CharSequence _classOverview = this.toClassOverview(eclass);
+              _builder.append(_classOverview);
+              _builder.newLineIfNotEmpty();
+              _builder.append("\n");
+              _builder.newLineIfNotEmpty();
+              _builder.append("\n");
+              _builder.newLineIfNotEmpty();
+            }
+          }
           _builder.append("\n");
           _builder.newLineIfNotEmpty();
         }
       }
-      _builder.append("\n");
+      _builder.append(this.mdBlockStart);
       _builder.newLineIfNotEmpty();
       _builder.append("## Enumerators Overview");
       _builder.newLine();
       _builder.append("\n");
       _builder.newLineIfNotEmpty();
+      _builder.append(this.mdBlockEnd);
+      _builder.newLineIfNotEmpty();
       {
-        boolean _isEmpty = enums.isEmpty();
-        if (_isEmpty) {
+        boolean _isEmpty_1 = enums.isEmpty();
+        if (_isEmpty_1) {
+          _builder.append(this.mdBlockStart);
+          _builder.newLineIfNotEmpty();
           _builder.append("None.");
           _builder.newLine();
+          _builder.append("\n");
+          _builder.newLineIfNotEmpty();
+          _builder.append(this.mdBlockEnd);
+          _builder.newLineIfNotEmpty();
         } else {
           {
             for(final EEnum enumerator : enums) {
@@ -143,6 +181,8 @@ public class MarkdownCodeGen implements EcoreToDocumentationCodeGenerator {
 
   public CharSequence toEnumOverview(final EEnum enumerator) {
     StringConcatenation _builder = new StringConcatenation();
+    _builder.append(this.mdBlockStart);
+    _builder.newLineIfNotEmpty();
     _builder.append("### Enumerator: ");
     String _name = enumerator.getName();
     _builder.append(_name);
@@ -164,6 +204,8 @@ public class MarkdownCodeGen implements EcoreToDocumentationCodeGenerator {
     _builder.newLineIfNotEmpty();
     CharSequence _literalOverview = this.toLiteralOverview(enumerator.getELiterals());
     _builder.append(_literalOverview);
+    _builder.newLineIfNotEmpty();
+    _builder.append(this.mdBlockEnd);
     _builder.newLineIfNotEmpty();
     return _builder;
   }
@@ -199,6 +241,8 @@ public class MarkdownCodeGen implements EcoreToDocumentationCodeGenerator {
 
   public CharSequence toClassOverview(final EClass eclass) {
     StringConcatenation _builder = new StringConcatenation();
+    _builder.append(this.mdBlockStart);
+    _builder.newLineIfNotEmpty();
     _builder.append("### Class: ");
     String _name = eclass.getName();
     _builder.append(_name);
@@ -214,11 +258,17 @@ public class MarkdownCodeGen implements EcoreToDocumentationCodeGenerator {
     _builder.newLineIfNotEmpty();
     _builder.append("\n");
     _builder.newLineIfNotEmpty();
+    _builder.append(this.mdBlockEnd);
+    _builder.newLineIfNotEmpty();
     {
       if ((this.classDiagramCodeGen != null)) {
+        _builder.append(this.mdBlockStart);
+        _builder.newLineIfNotEmpty();
         _builder.append("#### Class Diagram");
         _builder.newLine();
         _builder.append("\n");
+        _builder.newLineIfNotEmpty();
+        _builder.append(this.mdBlockEnd);
         _builder.newLineIfNotEmpty();
         _builder.append(this.diagramStartSyntax);
         _builder.newLineIfNotEmpty();
@@ -231,6 +281,8 @@ public class MarkdownCodeGen implements EcoreToDocumentationCodeGenerator {
         _builder.newLineIfNotEmpty();
       }
     }
+    _builder.append(this.mdBlockStart);
+    _builder.newLineIfNotEmpty();
     _builder.append("#### Fields");
     _builder.newLine();
     _builder.append("\n");
@@ -248,6 +300,8 @@ public class MarkdownCodeGen implements EcoreToDocumentationCodeGenerator {
     _builder.append(_classStructuralFeaturesDescription_1);
     _builder.newLineIfNotEmpty();
     _builder.append("\n");
+    _builder.newLineIfNotEmpty();
+    _builder.append(this.mdBlockEnd);
     _builder.newLineIfNotEmpty();
     return _builder;
   }
@@ -306,27 +360,29 @@ public class MarkdownCodeGen implements EcoreToDocumentationCodeGenerator {
 
   @Override
   public CharSequence generateDocumentation(final EPackage ePackage, final EcoreToDocumentationOptions docGenOption) {
-    return this.generateMarkdownDoc(ePackage, docGenOption);
+    return this.generateHtmlDoc(ePackage, docGenOption);
   }
 
   @Override
   public CharSequence generateDocumentation(final EClass eClass, final EcoreToDocumentationOptions docGenOption) {
     CharSequence _xblockexpression = null;
     {
-      boolean _equals = EcoreToDocumentationOptions.MARKDOWN_WITH_MERMAID_CLASS_DIAGRAM.equals(docGenOption);
+      boolean _equals = EcoreToDocumentationOptions.HTML_WITH_MERMAID_CLASS_DIAGRAM.equals(docGenOption);
       if (_equals) {
         MermaidClassDiagramCodeGen _mermaidClassDiagramCodeGen = new MermaidClassDiagramCodeGen();
         this.classDiagramCodeGen = _mermaidClassDiagramCodeGen;
-        this.diagramStartSyntax = "```mermaid";
-      } else {
-        boolean _equals_1 = EcoreToDocumentationOptions.MARKDOWN_WITH_PLANTUML_CLASS_DIAGRAM.equals(docGenOption);
-        if (_equals_1) {
-          PlantumlClassDiagramCodeGen _plantumlClassDiagramCodeGen = new PlantumlClassDiagramCodeGen();
-          this.classDiagramCodeGen = _plantumlClassDiagramCodeGen;
-          this.diagramStartSyntax = "```plantuml";
-        }
+        this.diagramStartSyntax = "<div class=\'mermaid\'>";
+        this.diagramEndSyntax = "</div>";
       }
-      _xblockexpression = this.toClassOverview(eClass);
+      StringConcatenation _builder = new StringConcatenation();
+      _builder.append(this.docStart);
+      _builder.newLineIfNotEmpty();
+      CharSequence _classOverview = this.toClassOverview(eClass);
+      _builder.append(_classOverview);
+      _builder.newLineIfNotEmpty();
+      _builder.append(this.docEnd);
+      _builder.newLineIfNotEmpty();
+      _xblockexpression = _builder;
     }
     return _xblockexpression;
   }

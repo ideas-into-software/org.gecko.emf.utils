@@ -17,14 +17,12 @@ import org.eclipse.emf.ecore.EPackage;
 /**
  * 
  * @author ilenia
- * @since Oct 18, 2022
+ * @since Oct 19, 2022
  */
-public interface EcoreToClassDiagramCodeGenerator {
+public interface EcoreToDocumentationCodeGenerator {
 	
-	CharSequence generateClassDiagram(EPackage ePackage);
+	CharSequence generateDocumentation(EPackage ePackage, EcoreToDocumentationOptions docGenOption);
+		
+	CharSequence generateDocumentation(EClass eClass, EcoreToDocumentationOptions docGenOption);
 
-	CharSequence generateClassDiagram(EClass eClass);
-	
-//	TODO
-	
 }

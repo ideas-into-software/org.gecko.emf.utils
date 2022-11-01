@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2012 - 2022 Data In Motion and others.
+ * Copyright (c) 2012 - 2018 Data In Motion and others.
  * All rights reserved. 
  * 
  * This program and the accompanying materials are made available under the terms of the 
@@ -9,7 +9,7 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.util.documentation.generators.markdown.component;
+package org.gecko.emf.util.documentation.generators.html.component;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -23,23 +23,28 @@ import org.eclipse.emf.ecore.EPackage;
 import org.gecko.emf.util.documentation.generators.apis.EcoreToDocumentationCodeGenerator;
 import org.gecko.emf.util.documentation.generators.apis.EcoreToDocumentationOptions;
 import org.gecko.emf.util.documentation.generators.apis.EcoreToDocumentationService;
-import org.gecko.emf.util.documentation.generators.markdown.MarkdownCodeGen;
+import org.gecko.emf.util.documentation.generators.html.HtmlCodeGen;
 import org.osgi.service.component.annotations.Component;
 
-/**
- * 
- * @author ilenia
- * @since Oct 19, 2022
- */
-@Component(name="EcoreToMarkdownComponent", service=EcoreToDocumentationService.class)
-public class EcoreToMarkdownComponent implements EcoreToDocumentationService {
+@Component(name="EcoreToHtmlComponent", service=EcoreToDocumentationService.class)
+public class EcoreToHtmlComponent implements EcoreToDocumentationService {
 	
-	private static final String MD_FILE_EXTENSION = ".md";
-	private static final String MD_OUTPUT_FOLDER = "md";
-	private static final String MD_WITH_MERMAID_OUTPUT_FOLDER = "md_mermaid";
-	private static final String MD_WITH_PLANTUML_OUTPUT_FOLDER = "md_plantuml";
-	private static final String MD_MEDIA_TYPE = "text/markdown";
-	
+	private static final String HTML_FILE_EXTENSION = ".html";
+	private static final String HTML_OUTPUT_FOLDER = "html";
+	private static final String HTML_WITH_MERMAID_OUTPUT_FOLDER = "html_mermaid";
+	private static final String HTML_MEDIA_TYPE = "text/html";
+
+	/* 
+	 * (non-Javadoc)
+	 * @see org.gecko.emf.util.documentation.generators.apis.EcoreToDocumentationService#canHandleMediaType(java.lang.String)
+	 */
+	@Override
+	public boolean canHandleMediaType(String mediaType) {
+		if(HTML_MEDIA_TYPE.equals(mediaType)) {
+			return true;
+		}
+		return false;
+	}
 
 	/* 
 	 * (non-Javadoc)
@@ -47,7 +52,7 @@ public class EcoreToMarkdownComponent implements EcoreToDocumentationService {
 	 */
 	@Override
 	public String getOutputFileExtension() {
-		return MD_FILE_EXTENSION;
+		return HTML_FILE_EXTENSION;
 	}
 
 	/* 
@@ -57,12 +62,10 @@ public class EcoreToMarkdownComponent implements EcoreToDocumentationService {
 	@Override
 	public String getOutputFolder(EcoreToDocumentationOptions mode) {
 		switch(mode) {
-		case MARKDOWN_WITH_MERMAID_CLASS_DIAGRAM:
-			return MD_WITH_MERMAID_OUTPUT_FOLDER;
-		case MARKDOWN_WITH_PLANTUML_CLASS_DIAGRAM:
-			return MD_WITH_PLANTUML_OUTPUT_FOLDER;
-		case ONLY_MARKDOWN_CLASS_OVERVIEW: default:
-			return MD_OUTPUT_FOLDER;
+		case HTML_WITH_MERMAID_CLASS_DIAGRAM:
+			return HTML_WITH_MERMAID_OUTPUT_FOLDER;
+		case ONLY_HTML_CLASS_OVERVIEW: default:
+			return HTML_OUTPUT_FOLDER;
 		}
 	}
 
@@ -72,7 +75,7 @@ public class EcoreToMarkdownComponent implements EcoreToDocumentationService {
 	 */
 	@Override
 	public OutputStream doGenerateDocumentation(EPackage ePackage, EcoreToDocumentationOptions mode, String outputFolderRoot) throws IOException {
-		EcoreToDocumentationCodeGenerator mdCodeGenerator = new MarkdownCodeGen();
+		EcoreToDocumentationCodeGenerator mdCodeGenerator = new HtmlCodeGen();
 		CharSequence cs = mdCodeGenerator.generateDocumentation(ePackage, mode);
 		File outputFile = generateOutputFile(ePackage, cs, mode, outputFolderRoot);
 		try(InputStream is = new FileInputStream(outputFile); OutputStream os = new ByteArrayOutputStream();) {
@@ -86,8 +89,8 @@ public class EcoreToMarkdownComponent implements EcoreToDocumentationService {
 	 * @see org.gecko.emf.util.documentation.generators.apis.EcoreToDocumentationService#doGenerateDocumentation(org.eclipse.emf.ecore.EClass, org.gecko.emf.util.documentation.generators.apis.EcoreToDocumentationOptions, java.lang.String)
 	 */
 	@Override
-	public OutputStream doGenerateDocumentation(EClass eClass, EcoreToDocumentationOptions mode, String outputFolderRoot) throws IOException{
-		EcoreToDocumentationCodeGenerator mdCodeGenerator = new MarkdownCodeGen();
+	public OutputStream doGenerateDocumentation(EClass eClass, EcoreToDocumentationOptions mode, String outputFolderRoot) throws IOException {
+		EcoreToDocumentationCodeGenerator mdCodeGenerator = new HtmlCodeGen();
 		CharSequence cs = mdCodeGenerator.generateDocumentation(eClass, mode);
 		File outputFile = generateOutputFile(eClass, cs, mode, outputFolderRoot);
 		try(InputStream is = new FileInputStream(outputFile); OutputStream os = new ByteArrayOutputStream();) {
@@ -96,17 +99,5 @@ public class EcoreToMarkdownComponent implements EcoreToDocumentationService {
 		}
 	}
 
-	
-	/* 
-	 * (non-Javadoc)
-	 * @see org.gecko.emf.util.documentation.generators.apis.EcoreToDocumentationService#canHandleMediaType(java.lang.String)
-	 */
-	@Override
-	public boolean canHandleMediaType(String mediaType) {
-		if(MD_MEDIA_TYPE.equals(mediaType)) {
-			return true;
-		}
-		return false;
-	}
 
 }

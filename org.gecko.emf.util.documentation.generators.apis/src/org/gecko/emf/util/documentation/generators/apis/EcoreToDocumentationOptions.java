@@ -16,9 +16,13 @@ package org.gecko.emf.util.documentation.generators.apis;
  * @author ilenia
  * @since Oct 18, 2022
  */
-public enum EcoreToDocumentationConstants {
+public enum EcoreToDocumentationOptions {
 	
-	CLASS_DIAGRAM_GEN_MERMAID_OPTION , CLASS_DIAGRAM_GEN_PLANTUML_OPTION, ONLY_MARKDOWN_DOCS;
-
+	MARKDOWN_WITH_MERMAID_CLASS_DIAGRAM,
+	MARKDOWN_WITH_PLANTUML_CLASS_DIAGRAM,
+	HTML_WITH_MERMAID_CLASS_DIAGRAM,
+	HTML_WITH_PLANTUML_CLASS_DIAGRAM,
+	ONLY_MARKDOWN_CLASS_OVERVIEW,
+	ONLY_HTML_CLASS_OVERVIEW;
 
 }
