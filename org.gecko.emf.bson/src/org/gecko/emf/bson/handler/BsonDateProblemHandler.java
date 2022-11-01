@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright (c) 2012 - 2022 Data In Motion and others.
  * All rights reserved. 
  * 

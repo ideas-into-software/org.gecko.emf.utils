@@ -54,5 +54,6 @@ header:
     - 'gradlew'
     - 'gradlew.bat'
     - 'settings.gradle'
+    - '**/*Test.java'
  
   comment: always
