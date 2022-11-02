@@ -105,10 +105,7 @@ public class EcoreToMarkdownComponent implements EcoreToDocumentationService {
 	 */
 	@Override
 	public boolean canHandleMediaType(String mediaType) {
-		if(MD_MEDIA_TYPE.equals(mediaType)) {
-			return true;
-		}
-		return false;
+		return MD_MEDIA_TYPE.equals(mediaType);
 	}
 
 }

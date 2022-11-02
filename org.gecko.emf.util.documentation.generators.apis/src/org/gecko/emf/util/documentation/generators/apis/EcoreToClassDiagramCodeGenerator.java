@@ -26,7 +26,5 @@ public interface EcoreToClassDiagramCodeGenerator {
 	CharSequence generateClassDiagram(EPackage ePackage);
 
 	CharSequence generateClassDiagram(EClass eClass);
-	
-//	TODO
-	
+		
 }

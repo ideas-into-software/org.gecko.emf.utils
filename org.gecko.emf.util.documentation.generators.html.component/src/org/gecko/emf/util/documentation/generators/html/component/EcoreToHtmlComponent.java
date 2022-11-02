@@ -42,10 +42,7 @@ public class EcoreToHtmlComponent implements EcoreToDocumentationService {
 	 */
 	@Override
 	public boolean canHandleMediaType(String mediaType) {
-		if(HTML_MEDIA_TYPE.equals(mediaType)) {
-			return true;
-		}
-		return false;
+		return HTML_MEDIA_TYPE.equals(mediaType);
 	}
 
 	/* 
