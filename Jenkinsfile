@@ -43,5 +43,14 @@ pipeline  {
                 sh "cp -r cnf/release/* $JENKINS_HOME/repo.gecko/snapshot/org.gecko.emf.util"
             }
         }
+        stage('Jakarta branch release') {
+            when { 
+                branch 'jakarta'
+            }
+            steps  {
+                echo "I am building on ${env.JOB_NAME}"
+                sh "./gradlew clean build :org.gecko.emf.rest:release -Drelease.dir=$JENKINS_HOME/repo.gecko/jakarta/org.gecko.emf.util --info --stacktrace -Dmaven.repo.local=${WORKSPACE}/.m2"
+            }
+        }
     }
 }
