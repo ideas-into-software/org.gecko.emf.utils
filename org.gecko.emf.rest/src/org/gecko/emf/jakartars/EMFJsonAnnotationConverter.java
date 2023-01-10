@@ -9,7 +9,7 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.jaxrs;
+package org.gecko.emf.jakartars;
 
 import java.lang.annotation.Annotation;
 import java.util.Map;
@@ -17,9 +17,9 @@ import java.util.Map;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.gecko.emf.jaxrs.annotations.AnnotationConverter;
-import org.gecko.emf.jaxrs.annotations.json.EMFJSONConfig;
-import org.gecko.emf.jaxrs.annotations.json.RootElement;
+import org.gecko.emf.jakartars.annotations.AnnotationConverter;
+import org.gecko.emf.jakartars.annotations.json.EMFJSONConfig;
+import org.gecko.emf.jakartars.annotations.json.RootElement;
 import org.gecko.emf.json.constants.EMFJs;
 import org.osgi.service.component.ComponentServiceObjects;
 import org.osgi.service.component.annotations.Component;

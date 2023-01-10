@@ -9,20 +9,26 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.jaxrs.annotations;
+package org.gecko.emf.jakartars.annotations.json;
 
-import java.lang.annotation.ElementType;
+import static java.lang.annotation.ElementType.CONSTRUCTOR;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PARAMETER;
+
+import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Triggers EMF Validation of the Resource
- * @author Jürgen Albert
- * @since 06.11.2014 
+ * 
+ * @author Juergen Albert
+ * @since 24 Jun 2018
  */
-@Target(ElementType.PARAMETER)
+@Documented
+@Target({METHOD, PARAMETER, CONSTRUCTOR})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ValidateContent {
+public @interface RootElement {
 
+	String rootClassUri();
 }

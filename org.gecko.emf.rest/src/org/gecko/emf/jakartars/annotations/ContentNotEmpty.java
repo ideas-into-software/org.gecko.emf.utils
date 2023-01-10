@@ -9,7 +9,7 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.jaxrs.annotations;
+package org.gecko.emf.jakartars.annotations;
 
 /**
  * Triggers check for Empty Content

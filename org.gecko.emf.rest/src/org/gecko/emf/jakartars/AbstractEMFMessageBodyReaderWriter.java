@@ -9,7 +9,7 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.jaxrs;
+package org.gecko.emf.jakartars;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,12 +40,12 @@ import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.eclipse.emf.ecore.util.Diagnostician;
 import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.ecore.xmi.XMLResource;
-import org.gecko.emf.jaxrs.annotations.AnnotationConverter;
-import org.gecko.emf.jaxrs.annotations.ContentNotEmpty;
-import org.gecko.emf.jaxrs.annotations.EMFResourceOptions;
-import org.gecko.emf.jaxrs.annotations.ResourceEClass;
-import org.gecko.emf.jaxrs.annotations.ResourceOption;
-import org.gecko.emf.jaxrs.annotations.ValidateContent;
+import org.gecko.emf.jakartars.annotations.AnnotationConverter;
+import org.gecko.emf.jakartars.annotations.ContentNotEmpty;
+import org.gecko.emf.jakartars.annotations.EMFResourceOptions;
+import org.gecko.emf.jakartars.annotations.ResourceEClass;
+import org.gecko.emf.jakartars.annotations.ResourceOption;
+import org.gecko.emf.jakartars.annotations.ValidateContent;
 import org.gecko.emf.json.constants.EMFJs;
 import org.gecko.emf.osgi.ResourceSetFactory;
 import org.gecko.emf.osgi.model.info.EMFModelInfo;

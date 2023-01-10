@@ -7,14 +7,14 @@ javac.target: 11
 
 -buildpath: \
 	jakarta.ws.rs-api;version=latest,\
-	org.osgi.service.jaxrs;version=latest,\
+	org.osgi.service.jakartars;version=latest,\
 	org.osgi.service.component;version=latest,\
 	org.eclipse.emfcloud.emfjson-jackson;version=latest,\
 	org.gecko.emf.json;version=project,\
 	org.gecko.emf.osgi.model.info
 	
-Bundle-Name: Gecko EMF JaxRs Extension
+Bundle-Name: Gecko EMF JakartaRs Extension
 Bundle-Description: Extension to load and save EMF EObjects using a MessageBodyReader or -Writer
-Bundle-Version: 1.4.1.SNAPSHOT
+Bundle-Version: 2.0.0.SNAPSHOT
 
 Provide-Capability: emf.rest;emf.rest=osgi

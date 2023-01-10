@@ -9,34 +9,26 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.jaxrs.annotations;
+package org.gecko.emf.jakartars.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import org.eclipse.emf.ecore.EClass;
+
 /**
  * @author Juergen Albert
  * @since 07.02.2013
  */
-@Target({ElementType.PARAMETER, ElementType.METHOD})
+@Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface ResourceOption {
+public @interface ResourceEClass {
 
 	/**
-	 * The key for the Option
-	 */
-	String key();
-	
-	/**
-	 * The value for the for the option to set
+	 * The value for the {@link EClass} filter
 	 */
 	String value();
-	
-	/**
-	 * @return the type of the value.
-	 */
-	Class<?> valueType() default String.class;
 	
 }
