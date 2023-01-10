@@ -74,6 +74,9 @@ var List<EEnum> enums = eclassifiers.filter[ec | ec instanceof EEnum].map[ec | e
 	
 	def toClassMembers(EClass eclass)
 	'''
+«IF eclass.EAttributes.isEmpty»
+«" \n"»
+«ENDIF»	
 «FOR attribute: eclass.EAttributes»
 «" "»«attribute.EType.name» «attribute.name»
 «ENDFOR»	

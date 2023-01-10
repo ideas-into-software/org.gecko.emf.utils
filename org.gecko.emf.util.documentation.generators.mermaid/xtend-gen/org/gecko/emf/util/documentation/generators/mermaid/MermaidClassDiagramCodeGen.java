@@ -142,6 +142,13 @@ public class MermaidClassDiagramCodeGen implements EcoreToClassDiagramCodeGenera
   public CharSequence toClassMembers(final EClass eclass) {
     StringConcatenation _builder = new StringConcatenation();
     {
+      boolean _isEmpty = eclass.getEAttributes().isEmpty();
+      if (_isEmpty) {
+        _builder.append(" \n");
+        _builder.newLineIfNotEmpty();
+      }
+    }
+    {
       EList<EAttribute> _eAttributes = eclass.getEAttributes();
       for(final EAttribute attribute : _eAttributes) {
         _builder.append(" ");

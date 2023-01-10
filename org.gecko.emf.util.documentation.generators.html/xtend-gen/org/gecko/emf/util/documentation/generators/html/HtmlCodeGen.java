@@ -285,8 +285,8 @@ public class HtmlCodeGen implements EcoreToDocumentationCodeGenerator {
         _builder.newLineIfNotEmpty();
         _builder.append(this.diagramStartSyntax);
         _builder.newLineIfNotEmpty();
-        CharSequence _generateClassDiagram = this.classDiagramCodeGen.generateClassDiagram(eclass);
-        _builder.append(_generateClassDiagram);
+        String _replace = this.classDiagramCodeGen.generateClassDiagram(eclass).toString().replace("<", "&lt").replace(">", "&gt");
+        _builder.append(_replace);
         _builder.newLineIfNotEmpty();
         _builder.append(this.diagramEndSyntax);
         _builder.newLineIfNotEmpty();

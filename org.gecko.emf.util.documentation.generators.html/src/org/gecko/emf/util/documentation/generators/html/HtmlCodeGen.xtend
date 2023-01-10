@@ -152,7 +152,7 @@ None.
 «"\n"»
 «mdBlockEnd»
 «diagramStartSyntax»
-«classDiagramCodeGen.generateClassDiagram(eclass)»
+«classDiagramCodeGen.generateClassDiagram(eclass).toString().replace("<","&lt").replace(">", "&gt")»
 «diagramEndSyntax»
 «"\n"»
 «ENDIF»
