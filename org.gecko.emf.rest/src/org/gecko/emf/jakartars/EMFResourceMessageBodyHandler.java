@@ -9,13 +9,27 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.jaxrs;
+package org.gecko.emf.jakartars;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
+
+import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.gecko.emf.jakartars.annotations.AnnotationConverter;
+import org.gecko.emf.osgi.ResourceSetFactory;
+import org.osgi.service.component.annotations.Component;
+import org.osgi.service.component.annotations.Reference;
+import org.osgi.service.component.annotations.ReferenceCardinality;
+import org.osgi.service.component.annotations.ReferencePolicy;
+import org.osgi.service.component.annotations.ServiceScope;
+import org.osgi.service.jakartars.whiteboard.JakartarsWhiteboardConstants;
+import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsApplicationSelect;
+import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsExtension;
+import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsName;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.Produces;
@@ -25,21 +39,6 @@ import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.ext.MessageBodyReader;
 import jakarta.ws.rs.ext.MessageBodyWriter;
 import jakarta.ws.rs.ext.Provider;
-
-import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.gecko.emf.jaxrs.annotations.AnnotationConverter;
-import org.gecko.emf.osgi.ResourceSetFactory;
-import org.osgi.annotation.bundle.Capability;
-import org.osgi.service.component.annotations.Component;
-import org.osgi.service.component.annotations.Reference;
-import org.osgi.service.component.annotations.ReferenceCardinality;
-import org.osgi.service.component.annotations.ReferencePolicy;
-import org.osgi.service.component.annotations.ServiceScope;
-import org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants;
-import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsApplicationSelect;
-import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsExtension;
-import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsName;
 
 /**
  * {@link MessageBodyReader} and {@link MessageBodyWriter} that handle {@link Resource}.
@@ -54,10 +53,9 @@ import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsName;
 		enabled = true,
 		scope = ServiceScope.PROTOTYPE
 		)
-@Capability(namespace = "gecko.rest.addon", name = "messagebody.emf")
-@JaxrsExtension
-@JaxrsName("EMFResourcesMessageBodyReaderWriter")
-@JaxrsApplicationSelect("(|(emf=true)("+ JaxrsWhiteboardConstants.JAX_RS_NAME + "=.default))")
+@JakartarsExtension
+@JakartarsName("EMFResourcesMessageBodyReaderWriter")
+@JakartarsApplicationSelect("(|(emf=true)("+ JakartarsWhiteboardConstants.JAKARTA_RS_NAME + "=.default))")
 @Provider
 @Produces(MediaType.WILDCARD)
 @Consumes(MediaType.WILDCARD)

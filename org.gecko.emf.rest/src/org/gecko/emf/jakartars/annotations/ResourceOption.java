@@ -9,26 +9,34 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.jaxrs.annotations.json;
+package org.gecko.emf.jakartars.annotations;
 
-import static java.lang.annotation.ElementType.CONSTRUCTOR;
-import static java.lang.annotation.ElementType.METHOD;
-import static java.lang.annotation.ElementType.PARAMETER;
-
-import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * 
  * @author Juergen Albert
- * @since 24 Jun 2018
+ * @since 07.02.2013
  */
-@Documented
-@Target({METHOD, PARAMETER, CONSTRUCTOR})
+@Target({ElementType.PARAMETER, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface RootElement {
+public @interface ResourceOption {
 
-	String rootClassUri();
+	/**
+	 * The key for the Option
+	 */
+	String key();
+	
+	/**
+	 * The value for the for the option to set
+	 */
+	String value();
+	
+	/**
+	 * @return the type of the value.
+	 */
+	Class<?> valueType() default String.class;
+	
 }

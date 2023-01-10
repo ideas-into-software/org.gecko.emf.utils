@@ -9,7 +9,7 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.jaxrs;
+package org.gecko.emf.jakartars;
 
 import java.util.List;
 import java.util.logging.Logger;

@@ -9,7 +9,7 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.jaxrs;
+package org.gecko.emf.jakartars;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -31,17 +31,17 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
-import org.gecko.emf.jaxrs.annotations.AnnotationConverter;
+import org.gecko.emf.jakartars.annotations.AnnotationConverter;
 import org.gecko.emf.osgi.ResourceSetFactory;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ServiceScope;
-import org.osgi.service.jaxrs.whiteboard.JaxrsWhiteboardConstants;
-import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsApplicationSelect;
-import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsExtension;
-import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsName;
+import org.osgi.service.jakartars.whiteboard.JakartarsWhiteboardConstants;
+import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsApplicationSelect;
+import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsExtension;
+import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsName;
 
 /**
  * {@link MessageBodyReader} and {@link MessageBodyWriter} that handle {@link EObject}.
@@ -56,9 +56,9 @@ import org.osgi.service.jaxrs.whiteboard.propertytypes.JaxrsName;
 		enabled = true,
 		scope = ServiceScope.SINGLETON
 	)
-@JaxrsExtension
-@JaxrsName("EMFEObjectMessagebodyReaderWriter")
-@JaxrsApplicationSelect("(|(emf=true)("+ JaxrsWhiteboardConstants.JAX_RS_NAME + "=.default))")
+@JakartarsExtension
+@JakartarsName("EMFEObjectMessagebodyReaderWriter")
+@JakartarsApplicationSelect("(|(emf=true)("+ JakartarsWhiteboardConstants.JAKARTA_RS_NAME + "=.default))")
 @Provider
 @Produces(MediaType.WILDCARD)
 @Consumes(MediaType.WILDCARD)

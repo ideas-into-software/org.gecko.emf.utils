@@ -9,26 +9,20 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.jaxrs.annotations;
+package org.gecko.emf.jakartars.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-import org.eclipse.emf.ecore.resource.Resource;
-
 /**
- * @author Juergen Albert
- * @since 07.02.2013
+ * Triggers EMF Validation of the Resource
+ * @author Jürgen Albert
+ * @since 06.11.2014 
  */
-@Target({ElementType.PARAMETER, ElementType.METHOD})
+@Target(ElementType.PARAMETER)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface EMFResourceOptions {
+public @interface ValidateContent {
 
-	/**
-	 * @return options for the {@link Resource} for load and save 
-	 */
-	ResourceOption[] options();
-	
 }
