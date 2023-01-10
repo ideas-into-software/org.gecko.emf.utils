@@ -6,7 +6,7 @@ javac.target: 11
 -dsannotations-options: inherit
 
 -buildpath: \
-	jakarta.ws.rs-api;version='2.1',\
+	jakarta.ws.rs-api;version=latest,\
 	org.osgi.service.jaxrs;version=latest,\
 	org.osgi.service.component;version=latest,\
 	org.eclipse.emfcloud.emfjson-jackson;version=latest,\
