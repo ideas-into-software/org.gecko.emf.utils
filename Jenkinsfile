@@ -49,7 +49,7 @@ pipeline  {
             }
             steps  {
                 echo "I am building on ${env.JOB_NAME}"
-                sh "./gradlew release -Drelease.dir=$JENKINS_HOME/repo.gecko/jakarta/org.gecko.emf.util --info --stacktrace -Dmaven.repo.local=${WORKSPACE}/.m2"
+                sh "./gradlew :org.gecko.emf.rest:release -Drelease.dir=$JENKINS_HOME/repo.gecko/jakarta/org.gecko.emf.util --info --stacktrace -Dmaven.repo.local=${WORKSPACE}/.m2"
             }
         }
     }
