@@ -1,0 +1,22 @@
+Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Name: Gecko EMF ODS Exporter
+Bundle-Description: ODS (OpenDocument Spreadsheet) Exporter for EMF
+
+-library: enable-emf
+
+-buildpath: \
+	osgi.annotation;version='7.0',\
+	osgi.core;version='7.0',\
+	fastods;version='0.8'
+
+#	osgi.annotation;version='7.0',\
+#	osgi.core;version='7.0',\
+#	osgi.cmpn;version='7.0',\
+#	org.eclipse.emf.common,\
+#	org.eclipse.emf.ecore,\
+#	org.eclipse.emf.ecore.xmi,\	
+#	org.gecko.emf.repository.api,\
+#	org.gecko.emf.osgi.api,\	
+#	org.osgi.util.pushstream,\
+#	org.gecko.util.pushstream,\	
+#	org.gecko.emf.pushstreams,\
