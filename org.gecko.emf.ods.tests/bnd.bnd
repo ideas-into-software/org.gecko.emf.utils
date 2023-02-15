@@ -12,5 +12,4 @@ Bundle-Version: 1.0.0.SNAPSHOT
 	org.eclipse.emf.ecore,\
 	org.gecko.emf.osgi.example.model.basic,\
 	org.gecko.emf.exporter;version=latest,\
-	org.apache.commons.commons-text,\
-	org.gecko.emf.util.model
+	org.apache.commons.commons-text

@@ -13,20 +13,14 @@ package org.gecko.emf.ods.tests.helper;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
 import org.apache.commons.text.RandomStringGenerator;
-import org.eclipse.emf.ecore.resource.ResourceSet;
-import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.gecko.emf.osgi.example.model.basic.Address;
 import org.gecko.emf.osgi.example.model.basic.BasicFactory;
-import org.gecko.emf.osgi.example.model.basic.BasicPackage;
 import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
 import org.gecko.emf.osgi.example.model.basic.ContactContextType;
 import org.gecko.emf.osgi.example.model.basic.ContactType;
@@ -36,40 +30,13 @@ import org.gecko.emf.osgi.example.model.basic.GenderType;
 import org.gecko.emf.osgi.example.model.basic.Person;
 import org.gecko.emf.osgi.example.model.basic.PersonContact;
 import org.gecko.emf.osgi.example.model.basic.Tag;
-import org.gecko.emf.osgi.example.model.basic.util.BasicResourceFactoryImpl;
-import org.gecko.emf.utilities.Filter;
-import org.gecko.emf.utilities.Request;
-import org.gecko.emf.utilities.Sort;
-import org.gecko.emf.utilities.SortType;
-import org.gecko.emf.utilities.UtilitiesFactory;
 
-public class EMFODSExporterTestHelper {
-	
-	public static Request createRequest(UtilitiesFactory uf) {
-		Request request = uf.createRequest();
-		
-		Instant now = Instant.now();
-		
-		request.setId(UUID.randomUUID().toString());
-		request.setFrom(Date.from(now));
-		request.setTo(Date.from(now.plus(7, ChronoUnit.DAYS)));
-		
-		Sort sort = uf.createSort();
-		sort.setIndex(0);
-		sort.setField("cartoon");
-		sort.setType(SortType.ASCENDING);
-		
-		request.getSorting().add(sort);
-		
-		Filter filter = uf.createFilter();
-		filter.setIndex(0);
-		filter.setField("cartoon");
-		filter.getValue().add("Simpsons");
-		
-		request.getFiltering().add(filter);
-		
-		return request;
-	}
+/**
+ * EMF ODS Resource integration test helper.
+ * 
+ * @author Michal H. Siemaszko
+ */
+public class EMFODSResourceTestHelper {
 
 	public static Family createSimpsonFamily(BasicFactory bf) {
 		Family simpsonFamily = bf.createFamily();
@@ -391,15 +358,6 @@ public class EMFODSExporterTestHelper {
 	private static String createPropertyName(String prefix, String name) {
 		return (prefix + "_" + name);
 	}
-
-	public static ResourceSet createBasicPackageResourceSet(BasicPackage bp) {
-		ResourceSet resourceSet = new ResourceSetImpl();
-		resourceSet.getPackageRegistry().put(BasicPackage.eNS_URI, bp);
-		resourceSet.getResourceFactoryRegistry().getExtensionToFactoryMap().put("test", new BasicResourceFactoryImpl());
-		resourceSet.getResourceFactoryRegistry().getContentTypeToFactoryMap().put(BasicPackage.eCONTENT_TYPE,
-				new BasicResourceFactoryImpl());
-		return resourceSet;
-	}	
 
 	private static String createUniquePrefix(int maxChars) {
 		// @formatter:off

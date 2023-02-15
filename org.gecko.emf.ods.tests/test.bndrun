@@ -1,11 +1,10 @@
-
 -runfw: org.apache.felix.framework;version='[7.0.1,7.0.1]'
 -runprovidedcapabilities: ${native_capability}
 
 -resolve.effective: active
 
 -runbundles.junit5: ${test.runbundles}
-	
+
 -runbundles: \
 	junit-jupiter-api;version='[5.8.2,5.8.3)',\
 	junit-platform-commons;version='[1.8.2,1.8.3)',\
@@ -27,26 +26,24 @@
 	junit-jupiter-params;version='[5.8.2,5.8.3)',\
 	org.osgi.test.common;version='[1.1.0,1.1.1)',\
 	org.osgi.test.junit5;version='[1.1.0,1.1.1)',\
-	org.yaml.snakeyaml;version='[1.33.0,1.33.1)',\
-	org.gecko.emf.exporter;version=snapshot,\
-	org.gecko.emf.exporter.ods;version=snapshot,\
-	org.gecko.emf.exporter.ods.tests;version=snapshot,\
 	com.fasterxml.jackson.core.jackson-annotations;version='[2.14.1,2.14.2)',\
 	com.fasterxml.jackson.core.jackson-core;version='[2.14.1,2.14.2)',\
 	com.fasterxml.jackson.core.jackson-databind;version='[2.14.1,2.14.2)',\
 	com.fasterxml.jackson.dataformat.jackson-dataformat-properties;version='[2.14.1,2.14.2)',\
 	com.fasterxml.jackson.dataformat.jackson-dataformat-yaml;version='[2.14.1,2.14.2)',\
-	com.google.guava;version='[31.1.0,31.1.1)',\
-	com.google.guava.failureaccess;version='[1.0.1,1.0.2)',\
 	de.undercouch.bson4jackson;version='[2.13.1,2.13.2)',\
 	fastods;version='[0.8.1,0.8.2)',\
 	org.apache.commons.commons-text;version='[1.10.0,1.10.1)',\
 	org.apache.commons.lang3;version='[3.12.0,3.12.1)',\
 	org.eclipse.emfcloud.emfjson-jackson;version='[2.2.0,2.2.1)',\
+	org.gecko.emf.exporter;version=snapshot,\
+	org.gecko.emf.exporter.ods;version=snapshot,\
 	org.gecko.emf.json;version=snapshot,\
-	org.gecko.emf.util.model;version=snapshot
+	org.gecko.emf.ods;version=snapshot,\
+	org.gecko.emf.ods.tests;version=snapshot,\
+	org.yaml.snakeyaml;version='[1.33.0,1.33.1)'
 
--runrequires: bnd.identity;id='org.gecko.emf.exporter.ods.tests'
+-runrequires: bnd.identity;id='org.gecko.emf.ods.tests'
 
 -runee: JavaSE-11
 
@@ -55,4 +52,3 @@
 -runproperties.debug: \
 	felix.log.level=4,\
 	org.osgi.service.log.admin.loglevel=DEBUG
-

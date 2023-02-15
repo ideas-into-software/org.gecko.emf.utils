@@ -11,6 +11,11 @@
  */
 package org.gecko.emf.exporter;
 
+/**
+ * Exception which may be thrown during EMF export.
+ * 
+ * @author Michal H. Siemaszko
+ */
 public class EMFExportException extends Exception {
 
 	/** serialVersionUID */
