@@ -1,6 +1,6 @@
 Bundle-Version: 1.0.0.SNAPSHOT
-Bundle-Name: Gecko EMF ODS Exporter
-Bundle-Description: ODS (OpenDocument Spreadsheet) Exporter for EMF
+Bundle-Name: Gecko EMF Exporter
+Bundle-Description: Exporter for EMF
 
 -library: enable-emf
 

@@ -12,13 +12,21 @@
 package org.gecko.emf.exporter;
 
 import java.io.OutputStream;
-import java.util.Locale;
+import java.util.List;
 import java.util.Map;
 
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
 
+/**
+ * Defines methods for exporting EMF resources and lists of EMF objects.
+ * 
+ * @author Michal H. Siemaszko
+ */
 public interface EMFExporter {
 
-	void exportResourceTo(Resource t, Locale locale, OutputStream outputStream, Map<?, ?> options)
+	void exportResourceTo(Resource resource, OutputStream outputStream, Map<?, ?> options) throws EMFExportException;
+
+	void exportEObjectsTo(List<EObject> eObjects, OutputStream outputStream, Map<?, ?> options)
 			throws EMFExportException;
 }
