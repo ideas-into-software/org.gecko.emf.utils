@@ -4,5 +4,4 @@ generated/
 /.metadata/
 /build/
 cnf/release/
-cnf/local/
 src-gen
