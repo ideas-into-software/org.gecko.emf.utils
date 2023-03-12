@@ -9,7 +9,9 @@
 	bnd.identity;id='org.gecko.emf.collections',\
 	bnd.identity;id='org.gecko.emf.json',\
 	bnd.identity;id='org.gecko.emf.pushstreams',\
-	bnd.identity;id='org.gecko.emf.util.model'
+	bnd.identity;id='org.gecko.emf.util.model',\
+	bnd.identity;id='org.gecko.emf.ods',\
+	bnd.identity;id='org.gecko.emf.exporter.ods'
 -runbundles: \
 	org.apache.felix.configadmin;version='[1.9.22,1.9.23)',\
 	org.eclipse.emf.ecore.xmi;version='[2.16.0,2.16.1)',\
@@ -35,7 +37,11 @@
 	com.fasterxml.jackson.dataformat.jackson-dataformat-yaml;version='[2.14.1,2.14.2)',\
 	org.eclipse.emfcloud.emfjson-jackson;version='[2.2.0,2.2.1)',\
 	org.osgi.service.cm;version='[1.6.0,1.6.1)',\
-	org.yaml.snakeyaml;version='[1.33.0,1.33.1)'
+	org.yaml.snakeyaml;version='[1.33.0,1.33.1)',\
+	com.github.miachm.sods;version='[1.5.3,1.5.4)',\
+	org.gecko.emf.exporter;version=snapshot,\
+	org.gecko.emf.exporter.ods;version=snapshot,\
+	org.gecko.emf.ods;version=snapshot
 -runblacklist: \
 	bnd.identity;id='ch.qos.logback.classic',\
 	bnd.identity;id='ch.qos.logback.core'

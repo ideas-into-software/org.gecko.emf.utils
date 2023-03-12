@@ -27,12 +27,14 @@ public interface EMFExportOptions {
 	// extract and export metadata as additional sheets
 	String OPTION_EXPORT_METADATA = "EXPORT_METADATA";
 
-	// automatically adjust column width based on contents - disabled by default until FastODS bug is fixed
+	// automatically adjust column width based on contents
 	String OPTION_ADJUST_COLUMN_WIDTH = "ADJUST_COLUMN_WIDTH";
 
-	// freeze header row - disabled by default until bug is fixed
-	String OPTION_FREEZE_HEADER_ROW = "FREEZE_HEADER_ROW";
+	// TODO: freezing rows is currently not supported in SODS
+	// freeze header row
+//	String OPTION_FREEZE_HEADER_ROW = "FREEZE_HEADER_ROW";
 
+	// TODO: linking is currently not supported in SODS
 	// generate links for references
-	String OPTION_GENERATE_LINKS = "GENERATE_LINKS";
+//	String OPTION_GENERATE_LINKS = "GENERATE_LINKS";
 }

@@ -1,6 +1,6 @@
 Bundle-Version: 1.0.0.SNAPSHOT
 Bundle-Name: Gecko EMF ODS Extension
-Bundle-Description: Extension to save EMF objects to ODS using FastODS
+Bundle-Description: Extension to save EMF objects to ODS using SODS
 
 -library: enable-emf
 

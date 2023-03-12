@@ -13,7 +13,6 @@ package org.gecko.emf.exporter.ods;
 
 import static java.util.stream.Collectors.toList;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
@@ -26,10 +25,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
 
-import org.apache.commons.text.StringEscapeUtils;
-import org.apache.commons.text.WordUtils;
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -47,21 +43,11 @@ import org.gecko.emf.exporter.EMFExporter;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
 
-import com.github.jferard.fastods.AnonymousOdsFileWriter;
-import com.github.jferard.fastods.FastOdsException;
-import com.github.jferard.fastods.OdsDocument;
-import com.github.jferard.fastods.OdsFactory;
-import com.github.jferard.fastods.Table;
-import com.github.jferard.fastods.TableCellWalker;
-import com.github.jferard.fastods.Text;
-import com.github.jferard.fastods.TextBuilder;
-import com.github.jferard.fastods.attribute.BorderStyle;
-import com.github.jferard.fastods.attribute.CellAlign;
-import com.github.jferard.fastods.attribute.SimpleColor;
-import com.github.jferard.fastods.attribute.SimpleLength;
-import com.github.jferard.fastods.style.TableCellStyle;
-import com.github.jferard.fastods.style.TableColumnStyle;
-import com.github.jferard.fastods.style.TableRowStyle;
+import com.github.miachm.sods.Color;
+import com.github.miachm.sods.Range;
+import com.github.miachm.sods.Sheet;
+import com.github.miachm.sods.SpreadSheet;
+import com.github.miachm.sods.Style;
 
 /**
  * Implementation of the {@link EMFExporter} to provide support for exporting EMF resources and lists of EMF objects to ODS format.
@@ -72,46 +58,34 @@ import com.github.jferard.fastods.style.TableRowStyle;
 public class EMFODSExporter implements EMFExporter {
 	
 	private static final int MAX_CHAR_PER_LINE_DEFAULT = 30;
-	
-	// @formatter:off
-	private static final TableCellStyle HEADER_CELL_STYLE = TableCellStyle.builder("header-cell-style")
-			.backgroundColor(SimpleColor.GRAY64)
-			.fontWeightBold()
-			.build();
-	// @formatter:on
 
-	// @formatter:off
-	public static final TableCellStyle DEFAULT_BODY_CELL_STYLE = TableCellStyle.builder("default-body-cell-style")
-			.borderAll(SimpleLength.mm(0.5), SimpleColor.BLUE, BorderStyle.OUTSET)
-			.fontColor(SimpleColor.BLACK)
-			.textAlign(CellAlign.CENTER)
-			.fontWeightNormal()
-			.build();
-	// @formatter:on
+	private static final Style HEADER_STYLE = new Style();
+	static {
+		HEADER_STYLE.setBackgroundColor(new Color("#a3a3a3"));
+		HEADER_STYLE.setFontColor(new Color("#000000"));
+		HEADER_STYLE.setBold(true);
+		HEADER_STYLE.setTextAligment(Style.TEXT_ALIGMENT.Center);
+	}
 
-	// @formatter:off
-	public static final TableRowStyle BODY_ROW_STYLE = TableRowStyle.builder("body-row-style")
-    		.defaultCellStyle(DEFAULT_BODY_CELL_STYLE)
-    		.optimalHeight()
-    		.build();
-	// @formatter:on
-		
-	// @formatter:off
-	public static final TableColumnStyle BODY_COLUMN_STYLE = TableColumnStyle.builder("body-column-style")
-			.optimalWidth() // see: https://github.com/jferard/fastods/wiki/Tutorial#rows-and-columns-styles (...) There's an optimal height/width in the OpenDocument specification (20.383 and 20.384) but LO does not understand it, and FastODS won't compute this optimal value from the cell contents. (...)
-			.build();
-	// @formatter:on
-	
-	private static final List<String> METADATA_ECLASS_TABLE_HEADERS = List.of("Name", "Type", "isMany", "isRequired",
+	private static final Style WRAPPED_DATA_CELL_STYLE = new Style();
+	static {
+		WRAPPED_DATA_CELL_STYLE.setWrap(true);
+	}
+
+	private static final List<String> METADATA_ECLASS_SHEET_HEADERS = List.of("Name", "Type", "isMany", "isRequired",
 			"Default value", "Documentation");
-	private static final List<String> METADATA_EENUM_TABLE_HEADERS = List.of("Name", "Literal", "Value",
+	private static final List<String> METADATA_EENUM_SHEET_HEADERS = List.of("Name", "Literal", "Value",
 			"Documentation");
-	private static final String METADATA_TABLE_SUFFIX = "Metadata";
+	private static final String METADATA_SHEET_SUFFIX = "Metadata";
 
 	private static final String DOCUMENTATION_GENMODEL_SOURCE = "http://www.eclipse.org/emf/2002/GenModel";
 	private static final String DOCUMENTATION_GENMODEL_DETAILS = "documentation";
-	
+
 	private static final String ECORE_PACKAGE_NAME = "ecore";
+
+	private final static char CR = (char) 0x0D;
+	private final static char LF = (char) 0x0A;
+	private final static String DATA_CELL_LINE_SEPARATOR = "" + CR + LF;
 
 	/* 
 	 * (non-Javadoc)
@@ -147,18 +121,14 @@ public class EMFODSExporter implements EMFExporter {
 
 				final Map<Object, Object> exportOptions = validateExportOptions(options);
 
-				final OdsFactory odsFactory = OdsFactory.create(java.util.logging.Logger.getLogger("EMFODSExporter"),
-						locale(exportOptions));
+				SpreadSheet document = new SpreadSheet();
 
-				final AnonymousOdsFileWriter writer = odsFactory.createWriter();
+				// maps sheet names to instances of sheets
+				final Map<String, Sheet> eClassesSheets = new HashMap<String, Sheet>();
 
-				final OdsDocument document = writer.document();
-
-				// maps table names to instances of tables
-				final Map<String, Table> eClassesTables = new HashMap<String, Table>();
-
-				// maps EObjects' unique identifiers (obtained from their hash codes) to instances of tables, so those can be looked up e.g. when constructing links
-				final Map<Integer, Table> eObjectsTables = new HashMap<Integer, Table>();
+				// maps EObjects' unique identifiers (obtained from their hash codes) to
+				// instances of sheets, so those can be looked up e.g. when constructing links
+				final Map<Integer, Sheet> eObjectsSheets = new HashMap<Integer, Sheet>();
 
 				// stores EObjects' EClasses - used e.g. to construct meta data
 				final Set<EClass> eObjectsClasses = new HashSet<EClass>();
@@ -166,7 +136,8 @@ public class EMFODSExporter implements EMFExporter {
 				// stores EEnums - used e.g. to construct meta data
 				final Set<EEnum> eObjectsEnums = new HashSet<EEnum>();
 
-				// maps EObjects' unique identifiers to pseudo IDs - for those EObjects which lack id field
+				// maps EObjects' unique identifiers to pseudo IDs - for those EObjects which
+				// lack id field
 				final Map<Integer, String> eObjectsPseudoIDs = new HashMap<Integer, String>();
 
 				final List<EObject> eObjectsSafeCopy = safeCopy(eObjects);
@@ -175,12 +146,12 @@ public class EMFODSExporter implements EMFExporter {
 				generatePseudoIDs(eObjectsSafeCopy, eObjectsPseudoIDs);
 
 				// @formatter:off
-				createTables(document, 
-						eClassesTables, 
+				createSheets(document, 
+						eClassesSheets, 
 						eObjectsClasses, 
 						eObjectsEnums,
 						eObjectsPseudoIDs, 
-						eObjectsTables,
+						eObjectsSheets,
 						exportNonContainmentEnabled(exportOptions), 
 						exportMetadataEnabled(exportOptions), 
 						freezeHeaderRowEnabled(exportOptions),
@@ -189,12 +160,12 @@ public class EMFODSExporter implements EMFExporter {
 				// @formatter:on
 
 				// @formatter:off
-				createTablesBodies(document, 
-						eClassesTables, 
+				createSheetsData(document, 
+						eClassesSheets, 
 						eObjectsClasses, 
 						eObjectsEnums,
 						eObjectsPseudoIDs, 
-						eObjectsTables,
+						eObjectsSheets,
 						exportNonContainmentEnabled(exportOptions), 
 						exportMetadataEnabled(exportOptions), 
 						generateLinksEnabled(exportOptions),
@@ -205,7 +176,7 @@ public class EMFODSExporter implements EMFExporter {
 					exportMetadata(document, eObjectsClasses, eObjectsEnums);
 				}
 
-				writer.save(outputStream);
+				document.save(outputStream);
 
 			} catch (Exception e) {
 				throw new EMFExportException(e);
@@ -275,22 +246,22 @@ public class EMFODSExporter implements EMFExporter {
 		return eObjectsPseudoIDs.get(getEObjectIdentifier(eObject));
 	}
 
-	private void createTables(OdsDocument document, Map<String, Table> eClassesTables, Set<EClass> eObjectsClasses,
-			Set<EEnum> eObjectsEnums, Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Table> eObjectsTables,
+	private void createSheets(SpreadSheet document, Map<String, Sheet> eClassesSheets, Set<EClass> eObjectsClasses,
+			Set<EEnum> eObjectsEnums, Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
 			boolean exportNonContainment, boolean exportMetadata, boolean freezeHeaderRow, boolean adjustColumnWidth,
-			List<EObject> eObjects) throws IOException {
+			List<EObject> eObjects) {
 
 		final Set<Integer> processedEObjectsIdentifiers = new HashSet<Integer>();
 
 		for (EObject eObject : eObjects) {
 			// @formatter:off
-			createTableForEObjectWithEReferences(document, 
-					eClassesTables, 
+			createSheetForEObjectWithEReferences(document, 
+					eClassesSheets, 
 					processedEObjectsIdentifiers, 
 					eObjectsClasses, 
 					eObjectsEnums,
 					eObjectsPseudoIDs,
-					eObjectsTables,
+					eObjectsSheets,
 					exportNonContainment,
 					exportMetadata, 
 					freezeHeaderRow,
@@ -300,22 +271,22 @@ public class EMFODSExporter implements EMFExporter {
 		}
 	}
 
-	private void createTablesBodies(OdsDocument document, Map<String, Table> eClassesTables,
-			Set<EClass> eObjectsClasses, Set<EEnum> eObjectsEnums, Map<Integer, String> eObjectsPseudoIDs,
-			Map<Integer, Table> eObjectsTables, boolean exportNonContainment, boolean exportMetadata,
-			boolean generateLinks, List<EObject> eObjects) throws IOException, EMFExportException {
+	private void createSheetsData(SpreadSheet document, Map<String, Sheet> eClassesSheets, Set<EClass> eObjectsClasses,
+			Set<EEnum> eObjectsEnums, Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
+			boolean exportNonContainment, boolean exportMetadata, boolean generateLinks, List<EObject> eObjects)
+			throws EMFExportException {
 
 		final Set<Integer> processedEObjectsIdentifiers = new HashSet<Integer>();
 
 		for (EObject eObject : eObjects) {
 			// @formatter:off
-			createTableBodyForEObjectWithEReferences(document, 
-					eClassesTables, 
+			createSheetDataForEObjectWithEReferences(document, 
+					eClassesSheets, 
 					processedEObjectsIdentifiers, 
 					eObjectsClasses, 
 					eObjectsEnums,
 					eObjectsPseudoIDs,
-					eObjectsTables,
+					eObjectsSheets,
 					exportNonContainment,
 					exportMetadata, 
 					generateLinks,
@@ -323,47 +294,46 @@ public class EMFODSExporter implements EMFExporter {
 			// @formatter:on
 		}
 	}
-	
-	private void createTableForEObjectWithEReferences(OdsDocument document, Map<String, Table> eClassesTables,
+
+	private void createSheetForEObjectWithEReferences(SpreadSheet document, Map<String, Sheet> eClassesSheets,
 			Set<Integer> eObjectsIdentifiers, Set<EClass> eObjectsClasses, Set<EEnum> eObjectsEnums,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Table> eObjectsTables, boolean exportNonContainment,
-			boolean exportMetadata, boolean freezeHeaderRow, boolean adjustColumnWidth, EObject eObject)
-			throws IOException {
-		createTable(document, eClassesTables, eObjectsIdentifiers, eObjectsClasses, eObjectsEnums, eObjectsPseudoIDs,
-				eObjectsTables, exportNonContainment, exportMetadata, freezeHeaderRow, adjustColumnWidth, eObject);
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets, boolean exportNonContainment,
+			boolean exportMetadata, boolean freezeHeaderRow, boolean adjustColumnWidth, EObject eObject) {
+		createSheet(document, eClassesSheets, eObjectsIdentifiers, eObjectsClasses, eObjectsEnums, eObjectsPseudoIDs,
+				eObjectsSheets, exportNonContainment, exportMetadata, freezeHeaderRow, adjustColumnWidth, eObject);
 
 		eObject.eClass().getEAllReferences().stream().forEach(r -> {
-			createTableForEReference(document, eClassesTables, eObjectsIdentifiers, eObjectsClasses, eObjectsEnums,
-					eObjectsPseudoIDs, eObjectsTables, exportNonContainment, exportMetadata, freezeHeaderRow,
+			createSheetForEReference(document, eClassesSheets, eObjectsIdentifiers, eObjectsClasses, eObjectsEnums,
+					eObjectsPseudoIDs, eObjectsSheets, exportNonContainment, exportMetadata, freezeHeaderRow,
 					adjustColumnWidth, eObject, r);
 		});
 	}
 
-	private void createTableBodyForEObjectWithEReferences(OdsDocument document, Map<String, Table> eClassesTables,
+	private void createSheetDataForEObjectWithEReferences(SpreadSheet document, Map<String, Sheet> eClassesSheets,
 			Set<Integer> eObjectsIdentifiers, Set<EClass> eObjectsClasses, Set<EEnum> eObjectsEnums,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Table> eObjectsTables, boolean exportNonContainment,
-			boolean exportMetadata, boolean generateLinks, EObject eObject) throws IOException, EMFExportException {
-		createTableBody(document, eClassesTables, eObjectsIdentifiers, eObjectsPseudoIDs, eObjectsTables,
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets, boolean exportNonContainment,
+			boolean exportMetadata, boolean generateLinks, EObject eObject) throws EMFExportException {
+		createSheetData(document, eClassesSheets, eObjectsIdentifiers, eObjectsPseudoIDs, eObjectsSheets,
 				exportNonContainment, generateLinks, eObject);
 
 		eObject.eClass().getEAllReferences().stream().forEach(r -> {
 			try {
-				createTableBodyForEReference(document, eClassesTables, eObjectsIdentifiers, eObjectsPseudoIDs,
-						eObjectsTables, exportNonContainment, generateLinks, eObject, r);
+				createSheetDataForEReference(document, eClassesSheets, eObjectsIdentifiers, eObjectsPseudoIDs,
+						eObjectsSheets, exportNonContainment, generateLinks, eObject, r);
 			} catch (EMFExportException e) {
 				e.printStackTrace();
 			}
 		});
 	}
 
-	private void createTable(OdsDocument document, Map<String, Table> eClassesTables, Set<Integer> eObjectsIdentifiers,
+	private void createSheet(SpreadSheet document, Map<String, Sheet> eClassesSheets, Set<Integer> eObjectsIdentifiers,
 			Set<EClass> eObjectsClasses, Set<EEnum> eObjectsEnums, Map<Integer, String> eObjectsPseudoIDs,
-			Map<Integer, Table> eObjectsTables, boolean exportNonContainment, boolean exportMetadata,
-			boolean freezeHeaderRow, boolean adjustColumnWidth, EObject... eObjects) throws IOException {
+			Map<Integer, Sheet> eObjectsSheets, boolean exportNonContainment, boolean exportMetadata,
+			boolean freezeHeaderRow, boolean adjustColumnWidth, EObject... eObjects) {
 		if ((eObjects.length > 0) && !isProcessed(eObjectsIdentifiers, eObjects[0])) {
 			EClass eClass = eObjects[0].eClass();
 
-			Table table = getOrAddTable(document, eClassesTables, eClass, eObjectsEnums,
+			Sheet sheet = getOrAddSheet(document, eClassesSheets, eClass, eObjectsEnums,
 					hasPseudoID(eObjects[0], eObjectsPseudoIDs), exportMetadata, freezeHeaderRow, adjustColumnWidth);
 
 			for (EObject eObject : eObjects) {
@@ -371,51 +341,21 @@ public class EMFODSExporter implements EMFExporter {
 
 				eObjectsIdentifiers.add(eObjectIdentifier);
 				eObjectsClasses.add(eObject.eClass());
-				eObjectsTables.put(eObjectIdentifier, table);
+				eObjectsSheets.put(eObjectIdentifier, sheet);
 
 				eObject.eClass().getEAllReferences().stream().forEach(r -> {
-					createTableForEReference(document, eClassesTables, eObjectsIdentifiers, eObjectsClasses,
-							eObjectsEnums, eObjectsPseudoIDs, eObjectsTables, exportNonContainment, exportMetadata,
+					createSheetForEReference(document, eClassesSheets, eObjectsIdentifiers, eObjectsClasses,
+							eObjectsEnums, eObjectsPseudoIDs, eObjectsSheets, exportNonContainment, exportMetadata,
 							freezeHeaderRow, adjustColumnWidth, eObject, r);
 				});
 			}
 		}
 	}
 
-	private void createTableBody(OdsDocument document, Map<String, Table> eClassesTables,
-			Set<Integer> eObjectsIdentifiers, Map<Integer, String> eObjectsPseudoIDs,
-			Map<Integer, Table> eObjectsTables, boolean exportNonContainment, boolean generateLinks,
-			EObject... eObjects) throws IOException, EMFExportException {
-		if ((eObjects.length > 0) && !isProcessed(eObjectsIdentifiers, eObjects[0])) {
-			EClass eClass = eObjects[0].eClass();
-
-			Table table = getTable(eClassesTables, eClass);
-
-			final TableCellWalker walker = table.getWalker();
-
-			walker.lastRow();
-
-			for (EObject eObject : eObjects) {
-				eObjectsIdentifiers.add(getEObjectIdentifier(eObject));
-
-				createTableBody(walker, eObject, eObjectsPseudoIDs, eObjectsTables, generateLinks);
-
-				eObject.eClass().getEAllReferences().stream().forEach(r -> {
-					try {
-						createTableBodyForEReference(document, eClassesTables, eObjectsIdentifiers, eObjectsPseudoIDs,
-								eObjectsTables, exportNonContainment, generateLinks, eObject, r);
-					} catch (EMFExportException e) {
-						e.printStackTrace();
-					}
-				});
-			}
-		}
-	}
-
 	@SuppressWarnings("unchecked")
-	private void createTableForEReference(OdsDocument document, Map<String, Table> eClassesTables,
+	private void createSheetForEReference(SpreadSheet document, Map<String, Sheet> eClassesSheets,
 			Set<Integer> eObjectsIdentifiers, Set<EClass> eObjectsClasses, Set<EEnum> eObjectsEnums,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Table> eObjectsTables, boolean exportNonContainment,
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets, boolean exportNonContainment,
 			boolean exportMetadata, boolean freezeHeaderRow, boolean adjustColumnWidth, EObject eObject, EReference r) {
 		if (!exportNonContainment && !r.isContainment()) {
 			return;
@@ -425,29 +365,47 @@ public class EMFODSExporter implements EMFExporter {
 
 		if (value != null) {
 			if (!r.isMany() && value instanceof EObject) {
-				try {
-					createTable(document, eClassesTables, eObjectsIdentifiers, eObjectsClasses, eObjectsEnums,
-							eObjectsPseudoIDs, eObjectsTables, exportNonContainment, exportMetadata, freezeHeaderRow,
-							adjustColumnWidth, (EObject) value);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				createSheet(document, eClassesSheets, eObjectsIdentifiers, eObjectsClasses, eObjectsEnums,
+						eObjectsPseudoIDs, eObjectsSheets, exportNonContainment, exportMetadata, freezeHeaderRow,
+						adjustColumnWidth, (EObject) value);
 			} else if (r.isMany()) {
-				try {
-					createTable(document, eClassesTables, eObjectsIdentifiers, eObjectsClasses, eObjectsEnums,
-							eObjectsPseudoIDs, eObjectsTables, exportNonContainment, exportMetadata, freezeHeaderRow,
-							adjustColumnWidth, ((List<EObject>) value).toArray(EObject[]::new));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				createSheet(document, eClassesSheets, eObjectsIdentifiers, eObjectsClasses, eObjectsEnums,
+						eObjectsPseudoIDs, eObjectsSheets, exportNonContainment, exportMetadata, freezeHeaderRow,
+						adjustColumnWidth, ((List<EObject>) value).toArray(EObject[]::new));
+			}
+		}
+	}
+
+	private void createSheetData(SpreadSheet document, Map<String, Sheet> eClassesSheets,
+			Set<Integer> eObjectsIdentifiers, Map<Integer, String> eObjectsPseudoIDs,
+			Map<Integer, Sheet> eObjectsSheets, boolean exportNonContainment, boolean generateLinks,
+			EObject... eObjects) throws EMFExportException {
+		if ((eObjects.length > 0) && !isProcessed(eObjectsIdentifiers, eObjects[0])) {
+			EClass eClass = eObjects[0].eClass();
+
+			Sheet sheet = getSheet(eClassesSheets, eClass);
+
+			for (EObject eObject : eObjects) {
+				eObjectsIdentifiers.add(getEObjectIdentifier(eObject));
+
+				createSheetData(sheet, eObject, eObjectsPseudoIDs, eObjectsSheets, generateLinks);
+
+				eObject.eClass().getEAllReferences().stream().forEach(r -> {
+					try {
+						createSheetDataForEReference(document, eClassesSheets, eObjectsIdentifiers, eObjectsPseudoIDs,
+								eObjectsSheets, exportNonContainment, generateLinks, eObject, r);
+					} catch (EMFExportException e) {
+						e.printStackTrace();
+					}
+				});
 			}
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void createTableBodyForEReference(OdsDocument document, Map<String, Table> eClassesTables,
+	private void createSheetDataForEReference(SpreadSheet document, Map<String, Sheet> eClassesSheets,
 			Set<Integer> eObjectsIdentifiers, Map<Integer, String> eObjectsPseudoIDs,
-			Map<Integer, Table> eObjectsTables, boolean exportNonContainment, boolean generateLinks, EObject eObject,
+			Map<Integer, Sheet> eObjectsSheets, boolean exportNonContainment, boolean generateLinks, EObject eObject,
 			EReference r) throws EMFExportException {
 		if (!exportNonContainment && !r.isContainment()) {
 			return;
@@ -457,164 +415,150 @@ public class EMFODSExporter implements EMFExporter {
 
 		if (value != null) {
 			if (!r.isMany() && value instanceof EObject) {
-				try {
-					createTableBody(document, eClassesTables, eObjectsIdentifiers, eObjectsPseudoIDs, eObjectsTables,
-							exportNonContainment, generateLinks, (EObject) value);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				createSheetData(document, eClassesSheets, eObjectsIdentifiers, eObjectsPseudoIDs, eObjectsSheets,
+						exportNonContainment, generateLinks, (EObject) value);
 			} else if (r.isMany()) {
-				try {
-					createTableBody(document, eClassesTables, eObjectsIdentifiers, eObjectsPseudoIDs, eObjectsTables,
-							exportNonContainment, generateLinks, ((List<EObject>) value).toArray(EObject[]::new));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+				createSheetData(document, eClassesSheets, eObjectsIdentifiers, eObjectsPseudoIDs, eObjectsSheets,
+						exportNonContainment, generateLinks, ((List<EObject>) value).toArray(EObject[]::new));
 			}
 		}
 	}
-	
-	private Table getOrAddTable(OdsDocument document, Map<String, Table> eClassesTables, EClass eClass,
-			Set<EEnum> eObjectsEnums, boolean hasPseudoID, boolean exportMetadata, boolean freezeHeaderRow,
-			boolean adjustColumnWidth) throws IOException {
-		String tableName = constructEClassTableName(eClass);
 
-		boolean tableExists = eClassesTables.containsKey(tableName);
-		Table table;
+	private void createSheetData(Sheet sheet, EObject eObject, Map<Integer, String> eObjectsPseudoIDs,
+			Map<Integer, Sheet> eObjectsSheets, boolean generateLinks) {
+
+		sheet.appendRow();
+
+		Range sheetDataRow = sheet.getRange((sheet.getMaxRows() - 1), 0, 1, sheet.getMaxColumns());
+
+		List<EStructuralFeature> eAllStructuralFeatures = eObject.eClass().getEAllStructuralFeatures();
+
+		int columnsCount = eAllStructuralFeatures.size();
+
+		for (int colIndex = 0; colIndex < columnsCount; colIndex++) {
+
+			createSheetDataCell(sheetDataRow, colIndex, eObject, eAllStructuralFeatures.get(colIndex),
+					eObjectsPseudoIDs, eObjectsSheets, generateLinks);
+		}
+
+		if (hasPseudoID(eObject, eObjectsPseudoIDs)) {
+			setStringValueCell(sheetDataRow, columnsCount, eObjectsPseudoIDs.get(getEObjectIdentifier(eObject)));
+		}
+	}
+
+	private Sheet getOrAddSheet(SpreadSheet document, Map<String, Sheet> eClassesSheets, EClass eClass,
+			Set<EEnum> eObjectsEnums, boolean hasPseudoID, boolean exportMetadata, boolean freezeHeaderRow,
+			boolean adjustColumnWidth) {
+		String tableName = constructEClassSheetName(eClass);
+
+		boolean tableExists = eClassesSheets.containsKey(tableName);
+		Sheet sheet;
 		if (tableExists) {
-			table = eClassesTables.get(tableName);
+			sheet = eClassesSheets.get(tableName);
 		} else {
-			table = document.addTable(tableName);
-			eClassesTables.put(tableName, table);
+			sheet = new Sheet(tableName);
+			document.appendSheet(sheet);
+			eClassesSheets.put(tableName, sheet);
 
 			if (exportMetadata) {
-				addMetadataTable(document, eClass);
+				addMetadataSheet(document, eClass);
 			}
 		}
-
-		final TableCellWalker walker = table.getWalker();
 
 		if (!tableExists) {
-			// because com.github.jferard.fastods.TableCellWalker.getColumnCount() returns incorrect values - filed as FastODS bug (https://github.com/jferard/fastods/issues/244)
-			int headersCount = createTableHeader(walker, eClass, eObjectsEnums, hasPseudoID, adjustColumnWidth);
+			createSheetHeader(sheet, eClass, eObjectsEnums, hasPseudoID, adjustColumnWidth);
 
 			if (freezeHeaderRow) {
-				freezeTableHeader(document, table, 1, headersCount);
+				// TODO: freezing rows is currently not supported in SODS
+				// freezeTableHeader(document, sheet, 1, headersCount);
 			}
 		}
 
-		walker.nextRow();
-
-		return table;
-	}
-	
-	private void freezeTableHeader(OdsDocument document, Table table, int rowCount, int colCount) {
-		// FIXME: does not produce expected result, i.e. freezed header row - filed as FastODS bug (https://github.com/jferard/fastods/issues/143)
-		document.freezeCells(table, rowCount, colCount);
+		return sheet;
 	}
 
-	private Table getTable(Map<String, Table> eClassesTables, EClass eClass) throws EMFExportException {
-		String tableName = constructEClassTableName(eClass);
+	private Sheet getSheet(Map<String, Sheet> eObjectsSheets, EClass eClass) throws EMFExportException {
+		String sheetName = constructEClassSheetName(eClass);
 
-		if (!eClassesTables.containsKey(tableName)) {
-			throw new EMFExportException("Table '" + tableName + "' does not exist!");
+		if (!eObjectsSheets.containsKey(sheetName)) {
+			throw new EMFExportException("Sheet '" + sheetName + "' does not exist!");
 		}
 
-		return eClassesTables.get(tableName);
+		return eObjectsSheets.get(sheetName);
 	}
 
-	private void addMetadataTable(OdsDocument document, EClass eClass) throws IOException {
-		document.addTable(constructEClassMetadataTableName(eClass));
-	}
-	
-	private int createTableHeader(TableCellWalker walker, EClass eClass, Set<EEnum> eObjectsEnums, boolean hasPseudoID,
-			boolean adjustColumnWidth) throws IOException {
-		walker.setRowStyle(BODY_ROW_STYLE);
-		if (!adjustColumnWidth) {
-			walker.setColumnStyle(BODY_COLUMN_STYLE);
-		}
+	private void createSheetHeader(Sheet sheet, EClass eClass, Set<EEnum> eObjectsEnums, boolean hasPseudoID,
+			boolean adjustColumnWidth) {
 
-		AtomicInteger headersCount = new AtomicInteger(0);
+		List<EStructuralFeature> eAllStructuralFeatures = eClass.getEAllStructuralFeatures();
 
-		AtomicInteger eStructuralFeaturesCount = new AtomicInteger(eClass.getEAllStructuralFeatures().size());
+		int columnsCount = eAllStructuralFeatures.size();
 
-		eClass.getEAllStructuralFeatures().forEach(eStructuralFeature -> {
+		sheet.appendColumns((hasPseudoID ? (columnsCount + 1) : columnsCount) - 1); // newly created sheet already has
+																					// one column
+
+		Range sheetHeaderRow = sheet.getRange(0, 0, 1, sheet.getMaxColumns()); // newly created sheet already has one
+																				// row
+		sheetHeaderRow.setStyle(HEADER_STYLE);
+
+		for (int colIndex = 0; colIndex < columnsCount; colIndex++) {
+
+			EStructuralFeature eStructuralFeature = eAllStructuralFeatures.get(colIndex);
 
 			if (isEcoreEEnumDataType(eStructuralFeature)) {
 				eObjectsEnums.add(extractEEnumDataType(eStructuralFeature));
 			}
 
-			createTableHeaderCell(walker, eStructuralFeature, adjustColumnWidth, headersCount.get());
-
-			// because com.github.jferard.fastods.TableCellWalker.getColumnCount() returns incorrect values - filed as FastODS bug (https://github.com/jferard/fastods/issues/244)
-			int currentHeadersCount = headersCount.incrementAndGet();
-
-			boolean hasNext = (currentHeadersCount < eStructuralFeaturesCount.get());
-
-			if (hasNext) {
-				walker.next();
-			}
-		});
+			createSheetHeaderCell(sheetHeaderRow, eStructuralFeature, adjustColumnWidth, colIndex);
+		}
 
 		if (hasPseudoID) {
-			walker.next();
-
-			createTableHeaderCell(walker, "id", adjustColumnWidth, headersCount.get(), 36);
-
-			headersCount.getAndIncrement();
+			createSheetHeaderCell(sheetHeaderRow, "id", adjustColumnWidth, columnsCount);
 		}
+	}
 
-		return headersCount.get();
-	}	
-	
-	private void createTableHeaderCell(TableCellWalker walker, EStructuralFeature eStructuralFeature,
+	private void createSheetHeaderCell(Range sheetHeaderRow, EStructuralFeature eStructuralFeature,
 			boolean adjustColumnWidth, int colIndex) {
-		String tableHeaderName = constructTableHeaderName(eStructuralFeature);
+		String tableHeaderName = constructSheetHeaderName(eStructuralFeature);
 
-		createTableHeaderCell(walker, tableHeaderName);
+		createSheetHeaderCell(sheetHeaderRow, tableHeaderName, adjustColumnWidth, colIndex);
+	}
+
+	private void createSheetHeaderCell(Range sheetHeaderRow, String tableHeaderName, boolean adjustColumnWidth,
+			int colIndex) {
+		createSheetHeaderCell(sheetHeaderRow, colIndex, tableHeaderName);
 
 		if (adjustColumnWidth) {
-			adjustColumnWidth(walker, colIndex, tableHeaderName.length());
+			adjustColumnWidth(sheetHeaderRow.getSheet(), colIndex, tableHeaderName.length());
 		}
 	}
 
-	private void createTableHeaderCell(TableCellWalker walker, String tableHeaderName, boolean adjustColumnWidth,
-			int colIndex, int charsCount) {
-		createTableHeaderCell(walker, tableHeaderName);
-
-		if (adjustColumnWidth) {
-			adjustColumnWidth(walker, colIndex, charsCount);
-		}
-	}
-	
-	private void adjustColumnWidth(TableCellWalker walker, int colIndex, int charsCount) {
-		TableColumnStyle adjustedWithColumnStyle = constructAdjustedWithColumnStyle(charsCount);
-		
-		// FIXME: neither of these produce expected result, i.e. varied column width - filed as FastODS bug (https://github.com/jferard/fastods/issues/243)
-	//	walker.setColumnStyle(adjustedWithColumnStyle); 
-		walker.getTable().setColumnStyle(colIndex, adjustedWithColumnStyle);
-	}	
-	
-	private TableColumnStyle constructAdjustedWithColumnStyle(int charsCount) {
-		// @formatter:off
-		return TableColumnStyle.builder("adjusted-with-column-style")
-				.columnWidth(calculateColumnWidth(charsCount))
-				.build();
-		// @formatter:on
-	}
-	
-	private SimpleLength calculateColumnWidth(int charsCount) {
-		SimpleLength columnWidth = SimpleLength.mm(charsCount * 10);
-
-		return columnWidth;
+	private void createSheetHeaderCell(Range sheetHeaderRow, int colIndex, String tableHeaderName) {
+		sheetHeaderRow.getCell(0, colIndex).setValue(tableHeaderName);
 	}
 
-	private void createTableHeaderCell(TableCellWalker walker, String tableHeaderName) {
-		walker.setStringValue(tableHeaderName);
-		walker.setStyle(HEADER_CELL_STYLE);
+	private void adjustColumnWidth(Sheet sheet, int colIndex, int charsCount) {
+		sheet.setColumnWidth(colIndex, calculateColumnWidth(charsCount));
 	}
 
-	private String constructTableHeaderName(EStructuralFeature eStructuralFeature) {
+	private Double calculateColumnWidth(int charsCount) {
+		return (Double.valueOf(charsCount) * (charsCount > 3 ? 5 : 10));
+	}
+
+	private void adjustRowHeight(Sheet sheet, int rowIndex, String value) {
+		sheet.setRowHeight(rowIndex, calculateRowHeight(value));
+	}
+
+	private Double calculateRowHeight(String value) {
+		return (Double.valueOf(value.length() / MAX_CHAR_PER_LINE_DEFAULT) * 5);
+	}
+
+	@Deprecated
+	private void freezeSheetHeaderRow(Sheet sheet, int rowCount, int colCount) {
+		// TODO: freezing rows is currently not supported in SODS
+	}
+
+	private String constructSheetHeaderName(EStructuralFeature eStructuralFeature) {
 		StringBuilder sb = new StringBuilder(100);
 		if (eStructuralFeature instanceof EReference) {
 			sb.append("ref_");
@@ -632,29 +576,9 @@ public class EMFODSExporter implements EMFExporter {
 		return ((EEnum) ((EAttribute) eStructuralFeature).getEAttributeType());
 	}
 
-	private void createTableBody(TableCellWalker walker, EObject eObject, Map<Integer, String> eObjectsPseudoIDs,
-			Map<Integer, Table> eObjectsTables, boolean generateLinks) throws IOException {
-		eObject.eClass().getEAllStructuralFeatures().forEach(eStructuralFeature -> {
-
-			walker.setRowStyle(BODY_ROW_STYLE);
-			walker.setColumnStyle(BODY_COLUMN_STYLE);
-
-			createTableBodyCell(walker, eObject, eStructuralFeature, eObjectsPseudoIDs, eObjectsTables, generateLinks);
-
-			walker.next();
-		});
-
-		if (hasPseudoID(eObject, eObjectsPseudoIDs)) {
-			setStringValueCell(walker, eObjectsPseudoIDs.get(getEObjectIdentifier(eObject)));
-
-			walker.next();
-		}
-
-		walker.nextRow();
-	}
-
-	private void createTableBodyCell(TableCellWalker walker, EObject eObject, EStructuralFeature eStructuralFeature,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Table> eObjectsTables, boolean generateLinks) {
+	private void createSheetDataCell(Range sheetDataRow, int colIndex, EObject eObject,
+			EStructuralFeature eStructuralFeature, Map<Integer, String> eObjectsPseudoIDs,
+			Map<Integer, Sheet> eObjectsSheets, boolean generateLinks) {
 		if (eStructuralFeature instanceof EAttribute) {
 			EAttribute eAttribute = (EAttribute) eStructuralFeature;
 
@@ -663,179 +587,150 @@ public class EMFODSExporter implements EMFExporter {
 				if (!eAttribute.isMany()) {
 
 					if (value instanceof Date) {
-						setDateValueCell(walker, (Date) value);
+						setDateValueCell(sheetDataRow, colIndex, (Date) value);
 
 					} else if (value instanceof Number) {
-						setNumberValueCell(walker, (Number) value);
+						setNumberValueCell(sheetDataRow, colIndex, (Number) value);
 
 					} else if (value instanceof Boolean) {
-						setBooleanValueCell(walker, (Boolean) value);
+						setBooleanValueCell(sheetDataRow, colIndex, (Boolean) value);
 
 					} else if (value instanceof byte[]) {
 						// TODO: clarify how byte arrays should be handled
-						walker.setStringValue("EAttribute: byte[]");
+						setStringValueCell(sheetDataRow, colIndex, "EAttribute: byte[]");
 
 					} else {
-						setStringValueCell(walker, EcoreUtil.convertToString(eAttribute.getEAttributeType(), value));
+						setStringValueCell(sheetDataRow, colIndex,
+								EcoreUtil.convertToString(eAttribute.getEAttributeType(), value));
 					}
 
 				} else {
-					setMultiValueCell(walker, eAttribute, value);
+					setMultiValueCell(sheetDataRow, colIndex, eAttribute, value);
 				}
 
 			} else {
-				setVoidValueCell(walker);
+				setVoidValueCell(sheetDataRow, colIndex);
 			}
 
 		} else if (eStructuralFeature instanceof EReference) {
 			EReference eReference = (EReference) eStructuralFeature;
 
-			setEReferenceValueCell(walker, eObject, eReference, eObjectsPseudoIDs, eObjectsTables, generateLinks);
+			setEReferenceValueCell(sheetDataRow, colIndex, eObject, eReference, eObjectsPseudoIDs, eObjectsSheets,
+					generateLinks);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void setEReferenceValueCell(TableCellWalker walker, EObject eObject, EReference r,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Table> eObjectsTables, boolean generateLinks) {
+	private void setEReferenceValueCell(Range sheetDataRow, int colIndex, EObject eObject, EReference r,
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets, boolean generateLinks) {
 		Object value = eObject.eGet(r);
 
 		if (value != null) {
 			if (!r.isMany() && value instanceof EObject) {
-				setOneEReferenceValueCell(walker, (EObject) value, eObjectsPseudoIDs, eObjectsTables, generateLinks);
-			} else if (r.isMany()) {
-				setManyEReferencesValueCell(walker, ((List<EObject>) value), eObjectsPseudoIDs, eObjectsTables,
+				setOneEReferenceValueCell(sheetDataRow, colIndex, (EObject) value, eObjectsPseudoIDs, eObjectsSheets,
 						generateLinks);
+			} else if (r.isMany()) {
+				setManyEReferencesValueCell(sheetDataRow, colIndex, ((List<EObject>) value), eObjectsPseudoIDs,
+						eObjectsSheets, generateLinks);
 			}
 		}
 	}
 
-	private void setOneEReferenceValueCell(TableCellWalker walker, EObject eObject,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Table> eObjectsTables, boolean generateLinks) {
+	private void setOneEReferenceValueCell(Range sheetDataRow, int colIndex, EObject eObject,
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets, boolean generateLinks) {
 		Integer eObjectIdentifier = Integer.valueOf(getEObjectIdentifier(eObject));
 
 		if (hasID(eObject)) {
-			if (generateLinks && eObjectsTables.containsKey(eObjectIdentifier)) {
-				setLinkedIDEReferenceValueCell(walker, getID(eObject), eObjectsTables.get(eObjectIdentifier));
+			if (generateLinks && eObjectsSheets.containsKey(eObjectIdentifier)) {
+				setLinkedIDEReferenceValueCell(sheetDataRow, colIndex, getID(eObject),
+						eObjectsSheets.get(eObjectIdentifier));
 			} else {
-				setNonLinkedIDEReferenceValueCell(walker, getID(eObject));
+				setNonLinkedIDEReferenceValueCell(sheetDataRow, colIndex, getID(eObject));
 			}
 		} else if (hasPseudoID(eObject, eObjectsPseudoIDs)) {
-			if (generateLinks && eObjectsTables.containsKey(eObjectIdentifier)) {
-				setLinkedIDEReferenceValueCell(walker, getPseudoID(eObject, eObjectsPseudoIDs),
-						eObjectsTables.get(eObjectIdentifier));
+			if (generateLinks && eObjectsSheets.containsKey(eObjectIdentifier)) {
+				setLinkedIDEReferenceValueCell(sheetDataRow, colIndex, getPseudoID(eObject, eObjectsPseudoIDs),
+						eObjectsSheets.get(eObjectIdentifier));
 			} else {
-				setNonLinkedIDEReferenceValueCell(walker, getPseudoID(eObject, eObjectsPseudoIDs));
+				setNonLinkedIDEReferenceValueCell(sheetDataRow, colIndex, getPseudoID(eObject, eObjectsPseudoIDs));
 			}
 		} else {
-			setNoIDEReferenceValueCell(walker, eObject);
+			setNoIDEReferenceValueCell(sheetDataRow, colIndex, eObject);
 		}
 	}
 
-	private void setManyEReferencesValueCell(TableCellWalker walker, List<EObject> eObjects,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Table> eObjectsTables, boolean generateLinks) {
-		TextBuilder textBuilder = Text.builder();
+	private void setManyEReferencesValueCell(Range sheetDataRow, int colIndex, List<EObject> eObjects,
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets, boolean generateLinks) {
+
+		StringBuilder sb = new StringBuilder();
 
 		for (EObject eObject : eObjects) {
-			Integer eObjectIdentifier = Integer.valueOf(getEObjectIdentifier(eObject));
-
 			if (hasID(eObject)) {
-				if (generateLinks && eObjectsTables.containsKey(eObjectIdentifier)) {
-					textBuilder = setLinkedIDEReferenceValueCell(textBuilder, getID(eObject),
-							eObjectsTables.get(eObjectIdentifier));
-				} else {
-					textBuilder = setNonLinkedIDEReferenceValueCell(textBuilder, getID(eObject));
-				}
+				sb.append(getID(eObject));
+				sb.append(DATA_CELL_LINE_SEPARATOR); // TODO: this has no effect - all lines are output on same line;
+														// must be taken care of on SODS side
 			} else if (hasPseudoID(eObject, eObjectsPseudoIDs)) {
-				if (generateLinks && eObjectsTables.containsKey(eObjectIdentifier)) {
-					textBuilder = setLinkedIDEReferenceValueCell(textBuilder, getPseudoID(eObject, eObjectsPseudoIDs),
-							eObjectsTables.get(eObjectIdentifier));
-				} else {
-					textBuilder = setNonLinkedIDEReferenceValueCell(textBuilder,
-							getPseudoID(eObject, eObjectsPseudoIDs));
-				}
+				sb.append(getPseudoID(eObject, eObjectsPseudoIDs));
+				sb.append(DATA_CELL_LINE_SEPARATOR);
 			} else {
-				setNoIDEReferenceValueCell(walker, eObject);
+				sb.append("EReference: " + eObject.eClass().getName());
+				sb.append(DATA_CELL_LINE_SEPARATOR);
 			}
 		}
 
-		Text text = textBuilder.build();
-		walker.setText(text);
-
-		// adjust row height based on number of EObjects
-		adjustRowHeight(walker, eObjects.size());
+		setStringValueCell(sheetDataRow, colIndex, sb.toString());
 	}
 
-	private void setLinkedIDEReferenceValueCell(TableCellWalker walker, String refId, Table refTable) {
-		walker.setText(setLinkedIDEReferenceValueCell(Text.builder(), refId, refTable).build());
+	private void setLinkedIDEReferenceValueCell(Range sheetDataRow, int colIndex, String refId, Sheet refSheet) {
+		setNonLinkedIDEReferenceValueCell(sheetDataRow, colIndex, refId); // FIXME: links are not supported yet in SODS
 	}
 
-	private TextBuilder setLinkedIDEReferenceValueCell(TextBuilder textBuilder, String refId, Table refTable) {
-		return textBuilder.par().link(refId, refTable);
+	private void setNonLinkedIDEReferenceValueCell(Range sheetDataRow, int colIndex, String refId) {
+		setStringValueCell(sheetDataRow, colIndex, refId);
 	}
 
-	private void setNonLinkedIDEReferenceValueCell(TableCellWalker walker, String refId) {
-		walker.setText(setNonLinkedIDEReferenceValueCell(Text.builder(), refId).build());
+	private void setNoIDEReferenceValueCell(Range sheetDataRow, int colIndex, EObject eObject) {
+		setStringValueCell(sheetDataRow, colIndex, "EReference: " + eObject.eClass().getName());
 	}
 
-	private TextBuilder setNonLinkedIDEReferenceValueCell(TextBuilder textBuilder, String refId) {
-		return textBuilder.parContent(refId);
-	}
+	private void setStringValueCell(Range sheetDataRow, int colIndex, String value) {
+		sheetDataRow.getCell(0, colIndex).setValue(value);
 
-	private void setNoIDEReferenceValueCell(TableCellWalker walker, EObject eObject) {
-		walker.setStringValue("EReference: " + eObject.eClass().getName());
-	}
+		if (value.length() > MAX_CHAR_PER_LINE_DEFAULT) {
+			sheetDataRow.getCell(0, colIndex).setStyle(WRAPPED_DATA_CELL_STYLE);
 
-	private void setStringValueCell(TableCellWalker walker, String value) {
-		if (value.length() <= MAX_CHAR_PER_LINE_DEFAULT) {
-			walker.setStringValue(value);
-		} else {
-			setMultilineTextCell(walker, value);
+			adjustRowHeight(sheetDataRow.getSheet(), sheetDataRow.getRow(), value);
 		}
 	}
 
-	private void setMultilineTextCell(TableCellWalker walker, String value) {
-		String wrapped = WordUtils.wrap(value, MAX_CHAR_PER_LINE_DEFAULT, System.lineSeparator(), false);
-
-		String[] pieces = wrapped.split(System.lineSeparator());
-
-		TextBuilder textBuilder = Text.builder();
-		for (String piece : pieces) {
-			textBuilder = textBuilder.parContent(StringEscapeUtils.escapeXml11(piece));
-		}
-		Text text = textBuilder.build();
-		walker.setText(text);
-
-		// adjust row height based on number of new lines
-		adjustRowHeight(walker, pieces.length);
+	private void setDateValueCell(Range sheetDataRow, int colIndex, Date value) {
+		sheetDataRow.getCell(0, colIndex).setValue(value);
 	}
 
-	private void setDateValueCell(TableCellWalker walker, Date value) {
-		walker.setDateValue(value);
+	private void setNumberValueCell(Range sheetDataRow, int colIndex, Number value) {
+		sheetDataRow.getCell(0, colIndex).setValue(value.floatValue());
 	}
 
-	private void setNumberValueCell(TableCellWalker walker, Number value) {
-		walker.setFloatValue(value.floatValue());
-	}
-
-	private void setBooleanValueCell(TableCellWalker walker, Boolean value) {
-		walker.setBooleanValue(value.booleanValue());
+	private void setBooleanValueCell(Range sheetDataRow, int colIndex, Boolean value) {
+		sheetDataRow.getCell(0, colIndex).setValue(value.booleanValue());
 	}
 
 	@SuppressWarnings("unchecked")
-	private void setMultiValueCell(TableCellWalker walker, EAttribute eAttribute, Object multiValue) {
-		TextBuilder textBuilder = Text.builder();
+	private void setMultiValueCell(Range sheetDataRow, int colIndex, EAttribute eAttribute, Object multiValue) {
+		StringBuilder sb = new StringBuilder();
 
 		Collection<Object> values = (Collection<Object>) multiValue;
+
 		for (Object value : values) {
-			textBuilder.parContent(EcoreUtil.convertToString(eAttribute.getEAttributeType(), value));
+			sb.append(EcoreUtil.convertToString(eAttribute.getEAttributeType(), value));
+			sb.append(DATA_CELL_LINE_SEPARATOR);
 		}
 
-		Text text = textBuilder.build();
-		walker.setText(text);
+		setStringValueCell(sheetDataRow, colIndex, sb.toString());
 	}
 
-	private void setVoidValueCell(TableCellWalker walker) {
-		walker.setVoidValue();
+	private void setVoidValueCell(Range sheetDataRow, int colIndex) {
+		sheetDataRow.getCell(0, colIndex).clear();
 	}
 
 	private Locale locale(Map<Object, Object> exportOptions) {
@@ -855,11 +750,15 @@ public class EMFODSExporter implements EMFExporter {
 	}
 
 	private boolean freezeHeaderRowEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_FREEZE_HEADER_ROW, Boolean.FALSE));
+		// TODO: freezing rows is currently not supported in SODS
+		//	return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_FREEZE_HEADER_ROW, Boolean.FALSE));
+		return false;
 	}
 
 	private boolean generateLinksEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_GENERATE_LINKS, Boolean.FALSE));
+		// TODO: linking is currently not supported in SODS
+		// return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_GENERATE_LINKS, Boolean.FALSE));
+		return false;
 	}
 
 	private Map<Object, Object> validateExportOptions(Map<?, ?> options) {
@@ -870,190 +769,167 @@ public class EMFODSExporter implements EMFExporter {
 		}
 	}
 
-	private void exportMetadata(OdsDocument document, Set<EClass> eClasses, Set<EEnum> eEnums)
-			throws IOException, FastOdsException {
+	private void addMetadataSheet(SpreadSheet document, EClass eClass) {
+		document.appendSheet(new Sheet(constructEClassMetadataSheetName(eClass)));
+	}
+
+	private Sheet addMetadataSheet(SpreadSheet document, EEnum eEnum) {
+		Sheet metadataSheet = new Sheet(constructEEnumMetadataSheetName(eEnum));
+		document.appendSheet(metadataSheet);
+		return metadataSheet;
+	}
+
+	private void exportMetadata(SpreadSheet document, Set<EClass> eClasses, Set<EEnum> eEnums) {
 		exportEClassesMetadata(document, eClasses);
 		exportEEnumsMetadata(document, eEnums);
 	}
 
-	private void exportEClassesMetadata(OdsDocument document, Set<EClass> eClasses)
-			throws IOException, FastOdsException {
+	private void exportEClassesMetadata(SpreadSheet document, Set<EClass> eClasses) {
 		for (EClass eClass : eClasses) {
 
-			String metadataTableName = constructEClassMetadataTableName(eClass);
+			Sheet metadataSheet = document.getSheet(constructEClassMetadataSheetName(eClass));
 
-			Table metadataTable = document.getTable(metadataTableName);
+			createEClassMetadataSheetHeader(metadataSheet);
 
-			final TableCellWalker walker = metadataTable.getWalker();
-
-			createEClassMetadataTableHeader(walker);
-
-			walker.nextRow();
-
-			createEClassMetadataTableBody(walker, eClass);
+			createEClassMetadataSheetData(metadataSheet, eClass);
 		}
 	}
 
-	private void exportEEnumsMetadata(OdsDocument document, Set<EEnum> eEnums) throws IOException, FastOdsException {
+	private void exportEEnumsMetadata(SpreadSheet document, Set<EEnum> eEnums) {
 		for (EEnum eEnum : eEnums) {
 
-			String metadataTableName = constructEEnumMetadataTableName(eEnum);
+			Sheet metadataSheet = addMetadataSheet(document, eEnum);
 
-			Table metadataTable = document.addTable(metadataTableName);
+			createEEnumMetadataSheetHeader(metadataSheet);
 
-			final TableCellWalker walker = metadataTable.getWalker();
-
-			createEEnumMetadataTableHeader(walker);
-
-			walker.nextRow();
-
-			createEEnumMetadataTableBody(walker, eEnum);
+			createEEnumMetadataSheetData(metadataSheet, eEnum);
 		}
 	}
 
-	private void createEClassMetadataTableHeader(TableCellWalker walker) throws IOException {
-		METADATA_ECLASS_TABLE_HEADERS.forEach(h -> {
-			walker.setRowStyle(BODY_ROW_STYLE);
-			walker.setColumnStyle(BODY_COLUMN_STYLE);
-			walker.setStyle(HEADER_CELL_STYLE);
-			walker.setStringValue(h);
-			walker.next();
-		});
+	private void createEClassMetadataSheetHeader(Sheet metadataSheet) {
+		createMetadataSheetHeader(metadataSheet, METADATA_ECLASS_SHEET_HEADERS);
 	}
 
-	private void createEEnumMetadataTableHeader(TableCellWalker walker) throws IOException {
-		METADATA_EENUM_TABLE_HEADERS.forEach(h -> {
-			walker.setRowStyle(BODY_ROW_STYLE);
-			walker.setColumnStyle(BODY_COLUMN_STYLE);
-			walker.setStyle(HEADER_CELL_STYLE);
-			walker.setStringValue(h);
-			walker.next();
-		});
+	private void createEEnumMetadataSheetHeader(Sheet metadataSheet) {
+		createMetadataSheetHeader(metadataSheet, METADATA_EENUM_SHEET_HEADERS);
 	}
 
-	private void createEClassMetadataTableBody(TableCellWalker walker, EClass eClass) throws IOException {
+	private void createMetadataSheetHeader(Sheet metadataSheet, List<String> headers) {
+		int columnsCount = headers.size();
+
+		metadataSheet.appendColumns(columnsCount - 1);
+
+		Range metadataSheetHeaderRow = metadataSheet.getRange(0, 0, 1, metadataSheet.getMaxColumns());
+		metadataSheetHeaderRow.setStyle(HEADER_STYLE);
+
+		for (int colIndex = 0; colIndex < metadataSheet.getMaxColumns(); colIndex++) {
+			createMetadataSheetHeaderCell(metadataSheetHeaderRow, colIndex, headers.get(colIndex));
+		}
+	}
+
+	private void createMetadataSheetHeaderCell(Range metadataSheetHeaderRow, int colIndex, String headerName) {
+		metadataSheetHeaderRow.getCell(0, colIndex).setValue(headerName);
+	}
+
+	private void createEClassMetadataSheetData(Sheet metadataSheet, EClass eClass) {
+		eClass.getEAnnotations(); // TODO: clarify regarding instance-level docs
+
 		eClass.getEAllStructuralFeatures().forEach(eStructuralFeature -> {
-
-			createEClassMetadataTableBodyCell(walker, eStructuralFeature);
-
-			try {
-				walker.nextRow();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			createEClassMetadataSheetDataRow(metadataSheet, eStructuralFeature);
 		});
 	}
 
-	private void createEEnumMetadataTableBody(TableCellWalker walker, EEnum eEnum) throws IOException {
+	private void createEEnumMetadataSheetData(Sheet metadataSheet, EEnum eEnum) {
 		eEnum.getEAnnotations(); // TODO: clarify regarding instance-level docs
 
 		eEnum.getELiterals().forEach(eEnumLiteral -> {
-
-			createEEnumMetadataTableBodyCell(walker, eEnumLiteral);
-
-			try {
-				walker.nextRow();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			createEEnumMetadataSheetDataRow(metadataSheet, eEnumLiteral);
 		});
 	}
 
-	private void createEEnumMetadataTableBodyCell(TableCellWalker walker, EEnumLiteral eEnumLiteral) {
-		walker.setRowStyle(BODY_ROW_STYLE);
-		walker.setColumnStyle(BODY_COLUMN_STYLE);
+	private void createEClassMetadataSheetDataRow(Sheet metadataSheet, EStructuralFeature eStructuralFeature) {
+		metadataSheet.appendRow();
 
-		// Name
-		setEEnumMetadataNameValueCell(walker, eEnumLiteral);
+		for (int colIndex = 0; colIndex < metadataSheet.getMaxColumns(); colIndex++) {
+			Range metadataSheetDataRow = metadataSheet.getRange((metadataSheet.getMaxRows() - 1), 0, 1,
+					metadataSheet.getMaxColumns());
 
-		walker.next();
-
-		// Literal
-		setEEnumMetadataLiteralValueCell(walker, eEnumLiteral);
-
-		walker.next();
-
-		// Value
-		setEEnumMetadataValueValueCell(walker, eEnumLiteral);
-
-		walker.next();
-
-		// Documentation
-		setEEnumMetadataDocumentationValueCell(walker, eEnumLiteral);
-
-		walker.next();
+			createEClassMetadataSheetDataCell(metadataSheetDataRow, colIndex, eStructuralFeature);
+		}
 	}
 
-	private void setEEnumMetadataNameValueCell(TableCellWalker walker, EEnumLiteral eEnumLiteral) {
-		setStringValueCell(walker, eEnumLiteral.getName());
+	private void createEEnumMetadataSheetDataRow(Sheet metadataSheet, EEnumLiteral eEnumLiteral) {
+		metadataSheet.appendRow();
+
+		for (int colIndex = 0; colIndex < metadataSheet.getMaxColumns(); colIndex++) {
+			Range metadataSheetDataRow = metadataSheet.getRange((metadataSheet.getMaxRows() - 1), 0, 1,
+					metadataSheet.getMaxColumns());
+
+			createEEnumMetadataSheetDataCell(metadataSheetDataRow, colIndex, eEnumLiteral);
+		}
 	}
 
-	private void setEEnumMetadataLiteralValueCell(TableCellWalker walker, EEnumLiteral eEnumLiteral) {
-		setStringValueCell(walker, eEnumLiteral.getLiteral());
+	private void createEClassMetadataSheetDataCell(Range metadataSheetDataRow, int colIndex,
+			EStructuralFeature eStructuralFeature) {
+		switch (colIndex) {
+		case 0: // Name
+			setEClassMetadataNameValueCell(metadataSheetDataRow, colIndex, eStructuralFeature);
+			break;
+		case 1: // Type
+			setEClassMetadataTypeValueCell(metadataSheetDataRow, colIndex, eStructuralFeature);
+			break;
+		case 2: // isMany
+			setEClassMetadataIsManyValueCell(metadataSheetDataRow, colIndex, eStructuralFeature);
+			break;
+		case 3: // isRequired
+			setEClassMetadataIsRequiredValueCell(metadataSheetDataRow, colIndex, eStructuralFeature);
+			break;
+		case 4: // Default value
+			setEClassMetadataDefaultValueCell(metadataSheetDataRow, colIndex, eStructuralFeature);
+			break;
+		case 5: // Documentation
+			setEClassMetadataDocumentationValueCell(metadataSheetDataRow, colIndex, eStructuralFeature);
+			break;
+		}
 	}
 
-	private void setEEnumMetadataValueValueCell(TableCellWalker walker, EEnumLiteral eEnumLiteral) {
-		setNumberValueCell(walker, eEnumLiteral.getValue());
+	private void createEEnumMetadataSheetDataCell(Range metadataSheetDataRow, int colIndex, EEnumLiteral eEnumLiteral) {
+		switch (colIndex) {
+		case 0: // Name
+			setEEnumMetadataNameValueCell(metadataSheetDataRow, colIndex, eEnumLiteral);
+			break;
+		case 1: // Literal
+			setEEnumMetadataLiteralValueCell(metadataSheetDataRow, colIndex, eEnumLiteral);
+			break;
+		case 2: // Value
+			setEEnumMetadataValueValueCell(metadataSheetDataRow, colIndex, eEnumLiteral);
+			break;
+		case 3: // Documentation
+			setEEnumMetadataDocumentationValueCell(metadataSheetDataRow, colIndex, eEnumLiteral);
+			break;
+		}
 	}
 
-	private void setEEnumMetadataDocumentationValueCell(TableCellWalker walker, EEnumLiteral eEnumLiteral) {
-		EAnnotation genModelAnnotation = eEnumLiteral.getEAnnotation(DOCUMENTATION_GENMODEL_SOURCE);
-
-		setMetadataDocumentationValueCell(walker, genModelAnnotation);
+	private void setEClassMetadataNameValueCell(Range metadataSheetDataRow, int colIndex,
+			EStructuralFeature eStructuralFeature) {
+		setStringValueCell(metadataSheetDataRow, colIndex, eStructuralFeature.getName());
 	}
 
-	private void createEClassMetadataTableBodyCell(TableCellWalker walker, EStructuralFeature eStructuralFeature) {
-		walker.setRowStyle(BODY_ROW_STYLE);
-		walker.setColumnStyle(BODY_COLUMN_STYLE);
-
-		// Name
-		setEClassMetadataNameValueCell(walker, eStructuralFeature);
-
-		walker.next();
-
-		// Type
-		setEClassMetadataTypeValueCell(walker, eStructuralFeature);
-
-		walker.next();
-
-		// isMany
-		setEClassMetadataIsManyValueCell(walker, eStructuralFeature);
-
-		walker.next();
-
-		// isRequired
-		setEClassMetadataIsRequiredValueCell(walker, eStructuralFeature);
-
-		walker.next();
-
-		// Default value
-		setEClassMetadataDefaultValueCell(walker, eStructuralFeature);
-
-		walker.next();
-
-		// Documentation
-		setEClassMetadataDocumentationValueCell(walker, eStructuralFeature);
-
-		walker.next();
-	}
-
-	private void setEClassMetadataNameValueCell(TableCellWalker walker, EStructuralFeature eStructuralFeature) {
-		setStringValueCell(walker, eStructuralFeature.getName());
-	}
-
-	private void setEClassMetadataTypeValueCell(TableCellWalker walker, EStructuralFeature eStructuralFeature) {
+	private void setEClassMetadataTypeValueCell(Range metadataSheetDataRow, int colIndex,
+			EStructuralFeature eStructuralFeature) {
 		if (eStructuralFeature instanceof EAttribute) {
 			EAttribute eAttribute = (EAttribute) eStructuralFeature;
 
-			setStringValueCell(walker, normalizeMetadataTypeEAttributeName(eAttribute.getEAttributeType()));
+			setStringValueCell(metadataSheetDataRow, colIndex,
+					normalizeMetadataTypeEAttributeName(eAttribute.getEAttributeType()));
 
 		} else if (eStructuralFeature instanceof EReference) {
 			EReference eReference = (EReference) eStructuralFeature;
 
-			setStringValueCell(walker, eReference.getEReferenceType().getName());
+			setStringValueCell(metadataSheetDataRow, colIndex, eReference.getEReferenceType().getName());
 
 		} else {
-			setVoidValueCell(walker);
+			setVoidValueCell(metadataSheetDataRow, colIndex);
 		}
 	}
 
@@ -1074,93 +950,99 @@ public class EMFODSExporter implements EMFExporter {
 		return eAttributeType.getEPackage().getName().equalsIgnoreCase(ECORE_PACKAGE_NAME);
 	}
 
-	private void setEClassMetadataIsManyValueCell(TableCellWalker walker, EStructuralFeature eStructuralFeature) {
-		setBooleanValueCell(walker, eStructuralFeature.isMany());
+	private void setEClassMetadataIsManyValueCell(Range metadataSheetDataRow, int colIndex,
+			EStructuralFeature eStructuralFeature) {
+		setBooleanValueCell(metadataSheetDataRow, colIndex, eStructuralFeature.isMany());
 	}
 
-	private void setEClassMetadataIsRequiredValueCell(TableCellWalker walker, EStructuralFeature eStructuralFeature) {
-		setBooleanValueCell(walker, eStructuralFeature.isRequired());
+	private void setEClassMetadataIsRequiredValueCell(Range metadataSheetDataRow, int colIndex,
+			EStructuralFeature eStructuralFeature) {
+		setBooleanValueCell(metadataSheetDataRow, colIndex, eStructuralFeature.isRequired());
 	}
 
-	private void setEClassMetadataDefaultValueCell(TableCellWalker walker, EStructuralFeature eStructuralFeature) {
+	private void setEClassMetadataDefaultValueCell(Range metadataSheetDataRow, int colIndex,
+			EStructuralFeature eStructuralFeature) {
 		if (eStructuralFeature instanceof EAttribute) {
 			EAttribute eAttribute = (EAttribute) eStructuralFeature;
 
 			if (eAttribute.getDefaultValue() != null) {
-				setStringValueCell(walker,
+				setStringValueCell(metadataSheetDataRow, colIndex,
 						EcoreUtil.convertToString(eAttribute.getEAttributeType(), eAttribute.getDefaultValue()));
 				return;
 			}
 		}
 
-		setVoidValueCell(walker);
+		setVoidValueCell(metadataSheetDataRow, colIndex);
 	}
 
-	private void setEClassMetadataDocumentationValueCell(TableCellWalker walker,
+	private void setEClassMetadataDocumentationValueCell(Range metadataSheetDataRow, int colIndex,
 			EStructuralFeature eStructuralFeature) {
 		EAnnotation genModelAnnotation = eStructuralFeature.getEAnnotation(DOCUMENTATION_GENMODEL_SOURCE);
 
-		setMetadataDocumentationValueCell(walker, genModelAnnotation);
+		setMetadataDocumentationValueCell(metadataSheetDataRow, colIndex, genModelAnnotation);
 	}
 
-	private void setMetadataDocumentationValueCell(TableCellWalker walker, EAnnotation genModelAnnotation) {
+	private void setEEnumMetadataNameValueCell(Range metadataSheetDataRow, int colIndex, EEnumLiteral eEnumLiteral) {
+		setStringValueCell(metadataSheetDataRow, colIndex, eEnumLiteral.getName());
+	}
+
+	private void setEEnumMetadataLiteralValueCell(Range metadataSheetDataRow, int colIndex, EEnumLiteral eEnumLiteral) {
+		setStringValueCell(metadataSheetDataRow, colIndex, eEnumLiteral.getLiteral());
+	}
+
+	private void setEEnumMetadataValueValueCell(Range metadataSheetDataRow, int colIndex, EEnumLiteral eEnumLiteral) {
+		setNumberValueCell(metadataSheetDataRow, colIndex, eEnumLiteral.getValue());
+	}
+
+	private void setEEnumMetadataDocumentationValueCell(Range metadataSheetDataRow, int colIndex,
+			EEnumLiteral eEnumLiteral) {
+		EAnnotation genModelAnnotation = eEnumLiteral.getEAnnotation(DOCUMENTATION_GENMODEL_SOURCE);
+
+		setMetadataDocumentationValueCell(metadataSheetDataRow, colIndex, genModelAnnotation);
+	}
+
+	private void setMetadataDocumentationValueCell(Range metadataSheetDataRow, int colIndex,
+			EAnnotation genModelAnnotation) {
 		if (genModelAnnotation != null) {
 			Map<String, String> genModelAnnotationDetails = genModelAnnotation.getDetails().map();
 
 			if (genModelAnnotationDetails.containsKey(DOCUMENTATION_GENMODEL_DETAILS)) {
 				String documentation = genModelAnnotationDetails.get(DOCUMENTATION_GENMODEL_DETAILS);
-				setStringValueCell(walker, documentation);
+				setStringValueCell(metadataSheetDataRow, colIndex, documentation);
 			}
 		}
 
-		setVoidValueCell(walker);
+		setVoidValueCell(metadataSheetDataRow, colIndex);
 	}
 
 	private int getEObjectIdentifier(EObject eObject) {
 		return eObject.hashCode();
 	}
 
-	private String constructEClassTableName(EClass eClass) {
+	private String constructEClassSheetName(EClass eClass) {
 		return eClass.getName();
 	}
 
-	private String constructEEnumTableName(EEnum eEnum) {
+	private String constructEEnumSheetName(EEnum eEnum) {
 		return eEnum.getName();
 	}
 
-	private String constructEClassMetadataTableName(EClass eClass) {
-		return constructMetadataTableName(constructEClassTableName(eClass));
+	private String constructEClassMetadataSheetName(EClass eClass) {
+		return constructMetadataSheetName(constructEClassSheetName(eClass));
 	}
 
-	private String constructEEnumMetadataTableName(EEnum eEnum) {
-		return constructMetadataTableName(constructEEnumTableName(eEnum));
+	private String constructEEnumMetadataSheetName(EEnum eEnum) {
+		return constructMetadataSheetName(constructEEnumSheetName(eEnum));
 	}
 
-	private String constructMetadataTableName(String metadataTableName) {
+	private String constructMetadataSheetName(String metadataTableName) {
 		StringBuilder sb = new StringBuilder(100);
 		sb.append(metadataTableName);
 		sb.append(" ");
 		sb.append("( ");
-		sb.append(METADATA_TABLE_SUFFIX);
+		sb.append(METADATA_SHEET_SUFFIX);
 		sb.append(" )");
 		return sb.toString();
-	}
-
-	private void adjustRowHeight(TableCellWalker walker, int linesCount) {
-		walker.setRowStyle(constructAdjustedHeightRowStyle(linesCount));
-	}
-
-	private TableRowStyle constructAdjustedHeightRowStyle(int linesCount) {
-		// @formatter:off
-		return TableRowStyle.builder("adjusted-height-row-style")
-				.defaultCellStyle(DEFAULT_BODY_CELL_STYLE)
-				.rowHeight(calculateRowHeight(linesCount))
-				.build();
-		// @formatter:on
-	}
-
-	private SimpleLength calculateRowHeight(int linesCount) {
-		return SimpleLength.mm(linesCount * 5);
 	}
 
 	private boolean isProcessed(Set<Integer> eObjectsIdentifiers, EObject eObject) {
