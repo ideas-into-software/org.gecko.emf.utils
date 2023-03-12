@@ -37,7 +37,6 @@ import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
 import org.gecko.emf.osgi.example.model.basic.Family;
 import org.gecko.emf.utilities.Request;
 import org.gecko.emf.utilities.UtilitiesFactory;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -102,13 +101,14 @@ public class EMFODSExporterTest {
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
 						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
-						EMFExportOptions.OPTION_EXPORT_METADATA, true, 
-						EMFExportOptions.OPTION_GENERATE_LINKS, true)
+						EMFExportOptions.OPTION_EXPORT_METADATA, true,
+						EMFExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true
+					//	EMFExportOptions.OPTION_GENERATE_LINKS, true // TODO: linking is currently not supported in SODS
+					)
 				);
 		// @formatter:on
 	}
 
-	@Disabled
 	@Test
 	public void testExportUtilitiesPackageResourceToOds(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFODSExporter)") ServiceAware<EMFExporter> emfOdsExporterAware)
@@ -129,8 +129,9 @@ public class EMFODSExporterTest {
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
 						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
-						EMFExportOptions.OPTION_EXPORT_METADATA, true, 
-						EMFExportOptions.OPTION_GENERATE_LINKS, true)
+						EMFExportOptions.OPTION_EXPORT_METADATA, true
+					//	EMFExportOptions.OPTION_GENERATE_LINKS, true // TODO: linking is currently not supported in SODS
+					)
 				);
 		// @formatter:on
 	}

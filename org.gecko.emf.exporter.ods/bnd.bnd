@@ -6,9 +6,9 @@ Bundle-Description: ODS (OpenDocument Spreadsheet) Exporter for EMF
 
 -buildpath: \
 	org.gecko.emf.exporter,\
-	fastods;version='0.8',\
 	org.apache.commons.commons-text;version='1.10',\
-	com.google.guava;version='31.1'
+	com.google.guava;version='31.1',\
+	com.github.miachm.sods
 
 Private-Package: \
 	org.gecko.emf.exporter.ods
