@@ -14,11 +14,13 @@ package org.gecko.emf.exporter.ods;
 import static java.util.stream.Collectors.toList;
 
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -26,6 +28,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+import org.apache.commons.text.WordUtils;
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -44,6 +47,7 @@ import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
 
 import com.github.miachm.sods.Color;
+import com.github.miachm.sods.LinkedValue;
 import com.github.miachm.sods.Range;
 import com.github.miachm.sods.Sheet;
 import com.github.miachm.sods.SpreadSheet;
@@ -56,7 +60,7 @@ import com.github.miachm.sods.Style;
  */
 @Component(name = "EMFODSExporter", scope = ServiceScope.PROTOTYPE)
 public class EMFODSExporter implements EMFExporter {
-	
+
 	private static final int MAX_CHAR_PER_LINE_DEFAULT = 30;
 
 	private static final Style HEADER_STYLE = new Style();
@@ -77,15 +81,17 @@ public class EMFODSExporter implements EMFExporter {
 	private static final List<String> METADATA_EENUM_SHEET_HEADERS = List.of("Name", "Literal", "Value",
 			"Documentation");
 	private static final String METADATA_SHEET_SUFFIX = "Metadata";
+	private static final String MAPPING_TABLE_SHEET_SUFFIX = "Mapping Table";
 
 	private static final String DOCUMENTATION_GENMODEL_SOURCE = "http://www.eclipse.org/emf/2002/GenModel";
 	private static final String DOCUMENTATION_GENMODEL_DETAILS = "documentation";
 
 	private static final String ECORE_PACKAGE_NAME = "ecore";
 
-	private final static char CR = (char) 0x0D;
-	private final static char LF = (char) 0x0A;
-	private final static String DATA_CELL_LINE_SEPARATOR = "" + CR + LF;
+	private static final String ID_COLUMN_NAME = "Id";
+	private static final int ID_COLUMN_WIDTH = 18;
+
+	private static final String REF_COLUMN_PREFIX = "ref_";
 
 	/* 
 	 * (non-Javadoc)
@@ -152,11 +158,8 @@ public class EMFODSExporter implements EMFExporter {
 						eObjectsEnums,
 						eObjectsPseudoIDs, 
 						eObjectsSheets,
-						exportNonContainmentEnabled(exportOptions), 
-						exportMetadataEnabled(exportOptions), 
-						freezeHeaderRowEnabled(exportOptions),
-						adjustColumnWidthEnabled(exportOptions),
-						eObjectsSafeCopy);
+						eObjectsSafeCopy, 
+						exportOptions);
 				// @formatter:on
 
 				// @formatter:off
@@ -166,10 +169,8 @@ public class EMFODSExporter implements EMFExporter {
 						eObjectsEnums,
 						eObjectsPseudoIDs, 
 						eObjectsSheets,
-						exportNonContainmentEnabled(exportOptions), 
-						exportMetadataEnabled(exportOptions), 
-						generateLinksEnabled(exportOptions),
-						eObjectsSafeCopy);
+						eObjectsSafeCopy, 
+						exportOptions);
 				// @formatter:on
 
 				if (exportMetadataEnabled(exportOptions)) {
@@ -248,8 +249,7 @@ public class EMFODSExporter implements EMFExporter {
 
 	private void createSheets(SpreadSheet document, Map<String, Sheet> eClassesSheets, Set<EClass> eObjectsClasses,
 			Set<EEnum> eObjectsEnums, Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
-			boolean exportNonContainment, boolean exportMetadata, boolean freezeHeaderRow, boolean adjustColumnWidth,
-			List<EObject> eObjects) {
+			List<EObject> eObjects, Map<Object, Object> exportOptions) {
 
 		final Set<Integer> processedEObjectsIdentifiers = new HashSet<Integer>();
 
@@ -262,10 +262,7 @@ public class EMFODSExporter implements EMFExporter {
 					eObjectsEnums,
 					eObjectsPseudoIDs,
 					eObjectsSheets,
-					exportNonContainment,
-					exportMetadata, 
-					freezeHeaderRow,
-					adjustColumnWidth,
+					exportOptions,
 					eObject);
 			// @formatter:on
 		}
@@ -273,8 +270,7 @@ public class EMFODSExporter implements EMFExporter {
 
 	private void createSheetsData(SpreadSheet document, Map<String, Sheet> eClassesSheets, Set<EClass> eObjectsClasses,
 			Set<EEnum> eObjectsEnums, Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
-			boolean exportNonContainment, boolean exportMetadata, boolean generateLinks, List<EObject> eObjects)
-			throws EMFExportException {
+			List<EObject> eObjects, Map<Object, Object> exportOptions) throws EMFExportException {
 
 		final Set<Integer> processedEObjectsIdentifiers = new HashSet<Integer>();
 
@@ -287,9 +283,7 @@ public class EMFODSExporter implements EMFExporter {
 					eObjectsEnums,
 					eObjectsPseudoIDs,
 					eObjectsSheets,
-					exportNonContainment,
-					exportMetadata, 
-					generateLinks,
+					exportOptions,
 					eObject);
 			// @formatter:on
 		}
@@ -297,29 +291,28 @@ public class EMFODSExporter implements EMFExporter {
 
 	private void createSheetForEObjectWithEReferences(SpreadSheet document, Map<String, Sheet> eClassesSheets,
 			Set<Integer> eObjectsIdentifiers, Set<EClass> eObjectsClasses, Set<EEnum> eObjectsEnums,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets, boolean exportNonContainment,
-			boolean exportMetadata, boolean freezeHeaderRow, boolean adjustColumnWidth, EObject eObject) {
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
+			Map<Object, Object> exportOptions, EObject eObject) {
 		createSheet(document, eClassesSheets, eObjectsIdentifiers, eObjectsClasses, eObjectsEnums, eObjectsPseudoIDs,
-				eObjectsSheets, exportNonContainment, exportMetadata, freezeHeaderRow, adjustColumnWidth, eObject);
+				eObjectsSheets, exportOptions, eObject);
 
 		eObject.eClass().getEAllReferences().stream().forEach(r -> {
 			createSheetForEReference(document, eClassesSheets, eObjectsIdentifiers, eObjectsClasses, eObjectsEnums,
-					eObjectsPseudoIDs, eObjectsSheets, exportNonContainment, exportMetadata, freezeHeaderRow,
-					adjustColumnWidth, eObject, r);
+					eObjectsPseudoIDs, eObjectsSheets, exportOptions, eObject, r);
 		});
 	}
 
 	private void createSheetDataForEObjectWithEReferences(SpreadSheet document, Map<String, Sheet> eClassesSheets,
 			Set<Integer> eObjectsIdentifiers, Set<EClass> eObjectsClasses, Set<EEnum> eObjectsEnums,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets, boolean exportNonContainment,
-			boolean exportMetadata, boolean generateLinks, EObject eObject) throws EMFExportException {
-		createSheetData(document, eClassesSheets, eObjectsIdentifiers, eObjectsPseudoIDs, eObjectsSheets,
-				exportNonContainment, generateLinks, eObject);
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
+			Map<Object, Object> exportOptions, EObject eObject) throws EMFExportException {
+		createSheetData(document, eClassesSheets, eObjectsIdentifiers, eObjectsPseudoIDs, eObjectsSheets, exportOptions,
+				eObject);
 
 		eObject.eClass().getEAllReferences().stream().forEach(r -> {
 			try {
 				createSheetDataForEReference(document, eClassesSheets, eObjectsIdentifiers, eObjectsPseudoIDs,
-						eObjectsSheets, exportNonContainment, generateLinks, eObject, r);
+						eObjectsSheets, exportOptions, eObject, r);
 			} catch (EMFExportException e) {
 				e.printStackTrace();
 			}
@@ -328,13 +321,12 @@ public class EMFODSExporter implements EMFExporter {
 
 	private void createSheet(SpreadSheet document, Map<String, Sheet> eClassesSheets, Set<Integer> eObjectsIdentifiers,
 			Set<EClass> eObjectsClasses, Set<EEnum> eObjectsEnums, Map<Integer, String> eObjectsPseudoIDs,
-			Map<Integer, Sheet> eObjectsSheets, boolean exportNonContainment, boolean exportMetadata,
-			boolean freezeHeaderRow, boolean adjustColumnWidth, EObject... eObjects) {
+			Map<Integer, Sheet> eObjectsSheets, Map<Object, Object> exportOptions, EObject... eObjects) {
 		if ((eObjects.length > 0) && !isProcessed(eObjectsIdentifiers, eObjects[0])) {
 			EClass eClass = eObjects[0].eClass();
 
 			Sheet sheet = getOrAddSheet(document, eClassesSheets, eClass, eObjectsEnums,
-					hasPseudoID(eObjects[0], eObjectsPseudoIDs), exportMetadata, freezeHeaderRow, adjustColumnWidth);
+					hasPseudoID(eObjects[0], eObjectsPseudoIDs), exportOptions);
 
 			for (EObject eObject : eObjects) {
 				Integer eObjectIdentifier = Integer.valueOf(getEObjectIdentifier(eObject));
@@ -345,8 +337,7 @@ public class EMFODSExporter implements EMFExporter {
 
 				eObject.eClass().getEAllReferences().stream().forEach(r -> {
 					createSheetForEReference(document, eClassesSheets, eObjectsIdentifiers, eObjectsClasses,
-							eObjectsEnums, eObjectsPseudoIDs, eObjectsSheets, exportNonContainment, exportMetadata,
-							freezeHeaderRow, adjustColumnWidth, eObject, r);
+							eObjectsEnums, eObjectsPseudoIDs, eObjectsSheets, exportOptions, eObject, r);
 				});
 			}
 		}
@@ -355,9 +346,9 @@ public class EMFODSExporter implements EMFExporter {
 	@SuppressWarnings("unchecked")
 	private void createSheetForEReference(SpreadSheet document, Map<String, Sheet> eClassesSheets,
 			Set<Integer> eObjectsIdentifiers, Set<EClass> eObjectsClasses, Set<EEnum> eObjectsEnums,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets, boolean exportNonContainment,
-			boolean exportMetadata, boolean freezeHeaderRow, boolean adjustColumnWidth, EObject eObject, EReference r) {
-		if (!exportNonContainment && !r.isContainment()) {
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
+			Map<Object, Object> exportOptions, EObject eObject, EReference r) {
+		if (!exportNonContainmentEnabled(exportOptions) && !r.isContainment()) {
 			return;
 		}
 
@@ -366,20 +357,19 @@ public class EMFODSExporter implements EMFExporter {
 		if (value != null) {
 			if (!r.isMany() && value instanceof EObject) {
 				createSheet(document, eClassesSheets, eObjectsIdentifiers, eObjectsClasses, eObjectsEnums,
-						eObjectsPseudoIDs, eObjectsSheets, exportNonContainment, exportMetadata, freezeHeaderRow,
-						adjustColumnWidth, (EObject) value);
+						eObjectsPseudoIDs, eObjectsSheets, exportOptions, (EObject) value);
 			} else if (r.isMany()) {
 				createSheet(document, eClassesSheets, eObjectsIdentifiers, eObjectsClasses, eObjectsEnums,
-						eObjectsPseudoIDs, eObjectsSheets, exportNonContainment, exportMetadata, freezeHeaderRow,
-						adjustColumnWidth, ((List<EObject>) value).toArray(EObject[]::new));
+						eObjectsPseudoIDs, eObjectsSheets, exportOptions,
+						((List<EObject>) value).toArray(EObject[]::new));
 			}
 		}
 	}
 
 	private void createSheetData(SpreadSheet document, Map<String, Sheet> eClassesSheets,
 			Set<Integer> eObjectsIdentifiers, Map<Integer, String> eObjectsPseudoIDs,
-			Map<Integer, Sheet> eObjectsSheets, boolean exportNonContainment, boolean generateLinks,
-			EObject... eObjects) throws EMFExportException {
+			Map<Integer, Sheet> eObjectsSheets, Map<Object, Object> exportOptions, EObject... eObjects)
+			throws EMFExportException {
 		if ((eObjects.length > 0) && !isProcessed(eObjectsIdentifiers, eObjects[0])) {
 			EClass eClass = eObjects[0].eClass();
 
@@ -388,12 +378,12 @@ public class EMFODSExporter implements EMFExporter {
 			for (EObject eObject : eObjects) {
 				eObjectsIdentifiers.add(getEObjectIdentifier(eObject));
 
-				createSheetData(sheet, eObject, eObjectsPseudoIDs, eObjectsSheets, generateLinks);
+				createSheetData(document, sheet, eObject, eObjectsPseudoIDs, eObjectsSheets, exportOptions);
 
 				eObject.eClass().getEAllReferences().stream().forEach(r -> {
 					try {
 						createSheetDataForEReference(document, eClassesSheets, eObjectsIdentifiers, eObjectsPseudoIDs,
-								eObjectsSheets, exportNonContainment, generateLinks, eObject, r);
+								eObjectsSheets, exportOptions, eObject, r);
 					} catch (EMFExportException e) {
 						e.printStackTrace();
 					}
@@ -405,9 +395,9 @@ public class EMFODSExporter implements EMFExporter {
 	@SuppressWarnings("unchecked")
 	private void createSheetDataForEReference(SpreadSheet document, Map<String, Sheet> eClassesSheets,
 			Set<Integer> eObjectsIdentifiers, Map<Integer, String> eObjectsPseudoIDs,
-			Map<Integer, Sheet> eObjectsSheets, boolean exportNonContainment, boolean generateLinks, EObject eObject,
-			EReference r) throws EMFExportException {
-		if (!exportNonContainment && !r.isContainment()) {
+			Map<Integer, Sheet> eObjectsSheets, Map<Object, Object> exportOptions, EObject eObject, EReference r)
+			throws EMFExportException {
+		if (!exportNonContainmentEnabled(exportOptions) && !r.isContainment()) {
 			return;
 		}
 
@@ -416,16 +406,17 @@ public class EMFODSExporter implements EMFExporter {
 		if (value != null) {
 			if (!r.isMany() && value instanceof EObject) {
 				createSheetData(document, eClassesSheets, eObjectsIdentifiers, eObjectsPseudoIDs, eObjectsSheets,
-						exportNonContainment, generateLinks, (EObject) value);
+						exportOptions, (EObject) value);
 			} else if (r.isMany()) {
 				createSheetData(document, eClassesSheets, eObjectsIdentifiers, eObjectsPseudoIDs, eObjectsSheets,
-						exportNonContainment, generateLinks, ((List<EObject>) value).toArray(EObject[]::new));
+						exportOptions, ((List<EObject>) value).toArray(EObject[]::new));
 			}
 		}
 	}
 
-	private void createSheetData(Sheet sheet, EObject eObject, Map<Integer, String> eObjectsPseudoIDs,
-			Map<Integer, Sheet> eObjectsSheets, boolean generateLinks) {
+	private void createSheetData(SpreadSheet document, Sheet sheet, EObject eObject,
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
+			Map<Object, Object> exportOptions) {
 
 		sheet.appendRow();
 
@@ -437,8 +428,8 @@ public class EMFODSExporter implements EMFExporter {
 
 		for (int colIndex = 0; colIndex < columnsCount; colIndex++) {
 
-			createSheetDataCell(sheetDataRow, colIndex, eObject, eAllStructuralFeatures.get(colIndex),
-					eObjectsPseudoIDs, eObjectsSheets, generateLinks);
+			createSheetDataCell(document, sheetDataRow, colIndex, eObject, eAllStructuralFeatures.get(colIndex),
+					eObjectsPseudoIDs, eObjectsSheets, exportOptions);
 		}
 
 		if (hasPseudoID(eObject, eObjectsPseudoIDs)) {
@@ -447,30 +438,28 @@ public class EMFODSExporter implements EMFExporter {
 	}
 
 	private Sheet getOrAddSheet(SpreadSheet document, Map<String, Sheet> eClassesSheets, EClass eClass,
-			Set<EEnum> eObjectsEnums, boolean hasPseudoID, boolean exportMetadata, boolean freezeHeaderRow,
-			boolean adjustColumnWidth) {
-		String tableName = constructEClassSheetName(eClass);
+			Set<EEnum> eObjectsEnums, boolean hasPseudoID, Map<Object, Object> exportOptions) {
+		String sheetName = constructEClassSheetName(eClass);
 
-		boolean tableExists = eClassesSheets.containsKey(tableName);
+		boolean sheetExists = eClassesSheets.containsKey(sheetName);
+
 		Sheet sheet;
-		if (tableExists) {
-			sheet = eClassesSheets.get(tableName);
+		if (sheetExists) {
+			sheet = eClassesSheets.get(sheetName);
 		} else {
-			sheet = new Sheet(tableName);
+			sheet = new Sheet(sheetName);
 			document.appendSheet(sheet);
-			eClassesSheets.put(tableName, sheet);
+			eClassesSheets.put(sheetName, sheet);
 
-			if (exportMetadata) {
-				addMetadataSheet(document, eClass);
-			}
-		}
+			createSheetHeader(sheet, eClass, eObjectsEnums, hasPseudoID, exportOptions);
 
-		if (!tableExists) {
-			createSheetHeader(sheet, eClass, eObjectsEnums, hasPseudoID, adjustColumnWidth);
-
-			if (freezeHeaderRow) {
+			if (freezeHeaderRowEnabled(exportOptions)) {
 				// TODO: freezing rows is currently not supported in SODS
 				// freezeTableHeader(document, sheet, 1, headersCount);
+			}
+
+			if (exportMetadataEnabled(exportOptions)) {
+				addMetadataSheet(document, eClass);
 			}
 		}
 
@@ -488,7 +477,7 @@ public class EMFODSExporter implements EMFExporter {
 	}
 
 	private void createSheetHeader(Sheet sheet, EClass eClass, Set<EEnum> eObjectsEnums, boolean hasPseudoID,
-			boolean adjustColumnWidth) {
+			Map<Object, Object> exportOptions) {
 
 		List<EStructuralFeature> eAllStructuralFeatures = eClass.getEAllStructuralFeatures();
 
@@ -509,32 +498,42 @@ public class EMFODSExporter implements EMFExporter {
 				eObjectsEnums.add(extractEEnumDataType(eStructuralFeature));
 			}
 
-			createSheetHeaderCell(sheetHeaderRow, eStructuralFeature, adjustColumnWidth, colIndex);
+			createSheetHeaderCell(sheetHeaderRow, eStructuralFeature, exportOptions, colIndex);
 		}
 
 		if (hasPseudoID) {
-			createSheetHeaderCell(sheetHeaderRow, "id", adjustColumnWidth, columnsCount);
+			createSheetHeaderCell(sheetHeaderRow, "id", exportOptions, columnsCount);
 		}
 	}
 
 	private void createSheetHeaderCell(Range sheetHeaderRow, EStructuralFeature eStructuralFeature,
-			boolean adjustColumnWidth, int colIndex) {
-		String tableHeaderName = constructSheetHeaderName(eStructuralFeature);
+			Map<Object, Object> exportOptions, int colIndex) {
+		String sheetHeaderName = constructSheetHeaderName(eStructuralFeature);
 
-		createSheetHeaderCell(sheetHeaderRow, tableHeaderName, adjustColumnWidth, colIndex);
+		createSheetHeaderCell(sheetHeaderRow, sheetHeaderName, exportOptions, colIndex);
 	}
 
-	private void createSheetHeaderCell(Range sheetHeaderRow, String tableHeaderName, boolean adjustColumnWidth,
+	private void createSheetHeaderCell(Range sheetHeaderRow, String sheetHeaderName, Map<Object, Object> exportOptions,
 			int colIndex) {
-		createSheetHeaderCell(sheetHeaderRow, colIndex, tableHeaderName);
 
-		if (adjustColumnWidth) {
-			adjustColumnWidth(sheetHeaderRow.getSheet(), colIndex, tableHeaderName.length());
+		createSheetHeaderCell(sheetHeaderRow, colIndex, sheetHeaderName);
+
+		if (adjustColumnWidthEnabled(exportOptions)) {
+			adjustColumnWidth(sheetHeaderRow.getSheet(), colIndex, adjustColumnWidthCharsCount(sheetHeaderName));
 		}
 	}
 
-	private void createSheetHeaderCell(Range sheetHeaderRow, int colIndex, String tableHeaderName) {
-		sheetHeaderRow.getCell(0, colIndex).setValue(tableHeaderName);
+	private int adjustColumnWidthCharsCount(String sheetHeaderName) {
+		if (sheetHeaderName.equalsIgnoreCase(ID_COLUMN_NAME) || sheetHeaderName.endsWith(ID_COLUMN_NAME)
+				|| sheetHeaderName.startsWith(REF_COLUMN_PREFIX)) {
+			return ID_COLUMN_WIDTH;
+		} else {
+			return sheetHeaderName.length();
+		}
+	}
+
+	private void createSheetHeaderCell(Range sheetHeaderRow, int colIndex, String sheetHeaderName) {
+		sheetHeaderRow.getCell(0, colIndex).setValue(sheetHeaderName);
 	}
 
 	private void adjustColumnWidth(Sheet sheet, int colIndex, int charsCount) {
@@ -542,7 +541,7 @@ public class EMFODSExporter implements EMFExporter {
 	}
 
 	private Double calculateColumnWidth(int charsCount) {
-		return (Double.valueOf(charsCount) * (charsCount > 3 ? 5 : 10));
+		return (Double.valueOf(charsCount) * (charsCount > 3 ? 5 : 7.5));
 	}
 
 	private void adjustRowHeight(Sheet sheet, int rowIndex, String value) {
@@ -561,7 +560,7 @@ public class EMFODSExporter implements EMFExporter {
 	private String constructSheetHeaderName(EStructuralFeature eStructuralFeature) {
 		StringBuilder sb = new StringBuilder(100);
 		if (eStructuralFeature instanceof EReference) {
-			sb.append("ref_");
+			sb.append(REF_COLUMN_PREFIX);
 		}
 		sb.append(eStructuralFeature.getName());
 		return sb.toString();
@@ -576,9 +575,9 @@ public class EMFODSExporter implements EMFExporter {
 		return ((EEnum) ((EAttribute) eStructuralFeature).getEAttributeType());
 	}
 
-	private void createSheetDataCell(Range sheetDataRow, int colIndex, EObject eObject,
+	private void createSheetDataCell(SpreadSheet document, Range sheetDataRow, int colIndex, EObject eObject,
 			EStructuralFeature eStructuralFeature, Map<Integer, String> eObjectsPseudoIDs,
-			Map<Integer, Sheet> eObjectsSheets, boolean generateLinks) {
+			Map<Integer, Sheet> eObjectsSheets, Map<Object, Object> exportOptions) {
 		if (eStructuralFeature instanceof EAttribute) {
 			EAttribute eAttribute = (EAttribute) eStructuralFeature;
 
@@ -615,40 +614,178 @@ public class EMFODSExporter implements EMFExporter {
 		} else if (eStructuralFeature instanceof EReference) {
 			EReference eReference = (EReference) eStructuralFeature;
 
-			setEReferenceValueCell(sheetDataRow, colIndex, eObject, eReference, eObjectsPseudoIDs, eObjectsSheets,
-					generateLinks);
+			setEReferenceValueCell(document, sheetDataRow, colIndex, eObject, eReference, eObjectsPseudoIDs,
+					eObjectsSheets, exportOptions);
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void setEReferenceValueCell(Range sheetDataRow, int colIndex, EObject eObject, EReference r,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets, boolean generateLinks) {
+	private void setEReferenceValueCell(SpreadSheet document, Range sheetDataRow, int colIndex, EObject eObject,
+			EReference r, Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
+			Map<Object, Object> exportOptions) {
 		Object value = eObject.eGet(r);
 
 		if (value != null) {
-			if (!r.isMany() && value instanceof EObject) {
-				setOneEReferenceValueCell(sheetDataRow, colIndex, (EObject) value, eObjectsPseudoIDs, eObjectsSheets,
-						generateLinks);
-			} else if (r.isMany()) {
-				setManyEReferencesValueCell(sheetDataRow, colIndex, ((List<EObject>) value), eObjectsPseudoIDs,
-						eObjectsSheets, generateLinks);
+			if ((!r.isMany() && value instanceof EObject) || (r.isMany() && ((List<EObject>) value).size() == 1)) {
+				setOneEReferenceValueCell(sheetDataRow, colIndex,
+						(!r.isMany() ? ((EObject) value) : ((List<EObject>) value).get(0)), eObjectsPseudoIDs,
+						eObjectsSheets, exportOptions);
+
+			} else if (r.isMany() && !((List<EObject>) value).isEmpty()) {
+				if (addMappingTableEnabled(exportOptions)) {
+					createEReferencesMappingTable(document, sheetDataRow, colIndex, eObject, r, ((List<EObject>) value),
+							eObjectsPseudoIDs, eObjectsSheets, exportOptions);
+
+				} else {
+					setManyEReferencesValueCell(sheetDataRow, colIndex, ((List<EObject>) value), eObjectsPseudoIDs,
+							eObjectsSheets, exportOptions);
+				}
 			}
 		}
 	}
 
+	private void createEReferencesMappingTable(SpreadSheet document, Range sheetDataRow, int colIndex,
+			EObject fromEObject, EReference toEReference, List<EObject> toEObjects,
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
+			Map<Object, Object> exportOptions) {
+
+		Sheet mappingTableSheet = getOrAddMappingTableSheet(document, fromEObject.eClass(), toEReference.getName(),
+				toEReference.getEReferenceType(), exportOptions);
+
+		setReferenceToMappingTable(mappingTableSheet, sheetDataRow, colIndex, exportOptions);
+
+		createMappingTableSheetData(mappingTableSheet, fromEObject, toEObjects, eObjectsPseudoIDs, eObjectsSheets,
+				exportOptions);
+	}
+
+	private void setReferenceToMappingTable(Sheet mappingTableSheet, Range sheetDataRow, int colIndex,
+			Map<Object, Object> exportOptions) {
+
+		if (generateLinksEnabled(exportOptions)) {
+			setLinkedIDEReferenceValueCell(sheetDataRow, colIndex,
+					constructMappingTableEReferenceValue(mappingTableSheet.getName()), mappingTableSheet);
+		} else {
+			setNonLinkedIDEReferenceValueCell(sheetDataRow, colIndex,
+					constructMappingTableEReferenceValue(mappingTableSheet.getName()));
+		}
+	}
+
+	private String constructMappingTableEReferenceValue(String mappingTableSheetName) {
+		StringBuilder sb = new StringBuilder(100);
+		sb.append("See: ");
+		sb.append(mappingTableSheetName);
+		return sb.toString();
+	}
+
+	private void createMappingTableSheetData(Sheet mappingTableSheet, EObject fromEObject, List<EObject> toEObjects,
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
+			Map<Object, Object> exportOptions) {
+
+		for (EObject toEObject : toEObjects) {
+			createMappingTableSheetDataRow(mappingTableSheet, fromEObject, toEObject, eObjectsPseudoIDs, eObjectsSheets,
+					exportOptions);
+		}
+	}
+
+	private void createMappingTableSheetDataRow(Sheet sheet, EObject fromEObject, EObject toEObject,
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
+			Map<Object, Object> exportOptions) {
+
+		sheet.appendRow();
+
+		Range sheetDataRow = sheet.getRange((sheet.getMaxRows() - 1), 0, 1, sheet.getMaxColumns());
+
+		setOneEReferenceValueCell(sheetDataRow, 0, fromEObject, eObjectsPseudoIDs, eObjectsSheets, exportOptions);
+
+		setOneEReferenceValueCell(sheetDataRow, 1, toEObject, eObjectsPseudoIDs, eObjectsSheets, exportOptions);
+
+	}
+
+	private String constructMappingTableSheetName(EClass fromEClass, String fromFieldName) {
+		StringBuilder sb = new StringBuilder(100);
+		sb.append(fromEClass.getName());
+		sb.append("_");
+		sb.append(fromFieldName);
+		sb.append(" ");
+		sb.append("( ");
+		sb.append(MAPPING_TABLE_SHEET_SUFFIX);
+		sb.append(" )");
+		return sb.toString();
+	}
+
+	private Sheet getOrAddMappingTableSheet(SpreadSheet document, EClass fromEClass, String fromFieldName,
+			EClass toEClass, Map<Object, Object> exportOptions) {
+		String mappingTableSheetName = constructMappingTableSheetName(fromEClass, fromFieldName);
+
+		System.out.println("Mapping table sheet name: " + mappingTableSheetName); // TODO: remove this comment
+
+		Sheet mappingTableSheet = document.getSheet(mappingTableSheetName);
+		if (mappingTableSheet == null) {
+			mappingTableSheet = new Sheet(mappingTableSheetName);
+			document.appendSheet(mappingTableSheet);
+
+			createMappingTableSheetHeader(mappingTableSheet, fromEClass, toEClass, exportOptions);
+		}
+
+		return mappingTableSheet;
+	}
+
+	private void createMappingTableSheetHeader(Sheet sheet, EClass fromEClass, EClass toEClass,
+			Map<Object, Object> exportOptions) {
+
+		sheet.appendColumn(); // newly created sheet already has one column
+
+		Range sheetHeaderRow = sheet.getRange(0, 0, 1, sheet.getMaxColumns()); // newly created sheet already has one
+																				// row
+
+		sheetHeaderRow.setStyle(HEADER_STYLE);
+
+		createMappingTableSheetHeaderCell(sheetHeaderRow, fromEClass, exportOptions, 0);
+
+		createMappingTableSheetHeaderCell(sheetHeaderRow, toEClass, exportOptions, 1);
+	}
+
+	private void createMappingTableSheetHeaderCell(Range sheetHeaderRow, EClass eClass,
+			Map<Object, Object> exportOptions, int colIndex) {
+		String mappingTableSheetHeaderName = constructMappingTableSheetHeaderName(eClass);
+
+		sheetHeaderRow.getCell(0, colIndex).setValue(mappingTableSheetHeaderName);
+
+		if (adjustColumnWidthEnabled(exportOptions)) {
+			adjustColumnWidth(sheetHeaderRow.getSheet(), colIndex,
+					adjustColumnWidthCharsCount(mappingTableSheetHeaderName));
+		}
+	}
+
+	private String constructMappingTableSheetHeaderName(EClass eClass) {
+		StringBuilder sb = new StringBuilder(100);
+
+		EAttribute idAttribute = eClass.getEIDAttribute();
+
+		if (idAttribute == null || idAttribute.getName().equalsIgnoreCase(ID_COLUMN_NAME)) {
+			sb.append(WordUtils.uncapitalize(eClass.getName()));
+			sb.append(ID_COLUMN_NAME);
+		} else {
+			sb.append(idAttribute.getName());
+		}
+
+		return sb.toString();
+	}
+
 	private void setOneEReferenceValueCell(Range sheetDataRow, int colIndex, EObject eObject,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets, boolean generateLinks) {
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
+			Map<Object, Object> exportOptions) {
 		Integer eObjectIdentifier = Integer.valueOf(getEObjectIdentifier(eObject));
 
 		if (hasID(eObject)) {
-			if (generateLinks && eObjectsSheets.containsKey(eObjectIdentifier)) {
+			if (generateLinksEnabled(exportOptions) && eObjectsSheets.containsKey(eObjectIdentifier)) {
 				setLinkedIDEReferenceValueCell(sheetDataRow, colIndex, getID(eObject),
 						eObjectsSheets.get(eObjectIdentifier));
 			} else {
 				setNonLinkedIDEReferenceValueCell(sheetDataRow, colIndex, getID(eObject));
 			}
 		} else if (hasPseudoID(eObject, eObjectsPseudoIDs)) {
-			if (generateLinks && eObjectsSheets.containsKey(eObjectIdentifier)) {
+			if (generateLinksEnabled(exportOptions) && eObjectsSheets.containsKey(eObjectIdentifier)) {
 				setLinkedIDEReferenceValueCell(sheetDataRow, colIndex, getPseudoID(eObject, eObjectsPseudoIDs),
 						eObjectsSheets.get(eObjectIdentifier));
 			} else {
@@ -660,29 +797,62 @@ public class EMFODSExporter implements EMFExporter {
 	}
 
 	private void setManyEReferencesValueCell(Range sheetDataRow, int colIndex, List<EObject> eObjects,
-			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets, boolean generateLinks) {
+			Map<Integer, String> eObjectsPseudoIDs, Map<Integer, Sheet> eObjectsSheets,
+			Map<Object, Object> exportOptions) {
 
 		StringBuilder sb = new StringBuilder();
 
-		for (EObject eObject : eObjects) {
+		List<LinkedValue> linkedValues = new ArrayList<LinkedValue>();
+
+		for (int i = 0; i < eObjects.size(); i++) {
+			EObject eObject = eObjects.get(i);
+
+			Integer eObjectIdentifier = Integer.valueOf(getEObjectIdentifier(eObject));
+
 			if (hasID(eObject)) {
-				sb.append(getID(eObject));
-				sb.append(DATA_CELL_LINE_SEPARATOR); // TODO: this has no effect - all lines are output on same line;
-														// must be taken care of on SODS side
+				if (generateLinksEnabled(exportOptions) && eObjectsSheets.containsKey(eObjectIdentifier)) {
+					LinkedValue linkedValue = LinkedValue.builder().value(getID(eObject))
+							.href(eObjectsSheets.get(eObjectIdentifier)).build();
+					linkedValues.add(linkedValue);
+				} else {
+					sb.append(getID(eObject));
+				}
 			} else if (hasPseudoID(eObject, eObjectsPseudoIDs)) {
-				sb.append(getPseudoID(eObject, eObjectsPseudoIDs));
-				sb.append(DATA_CELL_LINE_SEPARATOR);
+				if (generateLinksEnabled(exportOptions) && eObjectsSheets.containsKey(eObjectIdentifier)) {
+					LinkedValue linkedValue = LinkedValue.builder().value(getPseudoID(eObject, eObjectsPseudoIDs))
+							.href(eObjectsSheets.get(eObjectIdentifier)).build();
+					linkedValues.add(linkedValue);
+				} else {
+					sb.append(getPseudoID(eObject, eObjectsPseudoIDs));
+				}
+
 			} else {
 				sb.append("EReference: " + eObject.eClass().getName());
-				sb.append(DATA_CELL_LINE_SEPARATOR);
+			}
+
+			if (hasMoreElements(i, eObjects.size())) {
+				sb.append(System.lineSeparator());
 			}
 		}
 
-		setStringValueCell(sheetDataRow, colIndex, sb.toString());
+		if (generateLinksEnabled(exportOptions) && !linkedValues.isEmpty()) {
+			setCellLinkedValues(sheetDataRow, colIndex, linkedValues);
+		} else {
+			setStringValueCell(sheetDataRow, colIndex, sb.toString());
+		}
+	}
+
+	private void setCellLinkedValues(Range sheetDataRow, int colIndex, List<LinkedValue> linkedValues) {
+		sheetDataRow.getCell(0, colIndex).setLinkedValues(linkedValues);
+	}
+
+	private boolean hasMoreElements(int currentIndex, int size) {
+		return (currentIndex + 1) < size;
 	}
 
 	private void setLinkedIDEReferenceValueCell(Range sheetDataRow, int colIndex, String refId, Sheet refSheet) {
-		setNonLinkedIDEReferenceValueCell(sheetDataRow, colIndex, refId); // FIXME: links are not supported yet in SODS
+		LinkedValue linkedValue = LinkedValue.builder().value(refId).href(refSheet).build();
+		sheetDataRow.getCell(0, colIndex).addLinkedValue(linkedValue);
 	}
 
 	private void setNonLinkedIDEReferenceValueCell(Range sheetDataRow, int colIndex, String refId) {
@@ -721,9 +891,16 @@ public class EMFODSExporter implements EMFExporter {
 
 		Collection<Object> values = (Collection<Object>) multiValue;
 
-		for (Object value : values) {
-			sb.append(EcoreUtil.convertToString(eAttribute.getEAttributeType(), value));
-			sb.append(DATA_CELL_LINE_SEPARATOR);
+		if (!values.isEmpty()) {
+			Iterator<Object> valuesIt = values.iterator();
+
+			while (valuesIt.hasNext()) {
+				sb.append(EcoreUtil.convertToString(eAttribute.getEAttributeType(), valuesIt.next()));
+
+				if (valuesIt.hasNext()) {
+					sb.append(System.lineSeparator());
+				}
+			}
 		}
 
 		setStringValueCell(sheetDataRow, colIndex, sb.toString());
@@ -733,6 +910,7 @@ public class EMFODSExporter implements EMFExporter {
 		sheetDataRow.getCell(0, colIndex).clear();
 	}
 
+	@SuppressWarnings("unused")
 	private Locale locale(Map<Object, Object> exportOptions) {
 		return ((Locale) exportOptions.getOrDefault(EMFExportOptions.OPTION_LOCALE, Locale.getDefault()));
 	}
@@ -749,15 +927,17 @@ public class EMFODSExporter implements EMFExporter {
 		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_ADJUST_COLUMN_WIDTH, Boolean.FALSE));
 	}
 
+	private boolean generateLinksEnabled(Map<Object, Object> exportOptions) {
+		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_GENERATE_LINKS, Boolean.FALSE));
+	}
+
+	private boolean addMappingTableEnabled(Map<Object, Object> exportOptions) {
+		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_ADD_MAPPING_TABLE, Boolean.FALSE));
+	}
+
 	private boolean freezeHeaderRowEnabled(Map<Object, Object> exportOptions) {
 		// TODO: freezing rows is currently not supported in SODS
 		//	return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_FREEZE_HEADER_ROW, Boolean.FALSE));
-		return false;
-	}
-
-	private boolean generateLinksEnabled(Map<Object, Object> exportOptions) {
-		// TODO: linking is currently not supported in SODS
-		// return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_GENERATE_LINKS, Boolean.FALSE));
 		return false;
 	}
 
@@ -1035,9 +1215,9 @@ public class EMFODSExporter implements EMFExporter {
 		return constructMetadataSheetName(constructEEnumSheetName(eEnum));
 	}
 
-	private String constructMetadataSheetName(String metadataTableName) {
+	private String constructMetadataSheetName(String metadataSheetName) {
 		StringBuilder sb = new StringBuilder(100);
-		sb.append(metadataTableName);
+		sb.append(metadataSheetName);
 		sb.append(" ");
 		sb.append("( ");
 		sb.append(METADATA_SHEET_SUFFIX);
