@@ -102,8 +102,9 @@ public class EMFODSExporterTest {
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
 						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
 						EMFExportOptions.OPTION_EXPORT_METADATA, true,
-						EMFExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true
-					//	EMFExportOptions.OPTION_GENERATE_LINKS, true // TODO: linking is currently not supported in SODS
+						EMFExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true,
+						EMFExportOptions.OPTION_GENERATE_LINKS, true,
+						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true
 					)
 				);
 		// @formatter:on
@@ -129,8 +130,10 @@ public class EMFODSExporterTest {
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
 						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
-						EMFExportOptions.OPTION_EXPORT_METADATA, true
-					//	EMFExportOptions.OPTION_GENERATE_LINKS, true // TODO: linking is currently not supported in SODS
+						EMFExportOptions.OPTION_EXPORT_METADATA, true,
+						EMFExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true,
+						EMFExportOptions.OPTION_GENERATE_LINKS, true,
+						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true
 					)
 				);
 		// @formatter:on

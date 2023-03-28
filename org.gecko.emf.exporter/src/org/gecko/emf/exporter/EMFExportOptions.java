@@ -30,11 +30,14 @@ public interface EMFExportOptions {
 	// automatically adjust column width based on contents
 	String OPTION_ADJUST_COLUMN_WIDTH = "ADJUST_COLUMN_WIDTH";
 
+	// generate links for references
+	String OPTION_GENERATE_LINKS = "GENERATE_LINKS";
+	
+	// generate mapping table
+	String OPTION_ADD_MAPPING_TABLE = "ADD_MAPPING_TABLE";
+	
 	// TODO: freezing rows is currently not supported in SODS
 	// freeze header row
 //	String OPTION_FREEZE_HEADER_ROW = "FREEZE_HEADER_ROW";
 
-	// TODO: linking is currently not supported in SODS
-	// generate links for references
-//	String OPTION_GENERATE_LINKS = "GENERATE_LINKS";
 }
