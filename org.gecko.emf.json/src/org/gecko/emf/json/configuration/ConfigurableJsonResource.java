@@ -48,6 +48,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.cfg.ContextAttributes;
 import com.fasterxml.jackson.databind.deser.DeserializationProblemHandler;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * 
@@ -102,7 +103,7 @@ public class ConfigurableJsonResource extends JsonResource {
 
 		EMFModule module = createInitModule(options, isNew);
 		mapper.registerModule(module);
-
+		mapper.registerModule(new JavaTimeModule());
 		return mapper;
 	}
 
