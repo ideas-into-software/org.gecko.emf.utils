@@ -80,6 +80,8 @@ public class EMFODSExporter implements EMFExporter {
 			"Default value", "Documentation");
 	private static final List<String> METADATA_EENUM_SHEET_HEADERS = List.of("Name", "Literal", "Value",
 			"Documentation");
+	private static final String METADATA_DOCUMENTATION_HEADER = "Documentation";
+	
 	private static final String METADATA_SHEET_SUFFIX = "Metadata";
 	private static final String MAPPING_TABLE_SHEET_SUFFIX = "Mapping Table";
 
@@ -174,7 +176,7 @@ public class EMFODSExporter implements EMFExporter {
 				// @formatter:on
 
 				if (exportMetadataEnabled(exportOptions)) {
-					exportMetadata(document, eObjectsClasses, eObjectsEnums);
+					exportMetadata(document, eObjectsClasses, eObjectsEnums, exportOptions);
 				}
 
 				document.save(outputStream);
@@ -537,7 +539,9 @@ public class EMFODSExporter implements EMFExporter {
 	}
 
 	private void adjustColumnWidth(Sheet sheet, int colIndex, int charsCount) {
-		sheet.setColumnWidth(colIndex, calculateColumnWidth(charsCount));
+		if (sheet.getColumnWidth(colIndex) == null) {
+			sheet.setColumnWidth(colIndex, calculateColumnWidth(charsCount));
+		}
 	}
 
 	private Double calculateColumnWidth(int charsCount) {
@@ -552,7 +556,8 @@ public class EMFODSExporter implements EMFExporter {
 		return (Double.valueOf(value.length() / MAX_CHAR_PER_LINE_DEFAULT) * 5);
 	}
 
-	@Deprecated
+	
+	@SuppressWarnings("unused")
 	private void freezeSheetHeaderRow(Sheet sheet, int rowCount, int colCount) {
 		// TODO: freezing rows is currently not supported in SODS
 	}
@@ -937,7 +942,9 @@ public class EMFODSExporter implements EMFExporter {
 
 	private boolean freezeHeaderRowEnabled(Map<Object, Object> exportOptions) {
 		// TODO: freezing rows is currently not supported in SODS
-		//	return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_FREEZE_HEADER_ROW, Boolean.FALSE));
+		// return ((boolean)
+		// exportOptions.getOrDefault(EMFExportOptions.OPTION_FREEZE_HEADER_ROW,
+		// Boolean.FALSE));
 		return false;
 	}
 
@@ -959,56 +966,113 @@ public class EMFODSExporter implements EMFExporter {
 		return metadataSheet;
 	}
 
-	private void exportMetadata(SpreadSheet document, Set<EClass> eClasses, Set<EEnum> eEnums) {
-		exportEClassesMetadata(document, eClasses);
-		exportEEnumsMetadata(document, eEnums);
+	private void exportMetadata(SpreadSheet document, Set<EClass> eClasses, Set<EEnum> eEnums,
+			Map<Object, Object> exportOptions) {
+		exportEClassesMetadata(document, eClasses, exportOptions);
+		exportEEnumsMetadata(document, eEnums, exportOptions);
 	}
 
-	private void exportEClassesMetadata(SpreadSheet document, Set<EClass> eClasses) {
+	private void exportEClassesMetadata(SpreadSheet document, Set<EClass> eClasses, Map<Object, Object> exportOptions) {
 		for (EClass eClass : eClasses) {
-
 			Sheet metadataSheet = document.getSheet(constructEClassMetadataSheetName(eClass));
 
-			createEClassMetadataSheetHeader(metadataSheet);
+			maybeSetEClassMetadataDocumentation(metadataSheet, eClass, exportOptions);
+
+			createEClassMetadataSheetHeader(metadataSheet, exportOptions);
 
 			createEClassMetadataSheetData(metadataSheet, eClass);
 		}
 	}
 
-	private void exportEEnumsMetadata(SpreadSheet document, Set<EEnum> eEnums) {
+	private void exportEEnumsMetadata(SpreadSheet document, Set<EEnum> eEnums, Map<Object, Object> exportOptions) {
 		for (EEnum eEnum : eEnums) {
-
 			Sheet metadataSheet = addMetadataSheet(document, eEnum);
 
-			createEEnumMetadataSheetHeader(metadataSheet);
+			maybeSetEEnumMetadataDocumentationValueCell(metadataSheet, eEnum, exportOptions);
+
+			createEEnumMetadataSheetHeader(metadataSheet, exportOptions);
 
 			createEEnumMetadataSheetData(metadataSheet, eEnum);
 		}
 	}
 
-	private void createEClassMetadataSheetHeader(Sheet metadataSheet) {
-		createMetadataSheetHeader(metadataSheet, METADATA_ECLASS_SHEET_HEADERS);
-	}
-
-	private void createEEnumMetadataSheetHeader(Sheet metadataSheet) {
-		createMetadataSheetHeader(metadataSheet, METADATA_EENUM_SHEET_HEADERS);
-	}
-
-	private void createMetadataSheetHeader(Sheet metadataSheet, List<String> headers) {
-		int columnsCount = headers.size();
-
-		metadataSheet.appendColumns(columnsCount - 1);
-
-		Range metadataSheetHeaderRow = metadataSheet.getRange(0, 0, 1, metadataSheet.getMaxColumns());
-		metadataSheetHeaderRow.setStyle(HEADER_STYLE);
-
-		for (int colIndex = 0; colIndex < metadataSheet.getMaxColumns(); colIndex++) {
-			createMetadataSheetHeaderCell(metadataSheetHeaderRow, colIndex, headers.get(colIndex));
+	private void maybeSetEClassMetadataDocumentation(Sheet metadataSheet, EClass eClass,
+			Map<Object, Object> exportOptions) {
+		EAnnotation genModelAnnotation = eClass.getEAnnotation(DOCUMENTATION_GENMODEL_SOURCE);
+		if (genModelAnnotation != null) {
+			setTypeLevelMetadataDocumentation(metadataSheet, genModelAnnotation, exportOptions);
 		}
 	}
 
-	private void createMetadataSheetHeaderCell(Range metadataSheetHeaderRow, int colIndex, String headerName) {
+	private void setEClassMetadataDocumentationValueCell(Range metadataSheetDataRow,
+			Map<Object, Object> exportOptions) {
+		metadataSheetDataRow.getCell(0, 0).setValue(METADATA_DOCUMENTATION_HEADER);
+		metadataSheetDataRow.getCell(0, 0).setStyle(HEADER_STYLE);
+
+		if (adjustColumnWidthEnabled(exportOptions)) {
+			adjustColumnWidth(metadataSheetDataRow.getSheet(), 0,
+					adjustColumnWidthCharsCount(METADATA_DOCUMENTATION_HEADER));
+		}
+	}
+
+	private void maybeSetEEnumMetadataDocumentationValueCell(Sheet metadataSheet, EEnum eEnum,
+			Map<Object, Object> exportOptions) {
+		EAnnotation genModelAnnotation = eEnum.getEAnnotation(DOCUMENTATION_GENMODEL_SOURCE);
+		if (genModelAnnotation != null) {
+			setTypeLevelMetadataDocumentation(metadataSheet, genModelAnnotation, exportOptions);
+		}
+	}
+
+	private void setTypeLevelMetadataDocumentation(Sheet metadataSheet, EAnnotation genModelAnnotation,
+			Map<Object, Object> exportOptions) {
+		Map<String, String> genModelAnnotationDetails = genModelAnnotation.getDetails().map();
+
+		if (genModelAnnotationDetails.containsKey(DOCUMENTATION_GENMODEL_DETAILS)) {
+
+			metadataSheet.appendColumn();
+
+			Range metadataSheetDocumentationRow = metadataSheet.getRange((metadataSheet.getMaxRows() - 1), 0, 1, 2);
+
+			setEClassMetadataDocumentationValueCell(metadataSheetDocumentationRow, exportOptions);
+
+			setMetadataDocumentationValueCell(metadataSheetDocumentationRow, 1,
+					genModelAnnotationDetails.get(DOCUMENTATION_GENMODEL_DETAILS));
+
+			metadataSheet.appendRow();
+		}
+	}
+
+	private void createEClassMetadataSheetHeader(Sheet metadataSheet, Map<Object, Object> exportOptions) {
+		createMetadataSheetHeader(metadataSheet, METADATA_ECLASS_SHEET_HEADERS, exportOptions);
+	}
+
+	private void createEEnumMetadataSheetHeader(Sheet metadataSheet, Map<Object, Object> exportOptions) {
+		createMetadataSheetHeader(metadataSheet, METADATA_EENUM_SHEET_HEADERS, exportOptions);
+	}
+
+	private void createMetadataSheetHeader(Sheet metadataSheet, List<String> headers,
+			Map<Object, Object> exportOptions) {
+		int columnsCount = headers.size();
+
+		metadataSheet.appendColumns(columnsCount - metadataSheet.getMaxColumns());
+
+		Range metadataSheetHeaderRow = metadataSheet.getRange((metadataSheet.getMaxRows() - 1), 0, 1,
+				metadataSheet.getMaxColumns());
+
+		metadataSheetHeaderRow.setStyle(HEADER_STYLE);
+
+		for (int colIndex = 0; colIndex < metadataSheet.getMaxColumns(); colIndex++) {
+			createMetadataSheetHeaderCell(metadataSheetHeaderRow, colIndex, headers.get(colIndex), exportOptions);
+		}
+	}
+
+	private void createMetadataSheetHeaderCell(Range metadataSheetHeaderRow, int colIndex, String headerName,
+			Map<Object, Object> exportOptions) {
 		metadataSheetHeaderRow.getCell(0, colIndex).setValue(headerName);
+
+		if (adjustColumnWidthEnabled(exportOptions)) {
+			adjustColumnWidth(metadataSheetHeaderRow.getSheet(), colIndex, adjustColumnWidthCharsCount(headerName));
+		}
 	}
 
 	private void createEClassMetadataSheetData(Sheet metadataSheet, EClass eClass) {
@@ -1068,7 +1132,7 @@ public class EMFODSExporter implements EMFExporter {
 			setEClassMetadataDefaultValueCell(metadataSheetDataRow, colIndex, eStructuralFeature);
 			break;
 		case 5: // Documentation
-			setEClassMetadataDocumentationValueCell(metadataSheetDataRow, colIndex, eStructuralFeature);
+			setEStructuralFeatureMetadataDocumentationValueCell(metadataSheetDataRow, colIndex, eStructuralFeature);
 			break;
 		}
 	}
@@ -1085,7 +1149,7 @@ public class EMFODSExporter implements EMFExporter {
 			setEEnumMetadataValueValueCell(metadataSheetDataRow, colIndex, eEnumLiteral);
 			break;
 		case 3: // Documentation
-			setEEnumMetadataDocumentationValueCell(metadataSheetDataRow, colIndex, eEnumLiteral);
+			setEEnumLiteralMetadataDocumentationValueCell(metadataSheetDataRow, colIndex, eEnumLiteral);
 			break;
 		}
 	}
@@ -1155,7 +1219,7 @@ public class EMFODSExporter implements EMFExporter {
 		setVoidValueCell(metadataSheetDataRow, colIndex);
 	}
 
-	private void setEClassMetadataDocumentationValueCell(Range metadataSheetDataRow, int colIndex,
+	private void setEStructuralFeatureMetadataDocumentationValueCell(Range metadataSheetDataRow, int colIndex,
 			EStructuralFeature eStructuralFeature) {
 		EAnnotation genModelAnnotation = eStructuralFeature.getEAnnotation(DOCUMENTATION_GENMODEL_SOURCE);
 
@@ -1174,7 +1238,7 @@ public class EMFODSExporter implements EMFExporter {
 		setNumberValueCell(metadataSheetDataRow, colIndex, eEnumLiteral.getValue());
 	}
 
-	private void setEEnumMetadataDocumentationValueCell(Range metadataSheetDataRow, int colIndex,
+	private void setEEnumLiteralMetadataDocumentationValueCell(Range metadataSheetDataRow, int colIndex,
 			EEnumLiteral eEnumLiteral) {
 		EAnnotation genModelAnnotation = eEnumLiteral.getEAnnotation(DOCUMENTATION_GENMODEL_SOURCE);
 
@@ -1187,12 +1251,16 @@ public class EMFODSExporter implements EMFExporter {
 			Map<String, String> genModelAnnotationDetails = genModelAnnotation.getDetails().map();
 
 			if (genModelAnnotationDetails.containsKey(DOCUMENTATION_GENMODEL_DETAILS)) {
-				String documentation = genModelAnnotationDetails.get(DOCUMENTATION_GENMODEL_DETAILS);
-				setStringValueCell(metadataSheetDataRow, colIndex, documentation);
+				setMetadataDocumentationValueCell(metadataSheetDataRow, colIndex,
+						genModelAnnotationDetails.get(DOCUMENTATION_GENMODEL_DETAILS));
 			}
+		} else {
+			setVoidValueCell(metadataSheetDataRow, colIndex);
 		}
+	}
 
-		setVoidValueCell(metadataSheetDataRow, colIndex);
+	private void setMetadataDocumentationValueCell(Range metadataSheetDataRow, int colIndex, String documentation) {
+		setStringValueCell(metadataSheetDataRow, colIndex, documentation);
 	}
 
 	private int getEObjectIdentifier(EObject eObject) {
