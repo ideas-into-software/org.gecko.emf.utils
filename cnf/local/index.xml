@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<repository xmlns="http://www.osgi.org/xmlns/repository/v1.0.0" name="Local" increment="1692909885754">
+<repository xmlns="http://www.osgi.org/xmlns/repository/v1.0.0" name="Local" increment="1693178725374">
   <resource>
     <capability namespace="osgi.identity">
       <attribute name="license" value="&quot;The Unlicense&quot;;link=&quot;https://github.com/miachm/SODS/blob/master/LICENSE&quot;"/>
@@ -25,10 +25,10 @@
       <attribute name="osgi.wiring.host" value="com.github.miachm.sods"/>
     </capability>
     <capability namespace="osgi.content">
-      <attribute name="size" value="152417" type="Long"/>
+      <attribute name="size" value="151075" type="Long"/>
       <attribute name="mime" value="application/vnd.osgi.bundle"/>
       <attribute name="url" value="com.github.miachm.sods/com.github.miachm.sods-1.6.2.jar"/>
-      <attribute name="osgi.content" value="C41D8C25B03CF9E029A5DF0286E12A8D8A798ED9C42501522AA4A61381781853"/>
+      <attribute name="osgi.content" value="58C4B54B56F663FA5853983614034A85FA30FB9730D3F3948803372BB5EE6341"/>
     </capability>
     <requirement namespace="osgi.wiring.package">
       <directive name="filter" value="(osgi.wiring.package=javax.xml.namespace)"/>
