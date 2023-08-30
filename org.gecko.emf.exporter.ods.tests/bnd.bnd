@@ -14,4 +14,4 @@ Bundle-Version: 1.0.0.SNAPSHOT
 	org.gecko.emf.exporter;version=latest,\
 	org.apache.commons.commons-text,\
 	org.gecko.emf.util.model,\
-	com.github.miachm.sods
+	com.github.miachm.sods;version=latest

@@ -8,8 +8,8 @@ Bundle-Description: ODS (OpenDocument Spreadsheet) Exporter for EMF
 	org.gecko.emf.exporter,\
 	org.apache.commons.commons-text;version='1.10',\
 	com.google.guava;version='31.1',\
-	com.github.miachm.sods,\
-	slf4j.api
+	slf4j.api,\
+	com.github.miachm.sods;version='1.6.2'
 
 Private-Package: \
 	org.gecko.emf.exporter.ods
