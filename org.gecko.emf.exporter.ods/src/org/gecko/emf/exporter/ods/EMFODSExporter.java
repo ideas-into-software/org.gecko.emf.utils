@@ -201,7 +201,7 @@ public class EMFODSExporter implements EMFExporter {
 	}
 
 	private void generatePseudoIDs(List<EObject> eObjects, Map<String, String> eObjectsPseudoIDs) {
-		LOG.info("Generating pseudo IDs");
+		LOG.debug("Generating pseudo IDs");
 
 		final Set<String> processedEObjectsIdentifiers = new HashSet<String>();
 
@@ -269,7 +269,7 @@ public class EMFODSExporter implements EMFExporter {
 			Set<EEnum> eObjectsEnums, Map<String, String> eObjectsPseudoIDs, Map<String, Sheet> eObjectsSheets,
 			List<EObject> eObjects, Map<Object, Object> exportOptions) {
 	
-		LOG.info("Creating sheets");
+		LOG.debug("Creating sheets");
 
 		final Set<String> processedEObjectsIdentifiers = new HashSet<String>();
 
@@ -292,7 +292,7 @@ public class EMFODSExporter implements EMFExporter {
 			Set<EEnum> eObjectsEnums, Map<String, String> eObjectsPseudoIDs, Map<String, Sheet> eObjectsSheets,
 			List<EObject> eObjects, Map<Object, Object> exportOptions) throws EMFExportException {
 
-		LOG.info("Creating sheets' data");
+		LOG.debug("Creating sheets' data");
 
 		final Set<String> processedEObjectsIdentifiers = new HashSet<String>();
 
@@ -1006,7 +1006,7 @@ public class EMFODSExporter implements EMFExporter {
 	private void exportMetadata(SpreadSheet document, Set<EClass> eClasses, Set<EEnum> eEnums,
 			Map<Object, Object> exportOptions) {
 
-		LOG.info("Exporting metadata");
+		LOG.debug("Exporting metadata");
 
 		exportEClassesMetadata(document, eClasses, exportOptions);
 		exportEEnumsMetadata(document, eEnums, exportOptions);
