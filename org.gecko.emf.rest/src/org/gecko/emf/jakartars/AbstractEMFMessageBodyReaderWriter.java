@@ -115,7 +115,7 @@ public abstract class AbstractEMFMessageBodyReaderWriter<R,W> implements Message
 		} catch (Exception e) {
 			String errorText = String.format("[%s] Error serializing outgoing object", genericType.getTypeName());
 			Response r = Response.serverError().entity(errorText).type(MediaType.TEXT_PLAIN).build();
-			throw new WebApplicationException(r);
+			throw new WebApplicationException(e,r);
 		} 
 	}
 
