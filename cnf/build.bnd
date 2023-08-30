@@ -11,7 +11,7 @@
 
 # Needed because we enabled library 'gecko-dimc' 	
 github-project: org.gecko.emf.util
-base-version: 2.0.1.SNAPSHOT
+base-version: 2.0.2.SNAPSHOT
 
 # Maven Central Group-Id
 -groupid: org.geckoprojects.emf.utils
@@ -25,7 +25,7 @@ releaseNotNeeded: ${findproviders;osgi.identity;(&(osgi.identity=${bsn})(version
 javac.source: 11
 javac.target: 11
 
--require-bnd "(version>=6.2.0)"
+-require-bnd "(version>=6.4.0)"
 
 -plugin.Central: \
     aQute.bnd.repository.maven.provider.MavenBndRepository; \
@@ -33,7 +33,6 @@ javac.target: 11
         releaseUrl=https://repo.maven.apache.org/maven2/; \
         index=${.}/central.mvn; \
         readOnly=true; \
-        poll.time=-1; \
         name="Central"
 
 -plugin.Local: \
@@ -47,4 +46,15 @@ javac.target: 11
 		name = Temp; \
 		pretty = true; \
 		local = ${build}/cache/temp
+		
+-plugin.baseline:\
+    aQute.bnd.repository.maven.provider.MavenBndRepository; \
+        snapshotUrl="https://oss.sonatype.org/content/repositories/snapshots/"; \
+        releaseUrl=https://repo.maven.apache.org/maven2/; \
+        index=${.}/baseline.mvn; \
+        readOnly=true;\
+		name=Baseline
+		
+-baselinerepo: Baseline
+-baseline: *
 
