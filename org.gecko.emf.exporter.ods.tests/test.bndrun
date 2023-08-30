@@ -42,9 +42,13 @@
 	org.gecko.emf.json;version=snapshot,\
 	org.gecko.emf.util.model;version=snapshot,\
 	org.osgi.service.cm;version='[1.6.0,1.6.1)',\
-	com.github.miachm.sods;version='[1.5.3,1.5.4)',\
-	org.gecko.emf.pushstreams;version=snapshot,\
-	com.fasterxml.jackson.datatype.jackson-datatype-jsr310;version='[2.14.1,2.14.2)'
+	com.fasterxml.jackson.datatype.jackson-datatype-jsr310;version='[2.14.1,2.14.2)',\
+	com.github.miachm.sods;version='[1.6.2,1.6.3)',\
+	org.apache.commons.logging;version='[1.2.0,1.2.1)',\
+	slf4j.api;version='[1.7.36,1.7.37)',\
+	slf4j.simple;version='[1.7.25,1.7.26)',\
+	org.gecko.emf.bson;version=snapshot,\
+	org.gecko.emf.collections;version=snapshot
 
 -runrequires: bnd.identity;id='org.gecko.emf.exporter.ods.tests'
 

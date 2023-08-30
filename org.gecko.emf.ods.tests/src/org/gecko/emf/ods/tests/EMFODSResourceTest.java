@@ -32,8 +32,10 @@ import org.gecko.emf.ods.configuration.EMFODSResource;
 import org.gecko.emf.osgi.example.model.basic.BasicFactory;
 import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
 import org.gecko.emf.osgi.example.model.basic.Family;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.osgi.framework.ServiceReference;
 import org.osgi.test.common.annotation.InjectService;
 import org.osgi.test.common.service.ServiceAware;
 import org.osgi.test.junit5.context.BundleContextExtension;
@@ -48,6 +50,21 @@ import org.osgi.test.junit5.service.ServiceExtension;
 @ExtendWith(ServiceExtension.class)
 public class EMFODSResourceTest {
 
+	@Order(value = -1)
+	@Test
+	public void testServices(
+			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
+			@InjectService(timeout = 2000) ServiceAware<BasicFactory> bfAware) {
+
+		assertThat(rsAware.getServices()).hasSize(1);
+		ServiceReference<ResourceSet> rsReference = rsAware.getServiceReference();
+		assertThat(rsReference).isNotNull();
+		
+		assertThat(bfAware.getServices()).hasSize(1);
+		ServiceReference<BasicFactory> bfReference = bfAware.getServiceReference();
+		assertThat(bfReference).isNotNull();		
+	}	
+	
 	@Test
 	public void testSaveODS(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
 			@InjectService(timeout = 2000) ServiceAware<BasicFactory> bfAware) throws Exception {

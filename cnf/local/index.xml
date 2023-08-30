@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<repository xmlns="http://www.osgi.org/xmlns/repository/v1.0.0" name="Local" increment="1679853698364">
+<repository xmlns="http://www.osgi.org/xmlns/repository/v1.0.0" name="Local" increment="1693178725374">
   <resource>
     <capability namespace="osgi.identity">
       <attribute name="license" value="&quot;The Unlicense&quot;;link=&quot;https://github.com/miachm/SODS/blob/master/LICENSE&quot;"/>
@@ -7,28 +7,28 @@
       <attribute name="documentation" value="https://github.com/miachm/SODS"/>
       <attribute name="description" value="A library for load/save ODS files in java."/>
       <attribute name="type" value="osgi.bundle"/>
-      <attribute name="version" value="1.5.3" type="Version"/>
+      <attribute name="version" value="1.6.2" type="Version"/>
     </capability>
     <capability namespace="osgi.wiring.package">
       <attribute name="bundle-symbolic-name" value="com.github.miachm.sods"/>
-      <attribute name="bundle-version" value="1.5.3" type="Version"/>
+      <attribute name="bundle-version" value="1.6.2" type="Version"/>
       <attribute name="osgi.wiring.package" value="com.github.miachm.sods"/>
-      <attribute name="version" value="1.5.3" type="Version"/>
-      <attribute name="bnd.hashes" value="1324511984,1731897767,2096514,65290051,2023997302,822061019,1624016101,-266320387,-1291886874,520469601,1895597947,351111864,-1115736232,82941713,-1440044159,-1284638927,228265771,-1821040144,-70786291,861476502,677306575,1812804717,2479866,78727453,1567574187,82362,97316887,79850815,1620534404,-482667636,1193265721,2039393584,80227729,465601004,477953699,1916493886,924543180,-1736520349,355567514,1511059808,-1059699121,-1060180405" type="List&lt;Long&gt;"/>
+      <attribute name="version" value="1.6.2" type="Version"/>
+      <attribute name="bnd.hashes" value="1324511984,1731897767,2096514,65290051,2023997302,822061019,1624016101,-266320387,663506998,-1291886874,520469601,1895597947,351111864,-1115736232,82941713,-1440044159,-1284638927,228265771,-1821040144,-70786291,861476502,677306575,1812804717,2479866,78727453,1567574187,82362,97316887,79850815,1620534404,-482667636,1193265721,2039393584,80227729,465601004,477953699,1916493886,924543180,-1736520349,355567514,1511059808,-1059699121,-1060180405" type="List&lt;Long&gt;"/>
     </capability>
     <capability namespace="osgi.wiring.bundle">
-      <attribute name="bundle-version" value="1.5.3" type="Version"/>
+      <attribute name="bundle-version" value="1.6.2" type="Version"/>
       <attribute name="osgi.wiring.bundle" value="com.github.miachm.sods"/>
     </capability>
     <capability namespace="osgi.wiring.host">
-      <attribute name="bundle-version" value="1.5.3" type="Version"/>
+      <attribute name="bundle-version" value="1.6.2" type="Version"/>
       <attribute name="osgi.wiring.host" value="com.github.miachm.sods"/>
     </capability>
     <capability namespace="osgi.content">
-      <attribute name="size" value="146610" type="Long"/>
+      <attribute name="size" value="151075" type="Long"/>
       <attribute name="mime" value="application/vnd.osgi.bundle"/>
-      <attribute name="url" value="com.github.miachm.sods/com.github.miachm.sods-1.5.3.jar"/>
-      <attribute name="osgi.content" value="55A14104C48686365F5531CB8A95CF8FC2EF5D0A45775A65EA7AC08B424A9205"/>
+      <attribute name="url" value="com.github.miachm.sods/com.github.miachm.sods-1.6.2.jar"/>
+      <attribute name="osgi.content" value="58C4B54B56F663FA5853983614034A85FA30FB9730D3F3948803372BB5EE6341"/>
     </capability>
     <requirement namespace="osgi.wiring.package">
       <directive name="filter" value="(osgi.wiring.package=javax.xml.namespace)"/>

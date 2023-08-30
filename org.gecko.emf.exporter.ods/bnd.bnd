@@ -1,4 +1,4 @@
-Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Version: 1.0.1.SNAPSHOT
 Bundle-Name: Gecko EMF ODS Exporter
 Bundle-Description: ODS (OpenDocument Spreadsheet) Exporter for EMF
 
@@ -8,7 +8,8 @@ Bundle-Description: ODS (OpenDocument Spreadsheet) Exporter for EMF
 	org.gecko.emf.exporter,\
 	org.apache.commons.commons-text;version='1.10',\
 	com.google.guava;version='31.1',\
-	com.github.miachm.sods
+	com.github.miachm.sods,\
+	slf4j.api
 
 Private-Package: \
 	org.gecko.emf.exporter.ods
