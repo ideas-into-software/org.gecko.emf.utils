@@ -962,19 +962,19 @@ public class EMFODSExporter implements EMFExporter {
 	}
 
 	private boolean exportMetadataEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_EXPORT_METADATA, Boolean.FALSE));
+		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_EXPORT_METADATA, Boolean.TRUE));
 	}
 
 	private boolean adjustColumnWidthEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_ADJUST_COLUMN_WIDTH, Boolean.FALSE));
+		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_ADJUST_COLUMN_WIDTH, Boolean.TRUE));
 	}
 
 	private boolean generateLinksEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_GENERATE_LINKS, Boolean.FALSE));
+		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_GENERATE_LINKS, Boolean.TRUE));
 	}
 
 	private boolean addMappingTableEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_ADD_MAPPING_TABLE, Boolean.FALSE));
+		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_ADD_MAPPING_TABLE, Boolean.TRUE));
 	}
 
 	private boolean freezeHeaderRowEnabled(Map<Object, Object> exportOptions) {
