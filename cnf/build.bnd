@@ -11,7 +11,7 @@
 
 # Needed because we enabled library 'gecko-dimc' 	
 github-project: org.gecko.emf.util
-base-version: 2.0.2.SNAPSHOT
+base-version: 2.0.3.SNAPSHOT
 
 # Maven Central Group-Id
 -groupid: org.geckoprojects.emf.utils
@@ -54,6 +54,19 @@ javac.target: 11
         index=${.}/baseline.mvn; \
         readOnly=true;\
 		name=Baseline
+
+-diffignore: *.xml,\
+	*/pom.properties,\
+	 Git-SHA,\
+	 Bundle-Vendor,\
+	 Bundle-License,\
+	 Bundle-DocURL,\
+	 Bundle-SCM,\
+	 Bundle-Developers,\
+	 Bundle-Copyright,\
+	 Bundle-ContactAddress,\
+	 META-INF/maven/*,\
+	 OSGI-OPT/*
 		
 -baselinerepo: Baseline
 -baseline: *
