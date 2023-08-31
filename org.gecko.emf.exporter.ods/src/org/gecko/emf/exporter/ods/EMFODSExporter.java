@@ -11,8 +11,6 @@
  */
 package org.gecko.emf.exporter.ods;
 
-import static java.util.stream.Collectors.toList;
-
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -161,10 +159,8 @@ public class EMFODSExporter implements EMFExporter {
 				// lack id field
 				final Map<String, String> eObjectsPseudoIDs = new HashMap<String, String>();
 
-				final List<EObject> eObjectsSafeCopy = safeCopy(eObjects);
-
 				// pseudo IDs are needed before main processing starts
-				generatePseudoIDs(eObjectsSafeCopy, eObjectsPseudoIDs);
+				generatePseudoIDs(eObjects, eObjectsPseudoIDs);
 
 				// @formatter:off
 				createSheets(document, 
@@ -173,7 +169,7 @@ public class EMFODSExporter implements EMFExporter {
 						eObjectsEnums,
 						eObjectsPseudoIDs, 
 						eObjectsSheets,
-						eObjectsSafeCopy, 
+						eObjects, 
 						exportOptions);
 				// @formatter:on
 
@@ -184,7 +180,7 @@ public class EMFODSExporter implements EMFExporter {
 						eObjectsEnums,
 						eObjectsPseudoIDs, 
 						eObjectsSheets,
-						eObjectsSafeCopy, 
+						eObjects, 
 						exportOptions);
 				// @formatter:on
 
@@ -1335,9 +1331,5 @@ public class EMFODSExporter implements EMFExporter {
 
 	private boolean isProcessed(Set<String> eObjectsIdentifiers, EObject eObject) {
 		return eObjectsIdentifiers.contains(getEObjectIdentifier(eObject));
-	}
-
-	private List<EObject> safeCopy(List<EObject> eObjects) {
-		return EcoreUtil.copyAll(eObjects).stream().collect(toList());
 	}
 }
