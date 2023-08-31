@@ -17,7 +17,7 @@ base-version: 2.0.3.SNAPSHOT
 -groupid: org.geckoprojects.emf.utils
 
 # No simultanious release - We only release new version to Maven Central
-releaseNotNeeded: ${findproviders;osgi.identity;(&(osgi.identity=${bsn})(version=${Bundle-Version}));REPOS}
+releaseNotNeeded: ${findproviders;osgi.identity;(&(osgi.identity=${bsn})(version=${versionmask;===;${Bundle-Version}}));REPOS}
 
 # If release not needed is empty, no Bundle has been found and for maven we do a release to the remote Repo. If not, we only do a release to the local .m2 Repo
 -maven-release.local: ${if;${def;releaseNotNeeded};local;remote}
@@ -57,16 +57,16 @@ javac.target: 11
 
 -diffignore: *.xml,\
 	*/pom.properties,\
-	 Git-SHA,\
-	 Bundle-Vendor,\
-	 Bundle-License,\
-	 Bundle-DocURL,\
-	 Bundle-SCM,\
-	 Bundle-Developers,\
-	 Bundle-Copyright,\
-	 Bundle-ContactAddress,\
-	 META-INF/maven/*,\
-	 OSGI-OPT/*
+	Git-SHA,\
+	Bundle-Vendor,\
+	Bundle-License,\
+	Bundle-DocURL,\
+	Bundle-SCM,\
+	Bundle-Developers,\
+	Bundle-Copyright,\
+	Bundle-ContactAddress,\
+	META-INF/maven/*,\
+	OSGI-OPT/*
 		
 -baselinerepo: Baseline
 -baseline: *
