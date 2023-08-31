@@ -68,7 +68,8 @@ javac.target: 11
 	META-INF/maven/*,\
 	OSGI-OPT/*
 		
--baselinerepo: Baseline
--baseline: *
+#-baselinerepo: Baseline
+#-baseline: *
 
 #X-Test: ${if;${def;releaseNotNeeded};local;remote}
+X-Test: ${-maven-release.local}
