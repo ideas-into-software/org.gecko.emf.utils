@@ -28,10 +28,10 @@ public interface EMFExportOptions {
 	String OPTION_EXPORT_METADATA = "EXPORT_METADATA";
 
 	// automatically adjust column width based on contents
-	String OPTION_ADJUST_COLUMN_WIDTH = "ADJUST_COLUMN_WIDTH";
+	String OPTION_ADJUST_COLUMN_WIDTH = "ADJUST_COLUMN_WIDTH"; // TODO: extract to org.gecko.emf.exporter.ods.EMFODSExportOptions
 
 	// generate links for references
-	String OPTION_GENERATE_LINKS = "GENERATE_LINKS";
+	String OPTION_GENERATE_LINKS = "GENERATE_LINKS"; // TODO: extract to org.gecko.emf.exporter.ods.EMFODSExportOptions
 	
 	// generate mapping table
 	String OPTION_ADD_MAPPING_TABLE = "ADD_MAPPING_TABLE";

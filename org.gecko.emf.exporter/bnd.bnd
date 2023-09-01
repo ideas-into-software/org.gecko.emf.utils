@@ -6,4 +6,6 @@ Bundle-Description: Exporter for EMF
 
 -buildpath: \
 	osgi.annotation;version='7.0',\
-	osgi.core;version='7.0'
+	osgi.core;version='7.0',\
+	com.google.guava,\
+	slf4j.api
