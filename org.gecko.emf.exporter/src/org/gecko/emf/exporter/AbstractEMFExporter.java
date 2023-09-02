@@ -59,26 +59,27 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	private final Logger logger;
 	protected final Stopwatch stopwatch;
 
-	private static final List<String> METADATA_ECLASS_TABLE_HEADERS = List.of("Name", "Type", "isMany", "isRequired",
-			"Default value", "Documentation");
-	private static final List<String> METADATA_EENUM_TABLE_HEADERS = List.of("Name", "Literal", "Value",
+	protected static final List<String> METADATA_ECLASS_MATRIX_COLUMNS_HEADERS = List.of("Name", "Type", "isMany",
+			"isRequired", "Default value", "Documentation");
+
+	protected static final List<String> METADATA_EENUM_MATRIX_COLUMNS_HEADERS = List.of("Name", "Literal", "Value",
 			"Documentation");
-	private static final String METADATA_DOCUMENTATION_HEADER = "Documentation";
+	protected static final String METADATA_DOCUMENTATION_HEADER = "Documentation";
 
-	private static final String METADATA_TABLE_SUFFIX = "Metadata";
-	private static final String MAPPING_TABLE_SUFFIX = "Mapping";
+	protected static final String METADATA_MATRIX_NAME_SUFFIX = "Metadata";
+	protected static final String MAPPING_MATRIX_NAME_SUFFIX = "Mapping";
 
-	private static final String DOCUMENTATION_GENMODEL_SOURCE = "http://www.eclipse.org/emf/2002/GenModel";
-	private static final String DOCUMENTATION_GENMODEL_DETAILS = "documentation";
+	protected static final String DOCUMENTATION_GENMODEL_SOURCE = "http://www.eclipse.org/emf/2002/GenModel";
+	protected static final String DOCUMENTATION_GENMODEL_DETAILS = "documentation";
 
-	private static final String ECORE_PACKAGE_NAME = "ecore";
+	protected static final String ECORE_PACKAGE_NAME = "ecore";
 
-	private static final String ID_COLUMN_NAME = "Id";
+	protected static final String ID_COLUMN_NAME = "Id";
 
-	private static final String REF_COLUMN_PREFIX = "ref_";
+	protected static final String REF_COLUMN_PREFIX = "ref_";
 
 	// TODO: handle cases where there are more than 26 columns
-	private static final char[] MATRIX_COLUMNS_NAMES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+	protected static final char[] MATRIX_COLUMNS_HEADERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
 
 	protected AbstractEMFExporter(Logger logger, Stopwatch stopwatch) {
 		this.logger = logger;
@@ -356,14 +357,14 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		return sb.toString();
 	}
 
-	private String constructEReferencesMappingMatrixName(EClass fromEClass, String fromFieldName) {
+	protected String constructEReferencesMappingMatrixName(EClass fromEClass, String fromFieldName) {
 		StringBuilder sb = new StringBuilder(100);
 		sb.append(fromEClass.getName());
 		sb.append("_");
 		sb.append(fromFieldName);
 		sb.append(" ");
 		sb.append("(");
-		sb.append(MAPPING_TABLE_SUFFIX);
+		sb.append(MAPPING_MATRIX_NAME_SUFFIX);
 		sb.append(")");
 		return sb.toString();
 	}
@@ -1003,7 +1004,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		sb.append(metadataMatrixName);
 		sb.append(" ");
 		sb.append("( ");
-		sb.append(METADATA_TABLE_SUFFIX);
+		sb.append(METADATA_MATRIX_NAME_SUFFIX);
 		sb.append(")");
 		return sb.toString();
 	}
@@ -1085,11 +1086,11 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void constructEClassMetadataMatrixColumnHeaders(Table<Integer, Character, Object> matrix) {
-		constructMetadataMatrixColumnHeaders(matrix, METADATA_ECLASS_TABLE_HEADERS);
+		constructMetadataMatrixColumnHeaders(matrix, METADATA_ECLASS_MATRIX_COLUMNS_HEADERS);
 	}
 
 	private void constructEEnumMetadataMatrixColumnHeaders(Table<Integer, Character, Object> matrix) {
-		constructMetadataMatrixColumnHeaders(matrix, METADATA_EENUM_TABLE_HEADERS);
+		constructMetadataMatrixColumnHeaders(matrix, METADATA_EENUM_MATRIX_COLUMNS_HEADERS);
 	}
 
 	private void constructMetadataMatrixColumnHeaders(Table<Integer, Character, Object> matrix, List<String> headers) {
@@ -1384,7 +1385,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 	// TODO: handle cases where there are more than 26 columns
 	private Character getMatrixColumnName(int colIndex) {
-		return Character.valueOf(MATRIX_COLUMNS_NAMES[colIndex]);
+		return Character.valueOf(MATRIX_COLUMNS_HEADERS[colIndex]);
 	}
 
 	private String constructEClassMatrixName(EClass eClass) {

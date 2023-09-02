@@ -60,4 +60,6 @@
 	de.siegmar.fastcsv;version='[2.2.2,2.2.3)',\
 	org.gecko.emf.csv;version=snapshot,\
 	org.gecko.emf.exporter.csv;version=snapshot,\
-	org.gecko.emf.exporter.csv.api;version=snapshot
+	org.gecko.emf.exporter.csv.api;version=snapshot,\
+	org.apache.commons.commons-compress;version='[1.21.0,1.21.1)',\
+	org.apache.servicemix.bundles.poi;version='[5.2.2,5.2.3)'
