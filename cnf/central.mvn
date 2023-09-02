@@ -180,3 +180,8 @@ com.google.guava:failureaccess:1.0.1
 # maintainer of https://github.com/miachm/SODS did not merge https://github.com/miachm/SODS/pull/63 yet, so e.g. 'com.github.miachm.sods.LinkedValue' is missing
 #com.github.miachm.sods:SODS:1.6.2
 
+org.apache.servicemix.bundles:org.apache.servicemix.bundles.poi:5.2.2_3
+org.apache.commons:commons-compress:1.21
+org.apache.logging.log4j:log4j-api:2.18.0
+org.apache.logging.log4j:log4j-core:2.18.0
+org.apache.logging.log4j:log4j-to-slf4j:2.18.0

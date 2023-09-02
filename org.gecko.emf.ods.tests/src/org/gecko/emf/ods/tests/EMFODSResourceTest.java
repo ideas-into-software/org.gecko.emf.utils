@@ -28,6 +28,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gecko.emf.exporter.EMFExportOptions;
+import org.gecko.emf.exporter.ods.api.EMFODSExportOptions;
 import org.gecko.emf.ods.configuration.EMFODSResource;
 import org.gecko.emf.osgi.example.model.basic.BasicFactory;
 import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
@@ -102,8 +103,8 @@ public class EMFODSResourceTest {
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
 						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
 						EMFExportOptions.OPTION_EXPORT_METADATA, true,
-						EMFExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true,
-						EMFExportOptions.OPTION_GENERATE_LINKS, true,
+						EMFODSExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true,
+						EMFODSExportOptions.OPTION_GENERATE_LINKS, true,
 						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true
 					));
 		// @formatter:on
