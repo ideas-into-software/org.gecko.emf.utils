@@ -36,7 +36,6 @@ import com.github.miachm.sods.Sheet;
 import com.github.miachm.sods.SpreadSheet;
 import com.github.miachm.sods.Style;
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
 
 /**
@@ -98,7 +97,7 @@ public class EMFODSExporter_REFACTORED_POC extends AbstractEMFExporter implement
 					LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
 				}
 
-				ImmutableMap<String, Table<Integer, Character, Object>> mapOfMatrices = exportEObjectsToMatrices(
+				Map<String, Table<Integer, Character, Object>> mapOfMatrices = exportEObjectsToMatrices(
 						eObjects, exportOptions);
 
 				exportMatricesToODS(outputStream, mapOfMatrices, exportOptions);
@@ -110,7 +109,7 @@ public class EMFODSExporter_REFACTORED_POC extends AbstractEMFExporter implement
 	}
 
 	private void exportMatricesToODS(OutputStream outputStream,
-			ImmutableMap<String, Table<Integer, Character, Object>> mapOfMatrices, Map<Object, Object> exportOptions)
+			Map<String, Table<Integer, Character, Object>> mapOfMatrices, Map<Object, Object> exportOptions)
 			throws IOException {
 
 		resetStopwatch();

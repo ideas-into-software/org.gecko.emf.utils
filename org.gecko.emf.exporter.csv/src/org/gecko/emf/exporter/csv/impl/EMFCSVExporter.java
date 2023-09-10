@@ -37,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Stopwatch;
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Table;
 
 import de.siegmar.fastcsv.writer.CsvWriter;
@@ -85,7 +84,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 					LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
 				}
 
-				ImmutableMap<String, Table<Integer, Character, Object>> mapOfMatrices = exportEObjectsToMatrices(
+				Map<String, Table<Integer, Character, Object>> mapOfMatrices = exportEObjectsToMatrices(
 						eObjects, exportOptions);
 
 				if (flatExportMode(exportOptions)) {
@@ -102,7 +101,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void exportMatricesToCSVInZipMode(OutputStream outputStream,
-			ImmutableMap<String, Table<Integer, Character, Object>> mapOfMatrices) throws IOException {
+			Map<String, Table<Integer, Character, Object>> mapOfMatrices) throws IOException {
 
 		resetStopwatch();
 
@@ -189,7 +188,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void exportMatricesToCSVInFlatMode(OutputStream outputStream,
-			ImmutableMap<String, Table<Integer, Character, Object>> mapOfMatrices) throws IOException {
+			Map<String, Table<Integer, Character, Object>> mapOfMatrices) throws IOException {
 
 		try (PrintWriter printWriterOutputStream = new PrintWriter(outputStream)) {
 			// TODO
