@@ -16,7 +16,7 @@
 
 -runproperties.debug: \
 	felix.log.level=4,\
-	org.osgi.service.log.admin.loglevel=DEBUG,\
+	org.osgi.service.log.admin.loglevel=DEBUG
 
 -runproperties.poi: \
 	org.osgi.framework.bootdelegation=org.w3c.dom
