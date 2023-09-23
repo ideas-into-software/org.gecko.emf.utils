@@ -34,7 +34,6 @@ import org.gecko.emf.exporter.csv.api.EMFCSVExportOptions;
 import org.gecko.emf.osgi.example.model.basic.BasicFactory;
 import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
 import org.gecko.emf.osgi.example.model.basic.Family;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -67,7 +66,6 @@ public class EMFCSVResourceTest {
 		assertThat(bfReference).isNotNull();
 	}
 
-	@Disabled
 	@Test
 	public void testSaveResourceToCsvFlatMode(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
 			@InjectService(timeout = 2000) ServiceAware<BasicFactory> bfAware) throws Exception {
@@ -92,20 +90,17 @@ public class EMFCSVResourceTest {
 		Family flintstonesFamily = createFlintstonesFamily(factoryImpl);
 		resource.getContents().add(flintstonesFamily);
 
-		BusinessPerson businessPerson = createBusinessPerson(factoryImpl);
-		resource.getContents().add(businessPerson);
-
 		Path filePath = Files.createTempFile("testSaveResourceToCsvFlatMode", ".csv");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
-
+		
 		// @formatter:off
 		resource.save(fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
-						EMFExportOptions.OPTION_EXPORT_METADATA, true,
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true,
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to false in FLAT export mode
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to false in FLAT export mode
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.FLAT
 					));
 		// @formatter:on
@@ -146,9 +141,9 @@ public class EMFCSVResourceTest {
 		resource.save(fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
-						EMFExportOptions.OPTION_EXPORT_METADATA, true,
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true,
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.ZIP
 					));
 		// @formatter:on

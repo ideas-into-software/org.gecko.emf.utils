@@ -9,3 +9,9 @@ Bundle-Description: Exporter for EMF
 	osgi.core;version='7.0',\
 	com.google.guava,\
 	slf4j.api
+
+Export-Package: \
+	org.gecko.emf.exporter,\
+	org.gecko.emf.exporter.cells,\
+	org.gecko.emf.exporter.headers,\
+	org.gecko.emf.exporter.keys
