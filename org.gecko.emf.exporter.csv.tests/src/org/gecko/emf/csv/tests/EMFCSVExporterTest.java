@@ -44,7 +44,6 @@ import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
 import org.gecko.emf.osgi.example.model.basic.Family;
 import org.gecko.emf.utilities.Request;
 import org.gecko.emf.utilities.UtilitiesFactory;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -396,7 +395,6 @@ public class EMFCSVExporterTest {
 
 	private static final String TREES_DATASET_XMI = System.getProperty("TREES_DATASET_XMI");	
 
-//	@Disabled
 	@Test
 	public void testExportTreesModelEObjectsToCsvFlatMode(
 			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
@@ -439,7 +437,6 @@ public class EMFCSVExporterTest {
 		// @formatter:on
 	}
 	
-//	@Disabled
 	@Test
 	public void testExportTreesModelEObjectsToCsvZipMode(
 			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,

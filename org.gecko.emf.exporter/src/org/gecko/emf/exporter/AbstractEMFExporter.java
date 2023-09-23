@@ -761,10 +761,6 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 					} else if (value instanceof Boolean) {
 						setBooleanValueCell(matrix, rowIndex, colIndex, (Boolean) value);
 
-					} else if (value instanceof byte[]) {
-						// TODO: clarify how byte arrays should be handled
-						setStringValueCell(matrix, rowIndex, colIndex, "EAttribute: byte[]");
-
 					} else {
 						setStringValueCell(matrix, rowIndex, colIndex,
 								EcoreUtil.convertToString(eAttribute.getEAttributeType(), value));
@@ -1410,17 +1406,9 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		if ((eStructuralFeature.getName()).equalsIgnoreCase(ID_ATTRIBUTE_NAME) || eStructuralFeature.isTransient()) {
 			return true;
 
-		} else {
-
-			if (eStructuralFeature instanceof EAttribute) {
-				EAttribute eAttribute = (EAttribute) eStructuralFeature;
-
-				Object value = eObject.eGet(eAttribute);
-
-				if ((value != null) && (value instanceof byte[])) {
-					return true;
-				}
-			}
+		} else if ((eStructuralFeature instanceof EAttribute)
+				&& ((EAttribute) eStructuralFeature).getEAttributeType().getInstanceClass() == byte[].class) {
+			return true;
 		}
 
 		return false;
