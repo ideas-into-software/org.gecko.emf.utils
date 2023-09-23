@@ -39,6 +39,16 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.gecko.emf.exporter.cells.EMFExportEObjectIDValueCell;
+import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
+import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
+import org.gecko.emf.exporter.cells.EMFExportMappingMatrixReferenceValueCell;
+import org.gecko.emf.exporter.headers.EMFExportEObjectColumnHeader;
+import org.gecko.emf.exporter.headers.EMFExportEObjectGenericColumnHeader;
+import org.gecko.emf.exporter.headers.EMFExportEObjectIDColumnHeader;
+import org.gecko.emf.exporter.headers.EMFExportEObjectManyReferencesColumnHeader;
+import org.gecko.emf.exporter.headers.EMFExportEObjectOneReferenceColumnHeader;
+import org.gecko.emf.exporter.keys.EMFExportRefMatrixNameIDCompositeKey;
 import org.slf4j.Logger;
 
 import com.google.common.base.Stopwatch;
@@ -56,14 +66,6 @@ import com.google.common.collect.Table;
  * @author Michal H. Siemaszko
  */
 public abstract class AbstractEMFExporter implements EMFExporter {
-	private final Logger logger;
-	protected final Stopwatch stopwatch;
-	
-	// TODO: refactor so other accumulating data structures are also kept on state instead of being passed via method args
-	
-	// maps EObjects' IDs to names of matrices, so those can be looked up e.g. when constructing links
-	protected final Map<String, String> eObjectIDToMatrixNameMap;
-
 	protected static final List<String> METADATA_ECLASS_MATRIX_COLUMNS_HEADERS = List.of("Name", "Type", "isMany",
 			"isRequired", "Default value", "Documentation");
 
@@ -85,13 +87,39 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 	protected static final String REF_COLUMN_PREFIX = "ref_";
 
-	// TODO: handle cases where there are more than 26 columns
-	protected static final char[] MATRIX_COLUMNS_HEADERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
+	protected static final int MAX_COLUMNS = 16384;
+
+	private final Logger logger;
+
+	protected final Stopwatch stopwatch;
+
+	// maps EObjects' IDs to names of matrices, so those can be looked up e.g. when
+	// constructing links
+	protected final Map<String, String> eObjectIDToMatrixNameMap;
+
+	// maps EObjects' unique identifiers to pseudo IDs - for those EObjects which
+	// lack id field
+	protected final Map<String, String> eObjectUniqueIdentifierToPseudoIDMap;
+
+	// stores EObjects' EClasses - used e.g. to construct meta data
+	protected final Set<EClass> eObjectsClasses;
+
+	// stores EEnums - used e.g. to construct meta data
+	protected final Set<EEnum> eObjectsEnums;
+
+	// lookup index for storing information about position (row number) of specific
+	// reference
+	protected final Map<EMFExportRefMatrixNameIDCompositeKey, Integer> refMatrixRowKeyIndex;
 
 	protected AbstractEMFExporter(Logger logger, Stopwatch stopwatch) {
 		this.logger = logger;
 		this.stopwatch = stopwatch;
-		this.eObjectIDToMatrixNameMap = new HashMap<String, String>();
+
+		this.eObjectIDToMatrixNameMap = new HashMap<>();
+		this.eObjectUniqueIdentifierToPseudoIDMap = new HashMap<>();
+		this.eObjectsClasses = new HashSet<>();
+		this.eObjectsEnums = new HashSet<>();
+		this.refMatrixRowKeyIndex = new HashMap<>();
 	}
 
 	/* 
@@ -121,38 +149,28 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	 * @return map of matrices, where key is matrix name and value matrix itself.
 	 * @throws EMFExportException
 	 */
-	protected Map<String, Table<Integer, Character, Object>> exportEObjectsToMatrices(List<EObject> eObjects,
+	protected Map<String, Table<Integer, Integer, Object>> exportEObjectsToMatrices(List<? extends EObject> eObjects,
 			Map<?, ?> options) throws EMFExportException {
 		Objects.requireNonNull(eObjects, "At least one EObject is required for export!");
 
+		resetState();
+
 		final Map<Object, Object> exportOptions = validateExportOptions(options);
 
-		// stores EObjects' EClasses - used e.g. to construct meta data
-		final Set<EClass> eObjectsClasses = new HashSet<EClass>();
-
-		// stores EEnums - used e.g. to construct meta data
-		final Set<EEnum> eObjectsEnums = new HashSet<EEnum>();
-
-		// maps EObjects' unique identifiers to pseudo IDs - for those EObjects which
-		// lack id field
-		final Map<String, String> eObjectsPseudoIDs = new HashMap<String, String>();
-
 		// pseudo IDs are needed before main processing starts
-		generatePseudoIDs(eObjects, eObjectsPseudoIDs);
+		generatePseudoIDs(eObjects);
 
 		// @formatter:off
-		Map<String, Table<Integer, Character, Object>> mapOfMatrices = constructMatrices( 
-				eObjectsClasses,
-				eObjectsEnums, 
-				eObjectsPseudoIDs,
+		Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap = constructMatrices( 
 				eObjects,
 				exportOptions);
 		// @formatter:on
 
+		validateMatricesColumnsSize(matrixNameToMatrixMap);
+
 		// @formatter:off
 		populateMatricesWithData(
-				mapOfMatrices,
-				eObjectsPseudoIDs, 
+				matrixNameToMatrixMap,
 				eObjects,
 				exportOptions);
 		// @formatter:on
@@ -160,18 +178,15 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		if (exportMetadataEnabled(exportOptions)) {
 			// @formatter:off
 			populateMatricesWithMetadata(
-					mapOfMatrices, 
-					eObjectsClasses, 
-					eObjectsEnums);
+					matrixNameToMatrixMap);
 			// @formatter:on
 		}
 
-		return mapOfMatrices;
+		return matrixNameToMatrixMap;
 	}
 
-	private Map<String, Table<Integer, Character, Object>> constructMatrices(Set<EClass> eObjectsClasses,
-			Set<EEnum> eObjectsEnums, Map<String, String> eObjectsPseudoIDs, List<EObject> eObjects,
-			Map<Object, Object> exportOptions) {
+	private Map<String, Table<Integer, Integer, Object>> constructMatrices(List<? extends EObject> eObjects,
+			Map<Object, Object> exportOptions) throws EMFExportException {
 
 		resetStopwatch();
 
@@ -179,17 +194,14 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 		final Set<String> processedEObjectsIdentifiers = new HashSet<String>();
 
-		Map<String, Table<Integer, Character, Object>> mapOfMatrices = new HashMap<String, Table<Integer, Character, Object>>();
+		Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap = new HashMap<String, Table<Integer, Integer, Object>>();
 
 		for (EObject eObject : eObjects) {
 
 			// @formatter:off
 			constructMatrixForEObjectWithEReferences(
-					mapOfMatrices,
+					matrixNameToMatrixMap,
 					processedEObjectsIdentifiers, 
-					eObjectsClasses, 
-					eObjectsEnums,
-					eObjectsPseudoIDs, 
 					exportOptions,
 					eObject);
 			// @formatter:on
@@ -197,85 +209,76 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 		logger.info("Finished construction of matrices in {} second(s)", elapsedTimeInSeconds());
 
-		return mapOfMatrices;
+		return matrixNameToMatrixMap;
 	}
 
-	private void constructMatrixForEObjectWithEReferences(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Set<String> eObjectsIdentifiers, Set<EClass> eObjectsClasses, Set<EEnum> eObjectsEnums,
-			Map<String, String> eObjectsPseudoIDs, Map<Object, Object> exportOptions, EObject eObject) {
+	private void constructMatrixForEObjectWithEReferences(
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, Set<String> eObjectsIdentifiers,
+			Map<Object, Object> exportOptions, EObject eObject) throws EMFExportException {
 
 		// @formatter:off
 		constructMatrix(
-				mapOfMatrices, 
+				matrixNameToMatrixMap, 
 				eObjectsIdentifiers, 
-				eObjectsClasses, 
-				eObjectsEnums, 
-				eObjectsPseudoIDs,
 				exportOptions,
 				eObject);
 		// @formatter:on
 
-		eObject.eClass().getEAllReferences().stream().forEach(r -> {
+		for (EReference eReference : eObject.eClass().getEAllReferences()) {
 
 			// @formatter:off
 			constructMatrixForEReference(
-					mapOfMatrices, 
+					matrixNameToMatrixMap, 
 					eObjectsIdentifiers, 
-					eObjectsClasses, 
-					eObjectsEnums,
-					eObjectsPseudoIDs, 
 					exportOptions, 
 					eObject, 
-					r);
+					eReference);
 			// @formatter:on
-		});
+		}
 	}
 
-	private void constructMatrix(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Set<String> eObjectsIdentifiers, Set<EClass> eObjectsClasses, Set<EEnum> eObjectsEnums,
-			Map<String, String> eObjectsPseudoIDs, Map<Object, Object> exportOptions, EObject... eObjects) {
+	private void constructMatrix(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Set<String> eObjectsIdentifiers, Map<Object, Object> exportOptions, EObject... eObjects)
+			throws EMFExportException {
 		if ((eObjects.length > 0) && !isProcessed(eObjectsIdentifiers, eObjects[0])) {
 			EClass eClass = eObjects[0].eClass();
 
 			String matrixName = constructEClassMatrixName(eClass);
 
-			constructMatrixIfNotExists(mapOfMatrices, matrixName, eClass, eObjects[0], eObjectsEnums,
-					hasPseudoID(eObjects[0], eObjectsPseudoIDs), exportOptions);
+			constructMatrixIfNotExists(matrixNameToMatrixMap, matrixName, eClass, eObjects[0], hasPseudoID(eObjects[0]),
+					exportOptions);
 
 			for (EObject eObject : eObjects) {
 				String eObjectIdentifier = getEObjectIdentifier(eObject);
 
 				eObjectsIdentifiers.add(eObjectIdentifier);
-				eObjectsClasses.add(eObject.eClass());
+				this.eObjectsClasses.add(eObject.eClass());
 
 				if (hasID(eObject)) {
 					this.eObjectIDToMatrixNameMap.put(getID(eObject), matrixName);
-				} else if (hasPseudoID(eObject, eObjectsPseudoIDs)) {
-					this.eObjectIDToMatrixNameMap.put(getPseudoID(eObject, eObjectsPseudoIDs), matrixName);
+				} else if (hasPseudoID(eObject)) {
+					this.eObjectIDToMatrixNameMap.put(getPseudoID(eObject), matrixName);
 				}
 
-				eObject.eClass().getEAllReferences().stream().forEach(r -> {
+				for (EReference eReference : eObject.eClass().getEAllReferences()) {
 
 					// @formatter:off
 					constructMatrixForEReference(
-							mapOfMatrices,
+							matrixNameToMatrixMap,
 							eObjectsIdentifiers, 
-							eObjectsClasses, 
-							eObjectsEnums,
-							eObjectsPseudoIDs, 
 							exportOptions, 
 							eObject, 
-							r);
+							eReference);
 					// @formatter:on
-				});
+				}
 			}
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void constructMatrixForEReference(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Set<String> eObjectsIdentifiers, Set<EClass> eObjectsClasses, Set<EEnum> eObjectsEnums,
-			Map<String, String> eObjectsPseudoIDs, Map<Object, Object> exportOptions, EObject eObject, EReference r) {
+	private void constructMatrixForEReference(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Set<String> eObjectsIdentifiers, Map<Object, Object> exportOptions, EObject eObject, EReference r)
+			throws EMFExportException {
 		if (!exportNonContainmentEnabled(exportOptions) && !r.isContainment()) {
 			return;
 		}
@@ -287,11 +290,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 				// @formatter:off
 				constructMatrix(
-						mapOfMatrices,
+						matrixNameToMatrixMap,
 						eObjectsIdentifiers,
-						eObjectsClasses, 
-						eObjectsEnums, 
-						eObjectsPseudoIDs,
 						exportOptions,
 						(EObject) value);
 				// @formatter:on
@@ -300,11 +300,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 				// @formatter:off
 				constructMatrix(
-						mapOfMatrices,
+						matrixNameToMatrixMap,
 						eObjectsIdentifiers,
-						eObjectsClasses, 
-						eObjectsEnums, 
-						eObjectsPseudoIDs,
 						exportOptions,
 						((List<EObject>) value).toArray(EObject[]::new));
 				// @formatter:on
@@ -314,7 +311,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 						// @formatter:off
 						constructEReferencesMappingMatrixIfNotExists(
-								mapOfMatrices, 
+								matrixNameToMatrixMap, 
 								eObject,
 								r);
 						// @formatter:on						
@@ -325,15 +322,15 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void constructEReferencesMappingMatrixIfNotExists(
-			Map<String, Table<Integer, Character, Object>> mapOfMatrices, EObject fromEObject,
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, EObject fromEObject,
 			EReference toEReference) {
 		String eReferencesMappingMatrixName = constructEReferencesMappingMatrixName(fromEObject.eClass(),
 				toEReference.getName());
 
-		if (!mapOfMatrices.containsKey(eReferencesMappingMatrixName)) {
+		if (!matrixNameToMatrixMap.containsKey(eReferencesMappingMatrixName)) {
 			logger.debug("Creating EReferences mapping matrix named '{}'", eReferencesMappingMatrixName);
 
-			Table<Integer, Character, Object> eReferencesMappingMatrix = HashBasedTable.create();
+			Table<Integer, Integer, Object> eReferencesMappingMatrix = HashBasedTable.create();
 
 			// @formatter:off
 			constructEReferencesMappingMatrixColumnHeaders(
@@ -342,18 +339,18 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 					toEReference.getEReferenceType());
 			// @formatter:on
 
-			mapOfMatrices.put(eReferencesMappingMatrixName, eReferencesMappingMatrix);
+			matrixNameToMatrixMap.put(eReferencesMappingMatrixName, eReferencesMappingMatrix);
 		}
 	}
 
 	private void constructEReferencesMappingMatrixColumnHeaders(
-			Table<Integer, Character, Object> eReferencesMappingMatrix, EClass fromEClass, EClass toEClass) {
+			Table<Integer, Integer, Object> eReferencesMappingMatrix, EClass fromEClass, EClass toEClass) {
 
 		String fromEClassColumnHeaderName = constructEReferencesMappingMatrixColumnHeaderName(fromEClass);
-		eReferencesMappingMatrix.put(Integer.valueOf(1), getMatrixColumnName(0), fromEClassColumnHeaderName);
+		eReferencesMappingMatrix.put(getMatrixRowKey(1), getMatrixColumnKey(0), fromEClassColumnHeaderName);
 
 		String toEClassColumnHeaderName = constructEReferencesMappingMatrixColumnHeaderName(toEClass);
-		eReferencesMappingMatrix.put(Integer.valueOf(1), getMatrixColumnName(1), toEClassColumnHeaderName);
+		eReferencesMappingMatrix.put(getMatrixRowKey(1), getMatrixColumnKey(1), toEClassColumnHeaderName);
 	}
 
 	private String constructEReferencesMappingMatrixColumnHeaderName(EClass eClass) {
@@ -383,53 +380,51 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		return createSafeMatrixName(sb.toString());
 	}
 
-	private Table<Integer, Character, Object> constructMatrixIfNotExists(
-			Map<String, Table<Integer, Character, Object>> mapOfMatrices, String matrixName, EClass eClass,
-			EObject eObject, Set<EEnum> eObjectsEnums, boolean hasPseudoID, Map<Object, Object> exportOptions) {
+	private Table<Integer, Integer, Object> constructMatrixIfNotExists(
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, String matrixName, EClass eClass,
+			EObject eObject, boolean hasPseudoID, Map<Object, Object> exportOptions) throws EMFExportException {
 
-		if (mapOfMatrices.containsKey(matrixName)) {
+		if (matrixNameToMatrixMap.containsKey(matrixName)) {
 			logger.debug("Matrix named '{}' already exists!", matrixName);
 
-			return mapOfMatrices.get(matrixName);
+			return matrixNameToMatrixMap.get(matrixName);
 
 		} else {
 			logger.debug("Matrix named '{}' does not exist yet, creating...", matrixName);
 
 			// @formatter:off
-			Table<Integer, Character, Object> matrix = constructMatrix(
-					mapOfMatrices,
+			Table<Integer, Integer, Object> matrix = constructMatrix(
+					matrixNameToMatrixMap,
 					matrixName, 
 					eClass,
 					eObject,
-					eObjectsEnums, 
 					hasPseudoID, 
 					exportOptions);
 			// @formatter:on
 
-			mapOfMatrices.put(matrixName, matrix);
+			matrixNameToMatrixMap.put(matrixName, matrix);
 
 			if (exportMetadataEnabled(exportOptions)) {
-				constructMetadataMatrixIfNotExists(mapOfMatrices, eClass);
+				constructMetadataMatrixIfNotExists(matrixNameToMatrixMap, eClass);
 			}
 
 			return matrix;
 		}
 	}
 
-	private Table<Integer, Character, Object> constructMatrix(
-			Map<String, Table<Integer, Character, Object>> mapOfMatrices, String matrixName, EClass eClass,
-			EObject eObject, Set<EEnum> eObjectsEnums, boolean hasPseudoID, Map<Object, Object> exportOptions) {
+	private Table<Integer, Integer, Object> constructMatrix(
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, String matrixName, EClass eClass,
+			EObject eObject, boolean hasPseudoID, Map<Object, Object> exportOptions) throws EMFExportException {
 
-		Table<Integer, Character, Object> matrix = HashBasedTable.create();
+		Table<Integer, Integer, Object> matrix = HashBasedTable.create();
 
 		// @formatter:off
 		constructMatrixColumnHeadersAndMetadataMatrixIfEnabled(
-				mapOfMatrices,
+				matrixNameToMatrixMap,
 				matrixName,
 				matrix, 
 				eClass, 
 				eObject,
-				eObjectsEnums, 
 				hasPseudoID,
 				exportOptions);
 		// @formatter:on
@@ -438,9 +433,9 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void constructMatrixColumnHeadersAndMetadataMatrixIfEnabled(
-			Map<String, Table<Integer, Character, Object>> mapOfMatrices, String matrixName,
-			Table<Integer, Character, Object> matrix, EClass eClass, EObject eObject, Set<EEnum> eObjectsEnums,
-			boolean hasPseudoID, Map<Object, Object> exportOptions) {
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, String matrixName,
+			Table<Integer, Integer, Object> matrix, EClass eClass, EObject eObject, boolean hasPseudoID,
+			Map<Object, Object> exportOptions) throws EMFExportException {
 
 		logger.debug("Creating columns' headers for matrix named '{}'"
 				+ (hasPseudoID ? " with pseudo ID column" : " without pseudo ID column"), matrixName);
@@ -455,7 +450,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		boolean hasIDOrPseudoID = hasPseudoID || hasID(eObject);
 
 		if (hasIDOrPseudoID) {
-			matrix.put(Integer.valueOf(1), getMatrixColumnName(0), ID_COLUMN_NAME);
+			constructMatrixIDColumnHeader(matrix, matrixName);
 		}
 
 		Iterator<EStructuralFeature> eAllStructuralFeaturesIt = eAllStructuralFeatures.iterator();
@@ -465,32 +460,85 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		while (eAllStructuralFeaturesIt.hasNext()) {
 			EStructuralFeature eStructuralFeature = eAllStructuralFeaturesIt.next();
 
-			if ((eStructuralFeature.getName()).equalsIgnoreCase(ID_ATTRIBUTE_NAME)) {
+			if (skipFeature(eObject, eStructuralFeature)) {
 				continue;
 			}
 
 			if (isEcoreEEnumDataType(eStructuralFeature)) {
 				EEnum eEnum = extractEEnumDataType(eStructuralFeature);
 
-				eObjectsEnums.add(eEnum);
+				this.eObjectsEnums.add(eEnum);
 
 				if (exportMetadataEnabled(exportOptions)) {
-					constructMetadataMatrixIfNotExists(mapOfMatrices, eEnum);
+					constructMetadataMatrixIfNotExists(matrixNameToMatrixMap, eEnum);
 				}
 			}
 
-			String columnHeaderName = constructMatrixColumnHeaderName(eStructuralFeature);
-
-			matrix.put(Integer.valueOf(1), getMatrixColumnName((hasIDOrPseudoID ? (colIndex + 1) : colIndex)),
-					columnHeaderName);
+			constructMatrixColumnHeader(eObject, eStructuralFeature, matrixName, matrix,
+					(hasIDOrPseudoID ? (colIndex + 1) : colIndex));
 
 			colIndex++;
 		}
 	}
 
-	private void populateMatricesWithData(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Map<String, String> eObjectsPseudoIDs, List<EObject> eObjects, Map<Object, Object> exportOptions)
-			throws EMFExportException {
+	@SuppressWarnings("unchecked")
+	private void constructMatrixColumnHeader(EObject eObject, EStructuralFeature eStructuralFeature, String matrixName,
+			Table<Integer, Integer, Object> matrix, int colIndex) throws EMFExportException {
+		String columnHeaderName = constructMatrixColumnHeaderName(eStructuralFeature);
+
+		if (eStructuralFeature instanceof EAttribute) {
+			constructMatrixGenericColumnHeader(matrix, matrixName, columnHeaderName, colIndex);
+
+		} else if (eStructuralFeature instanceof EReference) {
+			EReference eReference = (EReference) eStructuralFeature;
+
+			Object value = eObject.eGet(eReference);
+
+			String refMatrixName = constructEClassMatrixName(eReference.getEReferenceType());
+
+			if (!eReference.isMany() || ((eReference.isMany() && (value != null) && !((List<EObject>) value).isEmpty()
+					&& (((List<EObject>) value).size() == 1)))) {
+				constructMatrixOneReferenceColumnHeader(matrix, matrixName, refMatrixName, columnHeaderName, colIndex);
+
+			} else if (eReference.isMany()) {
+				constructMatrixManyReferencesColumnHeader(matrix, matrixName, refMatrixName, columnHeaderName,
+						colIndex);
+			}
+
+		} else {
+			throw new EMFExportException("Only 'EAttribute' and 'EReference' structural features are supported!");
+		}
+	}
+
+	private void constructMatrixIDColumnHeader(Table<Integer, Integer, Object> matrix, String matrixName) {
+		constructMatrixColumnHeader(matrix, new EMFExportEObjectIDColumnHeader(matrixName, ID_COLUMN_NAME), 0);
+	}
+
+	private void constructMatrixOneReferenceColumnHeader(Table<Integer, Integer, Object> matrix, String matrixName,
+			String refMatrixName, String columnHeaderName, int colIndex) {
+		constructMatrixColumnHeader(matrix,
+				new EMFExportEObjectOneReferenceColumnHeader(matrixName, refMatrixName, columnHeaderName), colIndex);
+	}
+
+	private void constructMatrixManyReferencesColumnHeader(Table<Integer, Integer, Object> matrix, String matrixName,
+			String refMatrixName, String columnHeaderName, int colIndex) {
+		constructMatrixColumnHeader(matrix,
+				new EMFExportEObjectManyReferencesColumnHeader(matrixName, refMatrixName, columnHeaderName), colIndex);
+	}
+
+	private void constructMatrixGenericColumnHeader(Table<Integer, Integer, Object> matrix, String matrixName,
+			String columnHeaderName, int colIndex) {
+		constructMatrixColumnHeader(matrix, new EMFExportEObjectGenericColumnHeader(matrixName, columnHeaderName),
+				colIndex);
+	}
+
+	private void constructMatrixColumnHeader(Table<Integer, Integer, Object> matrix,
+			EMFExportEObjectColumnHeader columnHeader, int colIndex) {
+		matrix.put(getMatrixRowKey(1), getMatrixColumnKey(colIndex), columnHeader);
+	}
+
+	private void populateMatricesWithData(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			List<? extends EObject> eObjects, Map<Object, Object> exportOptions) throws EMFExportException {
 
 		resetStopwatch();
 
@@ -501,9 +549,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		for (EObject eObject : eObjects) {
 			// @formatter:off
 			populateMatrixWithDataForEObjectWithEReferences(
-					mapOfMatrices, 
+					matrixNameToMatrixMap, 
 					processedEObjectsIdentifiers, 
-					eObjectsPseudoIDs,
 					exportOptions,
 					eObject);
 			// @formatter:on
@@ -513,15 +560,13 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void populateMatrixWithDataForEObjectWithEReferences(
-			Map<String, Table<Integer, Character, Object>> mapOfMatrices, Set<String> eObjectsIdentifiers,
-			Map<String, String> eObjectsPseudoIDs, Map<Object, Object> exportOptions, EObject eObject)
-			throws EMFExportException {
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, Set<String> eObjectsIdentifiers,
+			Map<Object, Object> exportOptions, EObject eObject) throws EMFExportException {
 
 		// @formatter:off
 		populateMatrixWithData(
-				mapOfMatrices,
+				matrixNameToMatrixMap,
 				eObjectsIdentifiers,
-				eObjectsPseudoIDs,
 				exportOptions,
 				eObject);
 		// @formatter:on
@@ -531,9 +576,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 				// @formatter:off
 				populateMatrixWithDataForEReference(
-						mapOfMatrices,
+						matrixNameToMatrixMap,
 						eObjectsIdentifiers,
-						eObjectsPseudoIDs,
 						exportOptions,
 						eObject,
 						r);
@@ -545,23 +589,22 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		});
 	}
 
-	private void populateMatrixWithData(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Set<String> eObjectsIdentifiers, Map<String, String> eObjectsPseudoIDs, Map<Object, Object> exportOptions,
-			EObject... eObjects) throws EMFExportException {
+	private void populateMatrixWithData(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Set<String> eObjectsIdentifiers, Map<Object, Object> exportOptions, EObject... eObjects)
+			throws EMFExportException {
 		if ((eObjects.length > 0) && !isProcessed(eObjectsIdentifiers, eObjects[0])) {
 			EClass eClass = eObjects[0].eClass();
 
-			Table<Integer, Character, Object> matrix = getMatrix(mapOfMatrices, eClass);
+			Table<Integer, Integer, Object> matrix = getMatrix(matrixNameToMatrixMap, eClass);
 
 			for (EObject eObject : eObjects) {
 				eObjectsIdentifiers.add(getEObjectIdentifier(eObject));
 
 				// @formatter:off
 				populateMatrixWithData(
-						mapOfMatrices,
+						matrixNameToMatrixMap,
 						matrix,
 						eObject,
-						eObjectsPseudoIDs,
 						exportOptions);
 				// @formatter:on
 
@@ -570,9 +613,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 						// @formatter:off
 						populateMatrixWithDataForEReference(
-								mapOfMatrices,
+								matrixNameToMatrixMap,
 								eObjectsIdentifiers,
-								eObjectsPseudoIDs,
 								exportOptions,
 								eObject,
 								r);
@@ -587,9 +629,9 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	}
 
 	@SuppressWarnings("unchecked")
-	private void populateMatrixWithDataForEReference(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Set<String> eObjectsIdentifiers, Map<String, String> eObjectsPseudoIDs, Map<Object, Object> exportOptions,
-			EObject eObject, EReference r) throws EMFExportException {
+	private void populateMatrixWithDataForEReference(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Set<String> eObjectsIdentifiers, Map<Object, Object> exportOptions, EObject eObject, EReference r)
+			throws EMFExportException {
 		if (!exportNonContainmentEnabled(exportOptions) && !r.isContainment()) {
 			return;
 		}
@@ -601,9 +643,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 				// @formatter:off
 				populateMatrixWithData(
-						mapOfMatrices,
+						matrixNameToMatrixMap,
 						eObjectsIdentifiers,
-						eObjectsPseudoIDs,
 						exportOptions,
 						(EObject) value);
 				// @formatter:on
@@ -612,9 +653,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 				// @formatter:off
 				populateMatrixWithData(
-						mapOfMatrices,
+						matrixNameToMatrixMap,
 						eObjectsIdentifiers,
-						eObjectsPseudoIDs,
 						exportOptions,
 						((List<EObject>) value).toArray(EObject[]::new));
 				// @formatter:on
@@ -622,9 +662,9 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void populateMatrixWithData(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Table<Integer, Character, Object> matrix, EObject eObject, Map<String, String> eObjectsPseudoIDs,
-			Map<Object, Object> exportOptions) throws EMFExportException {
+	private void populateMatrixWithData(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Table<Integer, Integer, Object> matrix, EObject eObject, Map<Object, Object> exportOptions)
+			throws EMFExportException {
 
 		String matrixName = constructEClassMatrixName(eObject.eClass());
 
@@ -636,15 +676,16 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 		int rowIndex = (rowsCount + 1);
 
-		boolean hasIDOrPseudoID = hasIDOrPseudoID(eObject, eObjectsPseudoIDs);
+		boolean hasIDOrPseudoID = hasIDOrPseudoID(eObject);
 
 		if (hasIDOrPseudoID) {
 			// @formatter:off
 			setIDValueCell(
 					matrix, 
+					matrixName,
 					rowIndex, 
 					0,
-					getIDOrPseudoID(eObject, eObjectsPseudoIDs));
+					getIDOrPseudoID(eObject));
 			// @formatter:on
 		}
 
@@ -655,19 +696,18 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		while (eAllStructuralFeaturesIt.hasNext()) {
 			EStructuralFeature eStructuralFeature = eAllStructuralFeaturesIt.next();
 
-			if ((eStructuralFeature.getName()).equalsIgnoreCase(ID_ATTRIBUTE_NAME)) {
+			if (skipFeature(eObject, eStructuralFeature)) {
 				continue;
 			}
 
 			// @formatter:off
 			populateMatrixCellWithData(
-					mapOfMatrices,
+					matrixNameToMatrixMap,
 					matrix,
 					rowIndex, 
 					(hasIDOrPseudoID ? (colIndex + 1) : colIndex),
 					eObject,
 					eStructuralFeature, 
-					eObjectsPseudoIDs,
 					exportOptions);
 			// @formatter:on
 
@@ -675,31 +715,41 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void setIDValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex, String value) {
-		matrix.put(Integer.valueOf(rowIndex), getMatrixColumnName(colIndex), new EMFExportEObjectIDValueCell(value));
+	private void setIDValueCell(Table<Integer, Integer, Object> matrix, String matrixName, int rowIndex, int colIndex,
+			String value) {
+		refMatrixRowKeyIndex.put(new EMFExportRefMatrixNameIDCompositeKey(matrixName, value),
+				getMatrixRowKey(rowIndex));
+
+		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex), new EMFExportEObjectIDValueCell(value));
 	}
 
-	private Table<Integer, Character, Object> getMatrix(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			EClass eClass) throws EMFExportException {
+	private Table<Integer, Integer, Object> getMatrix(
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, EClass eClass)
+			throws EMFExportException {
 		String matrixName = constructEClassMatrixName(eClass);
 
-		if (!mapOfMatrices.containsKey(matrixName)) {
+		if (!matrixNameToMatrixMap.containsKey(matrixName)) {
 			throw new EMFExportException("Matrix '" + matrixName + "' does not exist!");
 		}
 
-		return mapOfMatrices.get(matrixName);
+		return matrixNameToMatrixMap.get(matrixName);
 	}
 
-	private void populateMatrixCellWithData(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Table<Integer, Character, Object> matrix, int rowIndex, int colIndex, EObject eObject,
-			EStructuralFeature eStructuralFeature, Map<String, String> eObjectsPseudoIDs,
-			Map<Object, Object> exportOptions) throws EMFExportException {
+	@SuppressWarnings("unchecked")
+	private void populateMatrixCellWithData(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex, EObject eObject,
+			EStructuralFeature eStructuralFeature, Map<Object, Object> exportOptions) throws EMFExportException {
 
 		if (eStructuralFeature instanceof EAttribute) {
 			EAttribute eAttribute = (EAttribute) eStructuralFeature;
 
 			Object value = eObject.eGet(eAttribute);
-			if (value != null) {
+
+			if ((value == null) || (eAttribute.isMany() && ((Collection<EObject>) value).isEmpty())) {
+				setVoidValueCell(matrix, rowIndex, colIndex);
+
+			} else {
+
 				if (!eAttribute.isMany()) {
 
 					if (value instanceof Date) {
@@ -723,9 +773,6 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 				} else {
 					setMultiValueCell(matrix, rowIndex, colIndex, eAttribute, value);
 				}
-
-			} else {
-				setVoidValueCell(matrix, rowIndex, colIndex);
 			}
 
 		} else if (eStructuralFeature instanceof EReference) {
@@ -733,39 +780,36 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 			// @formatter:off
 			setEReferenceValueCell(
-					mapOfMatrices,
+					matrixNameToMatrixMap,
 					matrix, 
 					rowIndex, 
 					colIndex, 
 					eObject, 
 					eReference, 
-					eObjectsPseudoIDs,
 					exportOptions);
 			// @formatter:on
 		}
 	}
 
-	private void setStringValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
-			String value) {
-		matrix.put(Integer.valueOf(rowIndex), getMatrixColumnName(colIndex), value);
+	private void setStringValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex, String value) {
+		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex), value);
 	}
 
-	private void setDateValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex, Date value) {
-		matrix.put(Integer.valueOf(rowIndex), getMatrixColumnName(colIndex), value);
+	private void setDateValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex, Date value) {
+		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex), value);
 	}
 
-	private void setNumberValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
-			Number value) {
-		matrix.put(Integer.valueOf(rowIndex), getMatrixColumnName(colIndex), value.floatValue());
+	private void setNumberValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex, Number value) {
+		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex), value.floatValue());
 	}
 
-	private void setBooleanValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
+	private void setBooleanValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			Boolean value) {
-		matrix.put(Integer.valueOf(rowIndex), getMatrixColumnName(colIndex), value.booleanValue());
+		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex), value);
 	}
 
 	@SuppressWarnings("unchecked")
-	private void setMultiValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
+	private void setMultiValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			EAttribute eAttribute, Object multiValue) {
 		StringBuilder sb = new StringBuilder();
 
@@ -792,19 +836,24 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		// @formatter:on
 	}
 
-	private void setVoidValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex) {
-		matrix.put(Integer.valueOf(rowIndex), getMatrixColumnName(colIndex), Optional.empty());
+	private void setVoidValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex) {
+		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex), Optional.empty());
 	}
 
 	@SuppressWarnings("unchecked")
-	private void setEReferenceValueCell(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Table<Integer, Character, Object> matrix, int rowIndex, int colIndex, EObject eObject, EReference r,
-			Map<String, String> eObjectsPseudoIDs, Map<Object, Object> exportOptions) throws EMFExportException {
+	private void setEReferenceValueCell(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex, EObject eObject, EReference r,
+			Map<Object, Object> exportOptions) throws EMFExportException {
 		Object value = eObject.eGet(r);
 
-		if ((value == null) || (!r.isMany() && !(value instanceof EObject))
-				|| (r.isMany() && ((List<EObject>) value).isEmpty())) {
-			setVoidValueCell(matrix, rowIndex, colIndex);
+		String refMatrixName = constructEClassMatrixName(r.getEReferenceType());
+
+		if ((value == null) && !r.isMany()) {
+			setEmptyOneEReferenceValueCell(matrix, refMatrixName, rowIndex, colIndex);
+
+		} else if (((value == null) && r.isMany())
+				|| ((value != null) && r.isMany() && ((List<EObject>) value).isEmpty())) {
+			setEmptyManyEReferencesValueCell(matrix, refMatrixName, rowIndex, colIndex);
 		}
 
 		if ((!r.isMany() && value instanceof EObject)
@@ -813,10 +862,10 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 			// @formatter:off
 			setOneEReferenceValueCell(
 					matrix, 
+					refMatrixName,
 					rowIndex,
 					colIndex,
-					(!r.isMany() ? ((EObject) value) : ((List<EObject>) value).get(0)), 
-					eObjectsPseudoIDs);
+					(!r.isMany() ? ((EObject) value) : ((List<EObject>) value).get(0)));
 			// @formatter:on
 
 		} else if (r.isMany() && !((List<EObject>) value).isEmpty() && (((List<EObject>) value).size() > 1)) {
@@ -825,14 +874,13 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 				// @formatter:off
 				populateEReferencesMappingMatrixWithData(
-						mapOfMatrices,
+						matrixNameToMatrixMap,
 						matrix,
 						rowIndex, 
 						colIndex,
 						eObject, 
 						r, 
-						((List<EObject>) value),
-						eObjectsPseudoIDs);
+						((List<EObject>) value));
 				// @formatter:on
 
 			} else {
@@ -840,52 +888,47 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 				// @formatter:off
 				setManyEReferencesValueCell(
 						matrix, 
+						refMatrixName,
 						rowIndex,
 						colIndex, 
-						((List<EObject>) value), 
-						eObjectsPseudoIDs);
+						((List<EObject>) value));
 				// @formatter:on
 			}
 		}
 	}
 
-	private void setOneEReferenceValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
-			EObject eObject, Map<String, String> eObjectsPseudoIDs) {
+	private void setOneEReferenceValueCell(Table<Integer, Integer, Object> matrix, String refMatrixName, int rowIndex,
+			int colIndex, EObject eObject) throws EMFExportException {
 
 		if (hasID(eObject)) {
 
 			// @formatter:off
-			setIDEReferenceValueCell(
+			setOneEReferenceValueCell(
 					matrix, 
+					refMatrixName,
 					rowIndex,
 					colIndex, 
 					getID(eObject));
 			// @formatter:on
 
-		} else if (hasPseudoID(eObject, eObjectsPseudoIDs)) {
+		} else if (hasPseudoID(eObject)) {
 
 			// @formatter:off
-			setIDEReferenceValueCell(
+			setOneEReferenceValueCell(
 					matrix, 
+					refMatrixName,
 					rowIndex,
 					colIndex, 
-					getPseudoID(eObject, eObjectsPseudoIDs));
+					getPseudoID(eObject));
 			// @formatter:on
 
 		} else {
-
-			// @formatter:off
-			setNoIDEReferenceValueCell(
-					matrix, 
-					rowIndex,
-					colIndex, 
-					eObject);
-			// @formatter:on
+			setEmptyOneEReferenceValueCell(matrix, refMatrixName, rowIndex, colIndex);
 		}
 	}
 
-	private void setManyEReferencesValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
-			List<EObject> eObjects, Map<String, String> eObjectsPseudoIDs) {
+	private void setManyEReferencesValueCell(Table<Integer, Integer, Object> matrix, String refMatrixName, int rowIndex,
+			int colIndex, List<EObject> eObjects) throws EMFExportException {
 
 		List<String> values = new ArrayList<String>();
 
@@ -894,37 +937,44 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 			if (hasID(eObject)) {
 				values.add(getID(eObject));
-			} else if (hasPseudoID(eObject, eObjectsPseudoIDs)) {
-				values.add(getPseudoID(eObject, eObjectsPseudoIDs));
+			} else if (hasPseudoID(eObject)) {
+				values.add(getPseudoID(eObject));
 			}
 		}
 
-		matrix.put(Integer.valueOf(rowIndex), getMatrixColumnName(colIndex),
-				new EMFExportEObjectManyReferencesValueCell(values));
+		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex),
+				new EMFExportEObjectManyReferencesValueCell(refMatrixName, values));
 	}
 
-	private void setIDEReferenceValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
-			String refId) {
-		matrix.put(Integer.valueOf(rowIndex), getMatrixColumnName(colIndex),
-				new EMFExportEObjectOneReferenceValueCell(refId));
+	private void setOneEReferenceValueCell(Table<Integer, Integer, Object> matrix, String refMatrixName, int rowIndex,
+			int colIndex, String refId) throws EMFExportException {
+
+		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex),
+				new EMFExportEObjectOneReferenceValueCell(refMatrixName, refId));
 	}
 
-	private void setNoIDEReferenceValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
-			EObject eObject) {
-
-		setStringValueCell(matrix, rowIndex, colIndex, "EReference: " + eObject.eClass().getName());
+	private void setEmptyOneEReferenceValueCell(Table<Integer, Integer, Object> matrix, String refMatrixName,
+			int rowIndex, int colIndex) {
+		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex),
+				new EMFExportEObjectOneReferenceValueCell(refMatrixName, null));
 	}
 
-	private void populateEReferencesMappingMatrixWithData(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Table<Integer, Character, Object> matrix, int rowIndex, int colIndex, EObject fromEObject,
-			EReference toEReference, List<EObject> toEObjects, Map<String, String> eObjectsPseudoIDs)
+	private void setEmptyManyEReferencesValueCell(Table<Integer, Integer, Object> matrix, String refMatrixName,
+			int rowIndex, int colIndex) {
+		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex),
+				new EMFExportEObjectManyReferencesValueCell(refMatrixName, null));
+	}
+
+	private void populateEReferencesMappingMatrixWithData(
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, Table<Integer, Integer, Object> matrix,
+			int rowIndex, int colIndex, EObject fromEObject, EReference toEReference, List<EObject> toEObjects)
 			throws EMFExportException {
 
 		String eReferencesMappingMatrixName = constructEReferencesMappingMatrixName(fromEObject.eClass(),
 				toEReference.getName());
 
-		if (mapOfMatrices.containsKey(eReferencesMappingMatrixName)) {
-			Table<Integer, Character, Object> eReferencesMappingMatrix = mapOfMatrices
+		if (matrixNameToMatrixMap.containsKey(eReferencesMappingMatrixName)) {
+			Table<Integer, Integer, Object> eReferencesMappingMatrix = matrixNameToMatrixMap
 					.get(eReferencesMappingMatrixName);
 
 			// @formatter:off
@@ -939,8 +989,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 			populateEReferencesMappingMatrixWithData(
 					eReferencesMappingMatrix, 
 					fromEObject, 
-					toEObjects, 
-					eObjectsPseudoIDs);
+					toEObjects);
 			// @formatter:on
 
 		} else {
@@ -948,7 +997,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void setReferenceToEReferencesMappingMatrix(Table<Integer, Character, Object> matrix, int rowIndex,
+	private void setReferenceToEReferencesMappingMatrix(Table<Integer, Integer, Object> matrix, int rowIndex,
 			int colIndex, String eReferencesMappingMatrixName) {
 
 		// @formatter:off
@@ -960,9 +1009,9 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		// @formatter:on
 	}
 
-	private void setMappingMatrixReferenceValueCell(Table<Integer, Character, Object> matrix, int rowIndex,
-			int colIndex, String eReferencesMappingMatrixName) {
-		matrix.put(Integer.valueOf(rowIndex), getMatrixColumnName(colIndex),
+	private void setMappingMatrixReferenceValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
+			String eReferencesMappingMatrixName) {
+		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex),
 				new EMFExportMappingMatrixReferenceValueCell(eReferencesMappingMatrixName,
 						constructEReferencesMappingMatrixEReferenceValue(eReferencesMappingMatrixName)));
 	}
@@ -974,8 +1023,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		return sb.toString();
 	}
 
-	private void populateEReferencesMappingMatrixWithData(Table<Integer, Character, Object> eReferencesMappingMatrix,
-			EObject fromEObject, List<EObject> toEObjects, Map<String, String> eObjectsPseudoIDs) {
+	private void populateEReferencesMappingMatrixWithData(Table<Integer, Integer, Object> eReferencesMappingMatrix,
+			EObject fromEObject, List<EObject> toEObjects) throws EMFExportException {
 
 		for (EObject toEObject : toEObjects) {
 
@@ -983,57 +1032,70 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 			populateEReferencesMappingMatrixRowWithData(
 					eReferencesMappingMatrix, 
 					fromEObject, 
-					toEObject, 
-					eObjectsPseudoIDs);
+					toEObject);
 			// @formatter:on
 		}
 	}
 
-	private void populateEReferencesMappingMatrixRowWithData(Table<Integer, Character, Object> eReferencesMappingMatrix,
-			EObject fromEObject, EObject toEObject, Map<String, String> eObjectsPseudoIDs) {
+	private void populateEReferencesMappingMatrixRowWithData(Table<Integer, Integer, Object> eReferencesMappingMatrix,
+			EObject fromEObject, EObject toEObject) throws EMFExportException {
 
 		int rowsCount = eReferencesMappingMatrix.rowKeySet().size();
 
 		int rowIndex = (rowsCount + 1);
 
-		setOneEReferenceValueCell(eReferencesMappingMatrix, rowIndex, 0, fromEObject, eObjectsPseudoIDs);
+		// @formatter:off
+		setOneEReferenceValueCell(
+				eReferencesMappingMatrix, 
+				constructEClassMatrixName(fromEObject.eClass()),
+				rowIndex, 
+				0, 
+				fromEObject);
+		// @formatter:on
 
-		setOneEReferenceValueCell(eReferencesMappingMatrix, rowIndex, 1, toEObject, eObjectsPseudoIDs);
+		// @formatter:off
+		setOneEReferenceValueCell(
+				eReferencesMappingMatrix, 
+				constructEClassMatrixName(toEObject.eClass()),
+				rowIndex, 
+				1, 
+				toEObject);
+		// @formatter:on
 	}
 
-	private void constructMetadataMatrixIfNotExists(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
+	private void constructMetadataMatrixIfNotExists(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
 			EClass eClass) {
 
 		String eClassMetadataMatrixName = constructEClassMetadataMatrixName(eClass);
 
-		if (!mapOfMatrices.containsKey(eClassMetadataMatrixName)) {
+		if (!matrixNameToMatrixMap.containsKey(eClassMetadataMatrixName)) {
 			logger.debug("Creating metadata matrix named '{}'", eClassMetadataMatrixName);
 
-			Table<Integer, Character, Object> eClassMetadataMatrix = HashBasedTable.create();
+			Table<Integer, Integer, Object> eClassMetadataMatrix = HashBasedTable.create();
 
 			maybeSetEClassMetadataDocumentation(eClassMetadataMatrix, eClass);
 
 			constructEClassMetadataMatrixColumnHeaders(eClassMetadataMatrix);
 
-			mapOfMatrices.put(eClassMetadataMatrixName, eClassMetadataMatrix);
+			matrixNameToMatrixMap.put(eClassMetadataMatrixName, eClassMetadataMatrix);
 		}
 	}
 
-	private void constructMetadataMatrixIfNotExists(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
+	private void constructMetadataMatrixIfNotExists(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
 			EEnum eEnum) {
 
 		String eEnumMetadataMatrixName = constructEEnumMetadataMatrixName(eEnum);
 
-		if (!mapOfMatrices.containsKey(eEnumMetadataMatrixName)) {
+		if (!matrixNameToMatrixMap.containsKey(eEnumMetadataMatrixName)) {
 			logger.debug("Creating metadata matrix named '{}'", eEnumMetadataMatrixName);
 
-			Table<Integer, Character, Object> eEnumMetadataMatrix = HashBasedTable.create();
+			Table<Integer, Integer, Object> eEnumMetadataMatrix = HashBasedTable.create();
 
 			maybeSetEEnumMetadataDocumentation(eEnumMetadataMatrix, eEnum);
 
 			constructEEnumMetadataMatrixColumnHeaders(eEnumMetadataMatrix);
 
-			mapOfMatrices.put(eEnumMetadataMatrixName, eEnumMetadataMatrix);
+			matrixNameToMatrixMap.put(eEnumMetadataMatrixName, eEnumMetadataMatrix);
 		}
 	}
 
@@ -1055,27 +1117,27 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		return createSafeMatrixName(sb.toString());
 	}
 
-	private void populateMatricesWithMetadata(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Set<EClass> eClasses, Set<EEnum> eEnums) throws EMFExportException {
+	private void populateMatricesWithMetadata(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap)
+			throws EMFExportException {
 
 		resetStopwatch();
 
 		logger.info("Starting populating matrices with metadata");
 
-		populateMatricesWithEClassesMetadata(mapOfMatrices, eClasses);
-		populateMatricesWithEEnumsMetadata(mapOfMatrices, eEnums);
+		populateMatricesWithEClassesMetadata(matrixNameToMatrixMap);
+		populateMatricesWithEEnumsMetadata(matrixNameToMatrixMap);
 
 		logger.info("Finished populating matrices with metadata in {} second(s)", elapsedTimeInSeconds());
 	}
 
-	private void populateMatricesWithEClassesMetadata(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Set<EClass> eClasses) throws EMFExportException {
+	private void populateMatricesWithEClassesMetadata(
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap) throws EMFExportException {
 
-		for (EClass eClass : eClasses) {
+		for (EClass eClass : this.eObjectsClasses) {
 			String eClassMetadataMatrixName = constructEClassMetadataMatrixName(eClass);
 
-			if (mapOfMatrices.containsKey(eClassMetadataMatrixName)) {
-				Table<Integer, Character, Object> matrix = mapOfMatrices.get(eClassMetadataMatrixName);
+			if (matrixNameToMatrixMap.containsKey(eClassMetadataMatrixName)) {
+				Table<Integer, Integer, Object> matrix = matrixNameToMatrixMap.get(eClassMetadataMatrixName);
 
 				populateMatrixWithEClassMetadata(matrix, eClass);
 
@@ -1085,14 +1147,14 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void populateMatricesWithEEnumsMetadata(Map<String, Table<Integer, Character, Object>> mapOfMatrices,
-			Set<EEnum> eEnums) throws EMFExportException {
+	private void populateMatricesWithEEnumsMetadata(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap)
+			throws EMFExportException {
 
-		for (EEnum eEnum : eEnums) {
+		for (EEnum eEnum : this.eObjectsEnums) {
 			String eEnumMetadataMatrixName = constructEEnumMetadataMatrixName(eEnum);
 
-			if (mapOfMatrices.containsKey(eEnumMetadataMatrixName)) {
-				Table<Integer, Character, Object> matrix = mapOfMatrices.get(eEnumMetadataMatrixName);
+			if (matrixNameToMatrixMap.containsKey(eEnumMetadataMatrixName)) {
+				Table<Integer, Integer, Object> matrix = matrixNameToMatrixMap.get(eEnumMetadataMatrixName);
 
 				populateMatrixWithEEnumMetadata(matrix, eEnum);
 
@@ -1102,42 +1164,42 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void maybeSetEClassMetadataDocumentation(Table<Integer, Character, Object> matrix, EClass eClass) {
+	private void maybeSetEClassMetadataDocumentation(Table<Integer, Integer, Object> matrix, EClass eClass) {
 		EAnnotation genModelAnnotation = eClass.getEAnnotation(DOCUMENTATION_GENMODEL_SOURCE);
 		if (genModelAnnotation != null) {
 			setTypeLevelMetadataDocumentation(matrix, genModelAnnotation);
 		}
 	}
 
-	private void maybeSetEEnumMetadataDocumentation(Table<Integer, Character, Object> matrix, EEnum eEnum) {
+	private void maybeSetEEnumMetadataDocumentation(Table<Integer, Integer, Object> matrix, EEnum eEnum) {
 		EAnnotation genModelAnnotation = eEnum.getEAnnotation(DOCUMENTATION_GENMODEL_SOURCE);
 		if (genModelAnnotation != null) {
 			setTypeLevelMetadataDocumentation(matrix, genModelAnnotation);
 		}
 	}
 
-	private void setTypeLevelMetadataDocumentation(Table<Integer, Character, Object> matrix,
+	private void setTypeLevelMetadataDocumentation(Table<Integer, Integer, Object> matrix,
 			EAnnotation genModelAnnotation) {
 		Map<String, String> genModelAnnotationDetails = genModelAnnotation.getDetails().map();
 
 		if (genModelAnnotationDetails.containsKey(DOCUMENTATION_GENMODEL_DETAILS)) {
 
-			matrix.put(Integer.valueOf(1), getMatrixColumnName(0), METADATA_DOCUMENTATION_HEADER);
+			matrix.put(getMatrixRowKey(1), getMatrixColumnKey(0), METADATA_DOCUMENTATION_HEADER);
 
-			matrix.put(Integer.valueOf(1), getMatrixColumnName(1),
+			matrix.put(getMatrixRowKey(1), getMatrixColumnKey(1),
 					genModelAnnotationDetails.get(DOCUMENTATION_GENMODEL_DETAILS));
 		}
 	}
 
-	private void constructEClassMetadataMatrixColumnHeaders(Table<Integer, Character, Object> matrix) {
+	private void constructEClassMetadataMatrixColumnHeaders(Table<Integer, Integer, Object> matrix) {
 		constructMetadataMatrixColumnHeaders(matrix, METADATA_ECLASS_MATRIX_COLUMNS_HEADERS);
 	}
 
-	private void constructEEnumMetadataMatrixColumnHeaders(Table<Integer, Character, Object> matrix) {
+	private void constructEEnumMetadataMatrixColumnHeaders(Table<Integer, Integer, Object> matrix) {
 		constructMetadataMatrixColumnHeaders(matrix, METADATA_EENUM_MATRIX_COLUMNS_HEADERS);
 	}
 
-	private void constructMetadataMatrixColumnHeaders(Table<Integer, Character, Object> matrix, List<String> headers) {
+	private void constructMetadataMatrixColumnHeaders(Table<Integer, Integer, Object> matrix, List<String> headers) {
 		int columnsCount = headers.size();
 
 		int rowsCount = matrix.rowKeySet().size();
@@ -1145,23 +1207,23 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		int rowIndex = (rowsCount + 1);
 
 		for (int colIndex = 0; colIndex < columnsCount; colIndex++) {
-			matrix.put(Integer.valueOf(rowIndex), getMatrixColumnName(colIndex), headers.get(colIndex));
+			matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex), headers.get(colIndex));
 		}
 	}
 
-	private void populateMatrixWithEClassMetadata(Table<Integer, Character, Object> matrix, EClass eClass) {
+	private void populateMatrixWithEClassMetadata(Table<Integer, Integer, Object> matrix, EClass eClass) {
 		eClass.getEAllStructuralFeatures().forEach(eStructuralFeature -> {
 			populateEClassMetadataMatrixRowWithData(matrix, eStructuralFeature);
 		});
 	}
 
-	private void populateMatrixWithEEnumMetadata(Table<Integer, Character, Object> matrix, EEnum eEnum) {
+	private void populateMatrixWithEEnumMetadata(Table<Integer, Integer, Object> matrix, EEnum eEnum) {
 		eEnum.getELiterals().forEach(eEnumLiteral -> {
 			populateEEnumMetadataMatrixRowWithData(matrix, eEnumLiteral);
 		});
 	}
 
-	private void populateEClassMetadataMatrixRowWithData(Table<Integer, Character, Object> matrix,
+	private void populateEClassMetadataMatrixRowWithData(Table<Integer, Integer, Object> matrix,
 			EStructuralFeature eStructuralFeature) {
 
 		int columnsCount = matrix.columnKeySet().size();
@@ -1175,7 +1237,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void populateEEnumMetadataMatrixRowWithData(Table<Integer, Character, Object> matrix,
+	private void populateEEnumMetadataMatrixRowWithData(Table<Integer, Integer, Object> matrix,
 			EEnumLiteral eEnumLiteral) {
 
 		int columnsCount = matrix.columnKeySet().size();
@@ -1189,8 +1251,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void populateEClassMetadataCellWithData(Table<Integer, Character, Object> matrix, int rowIndex,
-			int colIndex, EStructuralFeature eStructuralFeature) {
+	private void populateEClassMetadataCellWithData(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
+			EStructuralFeature eStructuralFeature) {
 		switch (colIndex) {
 		case 0: // Name
 			setEClassMetadataNameValueCell(matrix, rowIndex, colIndex, eStructuralFeature);
@@ -1213,7 +1275,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void populateEEnumMetadataCellWithData(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
+	private void populateEEnumMetadataCellWithData(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			EEnumLiteral eEnumLiteral) {
 		switch (colIndex) {
 		case 0: // Name
@@ -1231,12 +1293,12 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void setEClassMetadataNameValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
+	private void setEClassMetadataNameValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			EStructuralFeature eStructuralFeature) {
 		setStringValueCell(matrix, rowIndex, colIndex, eStructuralFeature.getName());
 	}
 
-	private void setEClassMetadataTypeValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
+	private void setEClassMetadataTypeValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			EStructuralFeature eStructuralFeature) {
 		if (eStructuralFeature instanceof EAttribute) {
 			EAttribute eAttribute = (EAttribute) eStructuralFeature;
@@ -1271,17 +1333,17 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		return eAttributeType.getEPackage().getName().equalsIgnoreCase(ECORE_PACKAGE_NAME);
 	}
 
-	private void setEClassMetadataIsManyValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
+	private void setEClassMetadataIsManyValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			EStructuralFeature eStructuralFeature) {
 		setBooleanValueCell(matrix, rowIndex, colIndex, eStructuralFeature.isMany());
 	}
 
-	private void setEClassMetadataIsRequiredValueCell(Table<Integer, Character, Object> matrix, int rowIndex,
+	private void setEClassMetadataIsRequiredValueCell(Table<Integer, Integer, Object> matrix, int rowIndex,
 			int colIndex, EStructuralFeature eStructuralFeature) {
 		setBooleanValueCell(matrix, rowIndex, colIndex, eStructuralFeature.isRequired());
 	}
 
-	private void setEClassMetadataDefaultValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
+	private void setEClassMetadataDefaultValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			EStructuralFeature eStructuralFeature) {
 		if (eStructuralFeature instanceof EAttribute) {
 			EAttribute eAttribute = (EAttribute) eStructuralFeature;
@@ -1296,36 +1358,36 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		setVoidValueCell(matrix, rowIndex, colIndex);
 	}
 
-	private void setEStructuralFeatureMetadataDocumentationValueCell(Table<Integer, Character, Object> matrix,
+	private void setEStructuralFeatureMetadataDocumentationValueCell(Table<Integer, Integer, Object> matrix,
 			int rowIndex, int colIndex, EStructuralFeature eStructuralFeature) {
 		EAnnotation genModelAnnotation = eStructuralFeature.getEAnnotation(DOCUMENTATION_GENMODEL_SOURCE);
 
 		setMetadataDocumentationValueCell(matrix, rowIndex, colIndex, genModelAnnotation);
 	}
 
-	private void setEEnumMetadataNameValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
+	private void setEEnumMetadataNameValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			EEnumLiteral eEnumLiteral) {
 		setStringValueCell(matrix, rowIndex, colIndex, eEnumLiteral.getName());
 	}
 
-	private void setEEnumMetadataLiteralValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
+	private void setEEnumMetadataLiteralValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			EEnumLiteral eEnumLiteral) {
 		setStringValueCell(matrix, rowIndex, colIndex, eEnumLiteral.getLiteral());
 	}
 
-	private void setEEnumMetadataValueValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
+	private void setEEnumMetadataValueValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			EEnumLiteral eEnumLiteral) {
 		setNumberValueCell(matrix, rowIndex, colIndex, eEnumLiteral.getValue());
 	}
 
-	private void setEEnumLiteralMetadataDocumentationValueCell(Table<Integer, Character, Object> matrix, int rowIndex,
+	private void setEEnumLiteralMetadataDocumentationValueCell(Table<Integer, Integer, Object> matrix, int rowIndex,
 			int colIndex, EEnumLiteral eEnumLiteral) {
 		EAnnotation genModelAnnotation = eEnumLiteral.getEAnnotation(DOCUMENTATION_GENMODEL_SOURCE);
 
 		setMetadataDocumentationValueCell(matrix, rowIndex, colIndex, genModelAnnotation);
 	}
 
-	private void setMetadataDocumentationValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
+	private void setMetadataDocumentationValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			EAnnotation genModelAnnotation) {
 		if (genModelAnnotation != null) {
 			Map<String, String> genModelAnnotationDetails = genModelAnnotation.getDetails().map();
@@ -1339,25 +1401,44 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void setMetadataDocumentationValueCell(Table<Integer, Character, Object> matrix, int rowIndex, int colIndex,
+	private void setMetadataDocumentationValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			String documentation) {
 		setStringValueCell(matrix, rowIndex, colIndex, documentation);
 	}
 
-	private void generatePseudoIDs(List<EObject> eObjects, Map<String, String> eObjectsPseudoIDs) {
+	private boolean skipFeature(EObject eObject, EStructuralFeature eStructuralFeature) {
+		if ((eStructuralFeature.getName()).equalsIgnoreCase(ID_ATTRIBUTE_NAME) || eStructuralFeature.isTransient()) {
+			return true;
+
+		} else {
+
+			if (eStructuralFeature instanceof EAttribute) {
+				EAttribute eAttribute = (EAttribute) eStructuralFeature;
+
+				Object value = eObject.eGet(eAttribute);
+
+				if ((value != null) && (value instanceof byte[])) {
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}
+
+	private void generatePseudoIDs(List<? extends EObject> eObjects) {
 		resetStopwatch();
 
 		logger.info("Starting generation of pseudo IDs");
 
 		final Set<String> processedEObjectsIdentifiers = new HashSet<String>();
 
-		generatePseudoIDs(eObjects, processedEObjectsIdentifiers, eObjectsPseudoIDs);
+		generatePseudoIDs(eObjects, processedEObjectsIdentifiers);
 
 		logger.info("Finished generation of pseudo IDs in {} second(s)", elapsedTimeInSeconds());
 	}
 
-	private void generatePseudoIDs(List<EObject> eObjects, Set<String> processedEObjectsIdentifiers,
-			Map<String, String> eObjectsPseudoIDs) {
+	private void generatePseudoIDs(List<? extends EObject> eObjects, Set<String> processedEObjectsIdentifiers) {
 		for (EObject eObject : eObjects) {
 			if (isProcessed(processedEObjectsIdentifiers, eObject)) {
 				continue;
@@ -1365,32 +1446,31 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 			processedEObjectsIdentifiers.add(getEObjectIdentifier(eObject));
 
-			generatePseudoID(eObject, eObjectsPseudoIDs);
+			generatePseudoID(eObject);
 
 			eObject.eClass().getEAllReferences().stream().forEach(eReference -> {
-				generatePseudoID(eObject, eReference, processedEObjectsIdentifiers, eObjectsPseudoIDs);
+				generatePseudoID(eObject, eReference, processedEObjectsIdentifiers);
 			});
 		}
 	}
 
 	@SuppressWarnings("unchecked")
-	private void generatePseudoID(EObject eObject, EReference eReference, Set<String> processedEObjectsIdentifiers,
-			Map<String, String> eObjectsPseudoIDs) {
+	private void generatePseudoID(EObject eObject, EReference eReference, Set<String> processedEObjectsIdentifiers) {
 		Object value = eObject.eGet(eReference);
 		if (value != null) {
 			if (!eReference.isMany() && value instanceof EObject) {
-				generatePseudoID((EObject) value, eObjectsPseudoIDs);
+				generatePseudoID((EObject) value);
 			} else if (eReference.isMany()) {
-				generatePseudoIDs((List<EObject>) value, processedEObjectsIdentifiers, eObjectsPseudoIDs);
+				generatePseudoIDs((List<EObject>) value, processedEObjectsIdentifiers);
 			}
 		}
 	}
 
-	private void generatePseudoID(EObject eObject, Map<String, String> eObjectsPseudoIDs) {
-		if (!hasIDOrPseudoID(eObject, eObjectsPseudoIDs)) {
+	private void generatePseudoID(EObject eObject) {
+		if (!hasIDOrPseudoID(eObject)) {
 			logger.debug("Generating pseudo ID for EObject ID '{}' named '{}'", getEObjectIdentifier(eObject),
 					eObject.eClass().getName());
-			eObjectsPseudoIDs.put(getEObjectIdentifier(eObject), UUID.randomUUID().toString());
+			this.eObjectUniqueIdentifierToPseudoIDMap.put(getEObjectIdentifier(eObject), UUID.randomUUID().toString());
 		}
 	}
 
@@ -1398,8 +1478,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		return EcoreUtil.getIdentification(eObject);
 	}
 
-	protected boolean hasIDOrPseudoID(EObject eObject, Map<String, String> eObjectsPseudoIDs) {
-		return (hasID(eObject) || hasPseudoID(eObject, eObjectsPseudoIDs));
+	protected boolean hasIDOrPseudoID(EObject eObject) {
+		return (hasID(eObject) || hasPseudoID(eObject));
 	}
 
 	protected boolean hasID(EObject eObject) {
@@ -1422,21 +1502,36 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		return null;
 	}
 
-	protected boolean hasPseudoID(EObject eObject, Map<String, String> eObjectsPseudoIDs) {
-		return (eObjectsPseudoIDs.containsKey(getEObjectIdentifier(eObject)));
+	protected boolean hasPseudoID(EObject eObject) {
+		return (this.eObjectUniqueIdentifierToPseudoIDMap.containsKey(getEObjectIdentifier(eObject)));
 	}
 
-	protected String getPseudoID(EObject eObject, Map<String, String> eObjectsPseudoIDs) {
-		return eObjectsPseudoIDs.get(getEObjectIdentifier(eObject));
+	protected String getPseudoID(EObject eObject) {
+		return this.eObjectUniqueIdentifierToPseudoIDMap.get(getEObjectIdentifier(eObject));
 	}
 
-	protected String getIDOrPseudoID(EObject eObject, Map<String, String> eObjectsPseudoIDs) {
+	protected String getIDOrPseudoID(EObject eObject) {
 		String id = getID(eObject);
 		if (id != null) {
 			return id;
 		}
 
-		return getPseudoID(eObject, eObjectsPseudoIDs);
+		return getPseudoID(eObject);
+	}
+
+	// this provides no additional value - URI is either empty or contains ID anyway
+	// (i.e. ID is already presented in REF columns)
+	@SuppressWarnings("unused")
+	private void getUri(EObject eObject) {
+		org.eclipse.emf.common.util.URI uri = EcoreUtil.getURI(eObject);
+
+		String fileString = uri.toFileString();
+
+		String platformStringDecoded = uri.toPlatformString(true);
+
+		String platformStringUndecoded = uri.toPlatformString(false);
+
+		String simpleToString = uri.toString();
 	}
 
 	private String constructMatrixColumnHeaderName(EStructuralFeature eStructuralFeature) {
@@ -1448,9 +1543,12 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		return sb.toString();
 	}
 
-	// TODO: handle cases where there are more than 26 columns
-	protected Character getMatrixColumnName(int colIndex) {
-		return Character.valueOf(MATRIX_COLUMNS_HEADERS[colIndex]);
+	protected Integer getMatrixRowKey(int rowIndex) {
+		return Integer.valueOf(rowIndex);
+	}
+
+	protected Integer getMatrixColumnKey(int colIndex) {
+		return Integer.valueOf(colIndex);
 	}
 
 	private String constructEClassMatrixName(EClass eClass) {
@@ -1518,10 +1616,10 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		return ((EEnum) ((EAttribute) eStructuralFeature).getEAttributeType());
 	}
 
-	protected Map<String, Table<Integer, Character, Object>> eObjectMatricesOnly(
-			Map<String, Table<Integer, Character, Object>> mapOfMatrices) {
+	protected Map<String, Table<Integer, Integer, Object>> eObjectMatricesOnly(
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap) {
 		// @formatter:off
-		return mapOfMatrices.entrySet().stream()
+		return matrixNameToMatrixMap.entrySet().stream()
 				.filter(entry -> (!isMetadataMatrix(entry.getKey()) && !isMappingMatrix(entry.getKey())))
 				.sorted(Map.Entry.comparingByKey())
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
@@ -1529,10 +1627,10 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		// @formatter:on
 	}
 
-	protected Map<String, Table<Integer, Character, Object>> metadataMatricesOnly(
-			Map<String, Table<Integer, Character, Object>> mapOfMatrices) {
+	protected Map<String, Table<Integer, Integer, Object>> metadataMatricesOnly(
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap) {
 		// @formatter:off
-		return mapOfMatrices.entrySet().stream()
+		return matrixNameToMatrixMap.entrySet().stream()
 				.filter(entry -> isMetadataMatrix(entry.getKey()))
 				.sorted(Map.Entry.comparingByKey())
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
@@ -1540,10 +1638,10 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		// @formatter:on
 	}
 
-	protected Map<String, Table<Integer, Character, Object>> mappingMatricesOnly(
-			Map<String, Table<Integer, Character, Object>> mapOfMatrices) {
+	protected Map<String, Table<Integer, Integer, Object>> mappingMatricesOnly(
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap) {
 		// @formatter:off
-		return mapOfMatrices.entrySet().stream()
+		return matrixNameToMatrixMap.entrySet().stream()
 				.filter(entry -> isMappingMatrix(entry.getKey()))
 				.sorted(Map.Entry.comparingByKey())
 				.collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
@@ -1563,12 +1661,38 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		return eObjectsIdentifiers.contains(getEObjectIdentifier(eObject));
 	}
 
+	protected void validateMatricesColumnsSize(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap)
+			throws EMFExportException {
+		for (String matrixName : matrixNameToMatrixMap.keySet()) {
+			validateMatrixColumnsSize(matrixNameToMatrixMap.get(matrixName), matrixName);
+		}
+	}
+
+	protected void validateMatrixColumnsSize(Table<Integer, Integer, Object> matrix, String matrixName)
+			throws EMFExportException {
+
+		if (!matrix.isEmpty()) {
+			int columnsCount = matrix.columnKeySet().size();
+
+			if (columnsCount > MAX_COLUMNS) {
+				throw new EMFExportException(String.format(
+						"Number of columns %d in matrix named '%s' exceeds maximum number of columns (%d) allowed!",
+						columnsCount, matrixName, MAX_COLUMNS));
+			}
+		}
+	}
+
 	protected Map<Object, Object> validateExportOptions(Map<?, ?> options) throws EMFExportException {
 		if (options == null) {
 			throw new EMFExportException("Please specify export options!");
 		}
 
 		Map<Object, Object> exportOptions = Map.copyOf(options);
+
+		if (!exportNonContainmentEnabled(exportOptions) && addMappingTableEnabled(exportOptions)) {
+			throw new EMFExportException(
+					"Incompatible combination of export options: 'export non-containment references' option cannot be turned off if 'generate mapping table' option is turned on!");
+		}
 
 		return exportOptions;
 	}
@@ -1578,15 +1702,15 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	}
 
 	protected boolean exportNonContainmentEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, Boolean.FALSE));
+		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, Boolean.TRUE));
 	}
 
 	protected boolean exportMetadataEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_EXPORT_METADATA, Boolean.FALSE));
+		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_EXPORT_METADATA, Boolean.TRUE));
 	}
 
 	protected boolean addMappingTableEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_ADD_MAPPING_TABLE, Boolean.FALSE));
+		return ((boolean) exportOptions.getOrDefault(EMFExportOptions.OPTION_ADD_MAPPING_TABLE, Boolean.TRUE));
 	}
 
 	protected void resetStopwatch() {
@@ -1595,5 +1719,13 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 	protected double elapsedTimeInSeconds() {
 		return (double) this.stopwatch.elapsed().toNanos() / 1000000000.0;
+	}
+
+	protected void resetState() {
+		this.eObjectIDToMatrixNameMap.clear();
+		this.eObjectUniqueIdentifierToPseudoIDMap.clear();
+		this.eObjectsClasses.clear();
+		this.eObjectsEnums.clear();
+		this.refMatrixRowKeyIndex.clear();
 	}
 }
