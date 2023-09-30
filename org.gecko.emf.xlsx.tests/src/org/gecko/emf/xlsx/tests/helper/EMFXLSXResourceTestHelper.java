@@ -22,13 +22,13 @@ import org.apache.commons.text.RandomStringGenerator;
 import org.gecko.emf.osgi.example.model.basic.Address;
 import org.gecko.emf.osgi.example.model.basic.BasicFactory;
 import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
+import org.gecko.emf.osgi.example.model.basic.Contact;
 import org.gecko.emf.osgi.example.model.basic.ContactContextType;
 import org.gecko.emf.osgi.example.model.basic.ContactType;
 import org.gecko.emf.osgi.example.model.basic.EmployeeInfo;
 import org.gecko.emf.osgi.example.model.basic.Family;
 import org.gecko.emf.osgi.example.model.basic.GenderType;
 import org.gecko.emf.osgi.example.model.basic.Person;
-import org.gecko.emf.osgi.example.model.basic.PersonContact;
 import org.gecko.emf.osgi.example.model.basic.Tag;
 
 /**
@@ -106,12 +106,12 @@ public class EMFXLSXResourceTestHelper {
 	private static Person createHomerSimpson(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Homer", "Simpson", GenderType.MALE, address);
 
-		p.getContact().add(createHomePhonePersonContact(bf, p));
-		p.getContact().add(createHomeMobilePersonContact(bf, p));
-		p.getContact().add(createHomeWhatsAppPersonContact(bf, p));
-		p.getContact().add(createHomeEmailPersonContact(bf, p));
-		p.getContact().add(createHomeSkypePersonContact(bf, p));
-		p.getContact().add(createHomeWebAddressPersonContact(bf, p));
+		p.getContact().add(createHomePhoneContact(bf, p));
+		p.getContact().add(createHomeMobileContact(bf, p));
+		p.getContact().add(createHomeWhatsAppContact(bf, p));
+		p.getContact().add(createHomeEmailContact(bf, p));
+		p.getContact().add(createHomeSkypeContact(bf, p));
+		p.getContact().add(createHomeWebAddressContact(bf, p));
 
 		return p;
 	}
@@ -119,12 +119,12 @@ public class EMFXLSXResourceTestHelper {
 	private static Person createMargeSimpson(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Marge", "Simpson", GenderType.FEMALE, address);
 
-		p.getContact().add(createHomePhonePersonContact(bf, p));
-		p.getContact().add(createHomeMobilePersonContact(bf, p));
-		p.getContact().add(createHomeWhatsAppPersonContact(bf, p));
-		p.getContact().add(createHomeEmailPersonContact(bf, p));
-		p.getContact().add(createHomeSkypePersonContact(bf, p));
-		p.getContact().add(createHomeWebAddressPersonContact(bf, p));
+		p.getContact().add(createHomePhoneContact(bf, p));
+		p.getContact().add(createHomeMobileContact(bf, p));
+		p.getContact().add(createHomeWhatsAppContact(bf, p));
+		p.getContact().add(createHomeEmailContact(bf, p));
+		p.getContact().add(createHomeSkypeContact(bf, p));
+		p.getContact().add(createHomeWebAddressContact(bf, p));
 
 		return p;
 	}
@@ -203,12 +203,12 @@ public class EMFXLSXResourceTestHelper {
 	private static Person createFredFlintstone(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Fred", "Flintstone", GenderType.MALE, address);
 
-		p.getContact().add(createHomePhonePersonContact(bf, p));
-		p.getContact().add(createHomeMobilePersonContact(bf, p));
-		p.getContact().add(createHomeWhatsAppPersonContact(bf, p));
-		p.getContact().add(createHomeEmailPersonContact(bf, p));
-		p.getContact().add(createHomeSkypePersonContact(bf, p));
-		p.getContact().add(createHomeWebAddressPersonContact(bf, p));
+		p.getContact().add(createHomePhoneContact(bf, p));
+		p.getContact().add(createHomeMobileContact(bf, p));
+		p.getContact().add(createHomeWhatsAppContact(bf, p));
+		p.getContact().add(createHomeEmailContact(bf, p));
+		p.getContact().add(createHomeSkypeContact(bf, p));
+		p.getContact().add(createHomeWebAddressContact(bf, p));
 
 		return p;
 	}
@@ -216,12 +216,12 @@ public class EMFXLSXResourceTestHelper {
 	private static Person createWilmaFlintstone(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Wilma", "Flintstone", GenderType.FEMALE, address);
 
-		p.getContact().add(createHomePhonePersonContact(bf, p));
-		p.getContact().add(createHomeMobilePersonContact(bf, p));
-		p.getContact().add(createHomeWhatsAppPersonContact(bf, p));
-		p.getContact().add(createHomeEmailPersonContact(bf, p));
-		p.getContact().add(createHomeSkypePersonContact(bf, p));
-		p.getContact().add(createHomeWebAddressPersonContact(bf, p));
+		p.getContact().add(createHomePhoneContact(bf, p));
+		p.getContact().add(createHomeMobileContact(bf, p));
+		p.getContact().add(createHomeWhatsAppContact(bf, p));
+		p.getContact().add(createHomeEmailContact(bf, p));
+		p.getContact().add(createHomeSkypeContact(bf, p));
+		p.getContact().add(createHomeWebAddressContact(bf, p));
 
 		return p;
 	}
@@ -280,42 +280,40 @@ public class EMFXLSXResourceTestHelper {
 		return a;
 	}
 
-	private static PersonContact createHomePhonePersonContact(BasicFactory bf, Person p) {
-		return createPersonContact(bf, ContactType.PHONE, ContactContextType.HOME, UUID.randomUUID().toString(), p);
+	private static Contact createHomePhoneContact(BasicFactory bf, Person p) {
+		return createContact(bf, ContactType.PHONE, ContactContextType.HOME, UUID.randomUUID().toString(), p);
 	}
 
-	private static PersonContact createHomeMobilePersonContact(BasicFactory bf, Person p) {
-		return createPersonContact(bf, ContactType.MOBILE, ContactContextType.HOME, UUID.randomUUID().toString(), p);
+	private static Contact createHomeMobileContact(BasicFactory bf, Person p) {
+		return createContact(bf, ContactType.MOBILE, ContactContextType.HOME, UUID.randomUUID().toString(), p);
 	}
 
-	private static PersonContact createHomeWhatsAppPersonContact(BasicFactory bf, Person p) {
-		return createPersonContact(bf, ContactType.WHATSAPP, ContactContextType.HOME, UUID.randomUUID().toString(), p);
+	private static Contact createHomeWhatsAppContact(BasicFactory bf, Person p) {
+		return createContact(bf, ContactType.WHATSAPP, ContactContextType.HOME, UUID.randomUUID().toString(), p);
 	}
 
-	private static PersonContact createHomeEmailPersonContact(BasicFactory bf, Person p) {
-		return createPersonContact(bf, ContactType.EMAIL, ContactContextType.HOME, UUID.randomUUID().toString(), p);
+	private static Contact createHomeEmailContact(BasicFactory bf, Person p) {
+		return createContact(bf, ContactType.EMAIL, ContactContextType.HOME, UUID.randomUUID().toString(), p);
 	}
 
-	private static PersonContact createHomeSkypePersonContact(BasicFactory bf, Person p) {
-		return createPersonContact(bf, ContactType.SKYPE, ContactContextType.HOME, UUID.randomUUID().toString(), p);
+	private static Contact createHomeSkypeContact(BasicFactory bf, Person p) {
+		return createContact(bf, ContactType.SKYPE, ContactContextType.HOME, UUID.randomUUID().toString(), p);
 	}
 
-	private static PersonContact createHomeWebAddressPersonContact(BasicFactory bf, Person p) {
-		return createPersonContact(bf, ContactType.WEBADDRESS, ContactContextType.HOME, UUID.randomUUID().toString(),
+	private static Contact createHomeWebAddressContact(BasicFactory bf, Person p) {
+		return createContact(bf, ContactType.WEBADDRESS, ContactContextType.HOME, UUID.randomUUID().toString(),
 				p);
 	}
 
-	private static PersonContact createPersonContact(BasicFactory bf, ContactType type, ContactContextType context,
+	private static Contact createContact(BasicFactory bf, ContactType type, ContactContextType context,
 			String value, Person p) {
-		PersonContact pc = bf.createPersonContact();
+		Contact c = bf.createContact();
 
-		pc.setContext(context);
-		pc.setType(type);
-		pc.setValue(value);
+		c.setContext(context);
+		c.setType(type);
+		c.setValue(value);
 
-		pc.setContactPerson(p);
-
-		return pc;
+		return c;
 	}
 
 	private static Tag createMultiLevelTag(BasicFactory bf, String namePrefix) {

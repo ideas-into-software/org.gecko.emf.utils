@@ -21,10 +21,10 @@ import org.gecko.emf.exporter.EMFExportOptions;
 public interface EMFODSExportOptions extends EMFExportOptions {
 
 	// automatically adjust column width based on contents
-	String OPTION_ADJUST_COLUMN_WIDTH = "ADJUST_COLUMN_WIDTH"; // TODO: extract to org.gecko.emf.exporter.ods.EMFODSExportOptions
+	String OPTION_ADJUST_COLUMN_WIDTH = "ADJUST_COLUMN_WIDTH";
 
 	// generate links for references
-	String OPTION_GENERATE_LINKS = "GENERATE_LINKS"; // TODO: extract to org.gecko.emf.exporter.ods.EMFODSExportOptions
+	String OPTION_GENERATE_LINKS = "GENERATE_LINKS";
 
 	// TODO: freezing rows is currently not supported in SODS
 	// freeze header row

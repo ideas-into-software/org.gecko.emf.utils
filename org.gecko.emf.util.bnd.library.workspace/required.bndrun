@@ -9,10 +9,15 @@
 	bnd.identity;id='org.gecko.emf.json',\
 	bnd.identity;id='org.gecko.emf.pushstreams',\
 	bnd.identity;id='org.gecko.emf.util.model',\
+	bnd.identity;id='org.gecko.emf.exporter.ods.api',\
 	bnd.identity;id='org.gecko.emf.ods',\
 	bnd.identity;id='org.gecko.emf.exporter.ods',\
+	bnd.identity;id='org.gecko.emf.exporter.csv.api',\
 	bnd.identity;id='org.gecko.emf.csv',\
-	bnd.identity;id='org.gecko.emf.exporter.csv'
+	bnd.identity;id='org.gecko.emf.exporter.csv',\
+	bnd.identity;id='org.gecko.emf.exporter.xlsx.api',\
+	bnd.identity;id='org.gecko.emf.xlsx',\
+	bnd.identity;id='org.gecko.emf.exporter.xlsx'
 
 -runblacklist: \
 	bnd.identity;id='ch.qos.logback.classic',\
@@ -47,8 +52,6 @@
 	org.gecko.emf.exporter;version=snapshot,\
 	org.gecko.emf.exporter.ods;version=snapshot,\
 	org.gecko.emf.ods;version=snapshot,\
-	org.apache.commons.commons-text;version='[1.10.0,1.10.1)',\
-	org.apache.commons.lang3;version='[3.12.0,3.12.1)',\
 	org.yaml.snakeyaml;version='[1.33.0,1.33.1)',\
 	com.fasterxml.jackson.datatype.jackson-datatype-jsr310;version='[2.14.1,2.14.2)',\
 	com.github.miachm.sods;version='[1.6.2,1.6.3)',\
@@ -62,4 +65,9 @@
 	org.gecko.emf.exporter.csv;version=snapshot,\
 	org.gecko.emf.exporter.csv.api;version=snapshot,\
 	org.apache.commons.commons-compress;version='[1.21.0,1.21.1)',\
-	org.apache.servicemix.bundles.poi;version='[5.2.2,5.2.3)'
+	org.apache.servicemix.bundles.poi;version='[5.2.2,5.2.3)',\
+	org.gecko.emf.exporter.xlsx;version=snapshot,\
+	org.gecko.emf.xlsx;version=snapshot,\
+	org.gecko.emf.exporter.ods.api;version=snapshot,\
+	org.gecko.emf.exporter.xlsx.api;version=snapshot,\
+	org.osgi.service.component;version='[1.4.0,1.4.1)'

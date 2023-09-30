@@ -21,25 +21,43 @@ import java.util.Objects;
  * @author Michal H. Siemaszko
  */
 public class EMFExportEObjectManyReferencesValueCell extends AbstractEMFExportEObjectReferenceValueCell implements EMFExportEObjectReferenceValueCell {
-	private final List<String> values;
+	private final List<String> refIDs;
+	private final List<String> refURIs;
 
-	public EMFExportEObjectManyReferencesValueCell(String refMatrixName, List<String> values) {
+	public EMFExportEObjectManyReferencesValueCell(String refMatrixName, List<String> refIDs, List<String> refURIs) {
 		super(refMatrixName);
 
-		this.values = values;
+		this.refIDs = refIDs;
+		this.refURIs = refURIs;
 	}
 
-	public List<String> getValues() {
-		return values;
+	public List<String> getRefIDs() {
+		return refIDs;
 	}
 
-	public boolean hasValues() {
-		return (values != null) && !values.isEmpty();
+	public boolean hasRefIDs() {
+		return (refIDs != null) && !refIDs.isEmpty();
 	}
 
-	public int getValuesCount() {
-		if (hasValues()) {
-			return values.size();
+	public int getRefIDsCount() {
+		if (hasRefIDs()) {
+			return refIDs.size();
+		} else {
+			return 0;
+		}
+	}
+
+	public List<String> getURIs() {
+		return refURIs;
+	}
+
+	public boolean hasURIs() {
+		return (refURIs != null) && !refURIs.isEmpty();
+	}
+
+	public int getURIsCount() {
+		if (hasURIs()) {
+			return refURIs.size();
 		} else {
 			return 0;
 		}
@@ -53,7 +71,7 @@ public class EMFExportEObjectManyReferencesValueCell extends AbstractEMFExportEO
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(refMatrixName, values);
+		result = prime * result + Objects.hash(refMatrixName, refURIs, refIDs);
 		return result;
 	}
 
@@ -70,7 +88,8 @@ public class EMFExportEObjectManyReferencesValueCell extends AbstractEMFExportEO
 		if (getClass() != obj.getClass())
 			return false;
 		EMFExportEObjectManyReferencesValueCell other = (EMFExportEObjectManyReferencesValueCell) obj;
-		return Objects.equals(refMatrixName, other.refMatrixName) && Objects.equals(values, other.values);
+		return Objects.equals(refMatrixName, other.refMatrixName) && Objects.equals(refURIs, other.refURIs)
+				&& Objects.equals(refIDs, other.refIDs);
 	}
 
 	/* 
@@ -79,17 +98,10 @@ public class EMFExportEObjectManyReferencesValueCell extends AbstractEMFExportEO
 	 */
 	@Override
 	public String toString() {
-		if (hasValues()) {
-			return Arrays.toString(values.toArray()); 
+		if (hasRefIDs()) {
+			return Arrays.toString(refIDs.toArray()); 
 		} else {
 			return null;
 		}
 	}
-//	public String toString() {
-//		if (hasValues()) {
-//			return Arrays.toString(values.toArray()); 
-//		} else {
-//			return "[]";
-//		}
-//	}
 }

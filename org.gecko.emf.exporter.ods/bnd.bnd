@@ -10,7 +10,6 @@ Bundle-Description: ODS (OpenDocument Spreadsheet) Exporter for EMF
 	com.google.guava,\
 	com.github.miachm.sods,\
 	org.apache.commons.commons-text;version='1.10',\
-	slf4j.api,\
-	org.apache.servicemix.bundles.poi
+	slf4j.api
 
 Private-Package: org.gecko.emf.exporter.ods.impl

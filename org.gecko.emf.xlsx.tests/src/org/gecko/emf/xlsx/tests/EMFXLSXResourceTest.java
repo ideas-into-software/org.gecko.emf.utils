@@ -28,7 +28,6 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gecko.emf.exporter.EMFExportOptions;
-import org.gecko.emf.exporter.xlsx.api.EMFXLSXExportOptions;
 import org.gecko.emf.osgi.example.model.basic.BasicFactory;
 import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
 import org.gecko.emf.osgi.example.model.basic.Family;
@@ -100,13 +99,14 @@ public class EMFXLSXResourceTest {
 		// @formatter:off
 		resource.save(fileOutputStream, 
 				Map.of(
-						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
-						EMFExportOptions.OPTION_EXPORT_METADATA, true,
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true,
-						EMFXLSXExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true,
-						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true,
-						EMFXLSXExportOptions.OPTION_FREEZE_HEADER_ROW, true
+						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+//						EMFXLSXExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
+//						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true, // defaults to true
+//						EMFXLSXExportOptions.OPTION_FREEZE_HEADER_ROW, true // defaults to true
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true						
 					));
 		// @formatter:on
 	}

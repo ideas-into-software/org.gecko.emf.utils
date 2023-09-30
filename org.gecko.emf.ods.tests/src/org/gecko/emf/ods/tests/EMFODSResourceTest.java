@@ -28,7 +28,6 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gecko.emf.exporter.EMFExportOptions;
-import org.gecko.emf.exporter.ods.api.EMFODSExportOptions;
 import org.gecko.emf.ods.configuration.EMFODSResource;
 import org.gecko.emf.osgi.example.model.basic.BasicFactory;
 import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
@@ -67,7 +66,7 @@ public class EMFODSResourceTest {
 	}	
 	
 	@Test
-	public void testSaveODS(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
+	public void testSaveResourceToOds(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
 			@InjectService(timeout = 2000) ServiceAware<BasicFactory> bfAware) throws Exception {
 
 		assertNotNull(rsAware);
@@ -80,7 +79,7 @@ public class EMFODSResourceTest {
 		BasicFactory factoryImpl = bfAware.getService();
 		assertNotNull(factoryImpl);
 
-		Resource resource = resourceSet.createResource(URI.createURI("basicPackageExporterTest.ods"));
+		Resource resource = resourceSet.createResource(URI.createURI("testSaveResourceToOds.ods"));
 		assertNotNull(resource);
 		assertTrue(resource instanceof EMFODSResource);
 
@@ -93,19 +92,20 @@ public class EMFODSResourceTest {
 		BusinessPerson businessPerson = createBusinessPerson(factoryImpl);
 		resource.getContents().add(businessPerson);
 
-		Path filePath = Files.createTempFile("testBasicPackageExport", ".ods");
+		Path filePath = Files.createTempFile("testSaveResourceToOds", ".ods");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
 
 		// @formatter:off
 		resource.save(fileOutputStream, 
 				Map.of(
-						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
-						EMFExportOptions.OPTION_EXPORT_METADATA, true,
-						EMFODSExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true,
-						EMFODSExportOptions.OPTION_GENERATE_LINKS, true,
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true
+						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+//						EMFODSExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
+//						EMFODSExportOptions.OPTION_GENERATE_LINKS, true // defaults to true
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true							
 					));
 		// @formatter:on
 	}

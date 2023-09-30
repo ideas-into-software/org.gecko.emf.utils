@@ -21,7 +21,8 @@ public interface EMFExportOptions {
 	// locale to use
 	String OPTION_LOCALE = "LOCALE";
 
-	// export non-containment references, in addition to containment references (exported by default)
+	// export non-containment references, in addition to containment references
+	// (exported by default)
 	String OPTION_EXPORT_NONCONTAINMENT = "EXPORT_NONCONTAINMENT";
 
 	// extract and export metadata as additional sheets
@@ -29,4 +30,7 @@ public interface EMFExportOptions {
 
 	// generate mapping table
 	String OPTION_ADD_MAPPING_TABLE = "ADD_MAPPING_TABLE";
+
+	// show URIs instead of IDs
+	String OPTION_SHOW_URIS = "SHOW_URIS";
 }

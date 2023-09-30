@@ -26,11 +26,11 @@ import java.util.Objects;
  */
 public class AbstractEMFExportEObjectReferenceValueCell implements EMFExportEObjectReferenceValueCell {
 	protected final String refMatrixName;
-	
+
 	public AbstractEMFExportEObjectReferenceValueCell(String refMatrixName) {
 		this.refMatrixName = refMatrixName;
 	}
-	
+
 	/* 
 	 * (non-Javadoc)
 	 * @see org.gecko.emf.exporter.EMFExportEObjectReferenceValueCell#getRefMatrixName()

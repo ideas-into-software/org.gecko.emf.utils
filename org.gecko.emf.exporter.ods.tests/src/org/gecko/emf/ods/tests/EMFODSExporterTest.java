@@ -12,6 +12,7 @@
 package org.gecko.emf.ods.tests;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.gecko.emf.ods.tests.helper.EMFODSExporterTestHelper.createBasicPackageResourceSet;
 import static org.gecko.emf.ods.tests.helper.EMFODSExporterTestHelper.createBusinessPerson;
 import static org.gecko.emf.ods.tests.helper.EMFODSExporterTestHelper.createFlintstonesFamily;
@@ -32,6 +33,7 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.gecko.emf.exporter.EMFExportException;
 import org.gecko.emf.exporter.EMFExportOptions;
 import org.gecko.emf.exporter.EMFExporter;
 import org.gecko.emf.exporter.ods.api.EMFODSExportOptions;
@@ -41,7 +43,6 @@ import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
 import org.gecko.emf.osgi.example.model.basic.Family;
 import org.gecko.emf.utilities.Request;
 import org.gecko.emf.utilities.UtilitiesFactory;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -69,7 +70,6 @@ public class EMFODSExporterTest {
 	
 	private static final String TREES_DATASET_XMI = System.getProperty("TREES_DATASET_XMI");
 
-	@Disabled
 	@Order(value = -1)
 	@Test
 	public void testServices(
@@ -79,10 +79,79 @@ public class EMFODSExporterTest {
 		ServiceReference<EMFExporter> emfOdsExporterReference = emfOdsExporterAware.getServiceReference();
 		assertThat(emfOdsExporterReference).isNotNull();
 	}
-
-	@Disabled
+	
 	@Test
-	public void testExportBasicPackageResourceToOds(
+	public void testExportUtilModelExportNonContainmentDisabledAddMappingTableEnabledException(
+			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFODSExporter)") ServiceAware<EMFExporter> emfOdsExporterAware)
+			throws Exception {
+
+		assertThat(emfOdsExporterAware.getServices()).hasSize(1);
+		EMFExporter emfOdsExporterService = emfOdsExporterAware.getService();
+		assertThat(emfOdsExporterService).isNotNull();
+
+		Request request1 = createRequest(UtilitiesFactory.eINSTANCE);
+		
+		Request request2 = createRequest(UtilitiesFactory.eINSTANCE);
+		
+		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);
+
+		Path filePath = Files.createTempFile("testExportUtilModelExportNonContainmentDisabledAddMappingTableEnabledException", ".ods");
+
+		OutputStream fileOutputStream = Files.newOutputStream(filePath);
+		
+		// incompatible combination of export options: 'export non-containment
+		// references' option cannot be turned off if 'generate mapping table' option is
+		// turned on!
+		assertThatExceptionOfType(EMFExportException.class).isThrownBy(() -> {
+			// @formatter:off
+			emfOdsExporterService.exportEObjectsTo(List.of(request1, request2, request3), fileOutputStream, 
+					Map.of(
+							EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
+							EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false // defaults to true
+//							EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+						)
+					);
+			// @formatter:on
+		});		
+	}	
+
+	@Test
+	public void testExportUtilModelExportNonContainmentDisabledGenerateLinksEnabledException(
+			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFODSExporter)") ServiceAware<EMFExporter> emfOdsExporterAware)
+			throws Exception {
+
+		assertThat(emfOdsExporterAware.getServices()).hasSize(1);
+		EMFExporter emfOdsExporterService = emfOdsExporterAware.getService();
+		assertThat(emfOdsExporterService).isNotNull();
+
+		Request request1 = createRequest(UtilitiesFactory.eINSTANCE);
+		
+		Request request2 = createRequest(UtilitiesFactory.eINSTANCE);
+		
+		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);
+
+		Path filePath = Files.createTempFile("testExportUtilModelExportNonContainmentDisabledGenerateLinksEnabledException", ".ods");
+
+		OutputStream fileOutputStream = Files.newOutputStream(filePath);
+		
+		// incompatible combination of export options: 'export non-containment
+		// references' option cannot be turned off if 'generate links for references'
+		// option is turned on!
+		assertThatExceptionOfType(EMFExportException.class).isThrownBy(() -> {
+			// @formatter:off
+			emfOdsExporterService.exportEObjectsTo(List.of(request1, request2, request3), fileOutputStream, 
+					Map.of(
+							EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
+							EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false // defaults to true
+//							EMFODSExportOptions.OPTION_GENERATE_LINKS, true // defaults to true
+						)
+					);
+			// @formatter:on
+		});		
+	}	
+	
+	@Test
+	public void testExportExampleModelBasicResourceToOdsExportNonContainmentEnabled(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFODSExporter)") ServiceAware<EMFExporter> emfOdsExporterAware,
 			@InjectService BasicFactory basicFactory, @InjectService BasicPackage basicPackage) throws Exception {
 
@@ -91,7 +160,7 @@ public class EMFODSExporterTest {
 		assertThat(emfOdsExporterService).isNotNull();
 
 		ResourceSet resourceSet = createBasicPackageResourceSet(basicPackage);
-		Resource xmiResource = resourceSet.createResource(URI.createURI("basicPackageExporter.test"));
+		Resource xmiResource = resourceSet.createResource(URI.createURI("testExportExampleModelBasicResourceToOdsExportNonContainmentEnabled.test"));
 		assertNotNull(xmiResource);
 
 		Family simpsonFamily = createSimpsonFamily(basicFactory);
@@ -103,7 +172,48 @@ public class EMFODSExporterTest {
 		BusinessPerson businessPerson = createBusinessPerson(basicFactory);
 		xmiResource.getContents().add(businessPerson);
 
-		Path filePath = Files.createTempFile("testBasicPackageExport", ".ods");
+		Path filePath = Files.createTempFile("testExportExampleModelBasicResourceToOdsExportNonContainmentEnabled", ".ods");
+
+		OutputStream fileOutputStream = Files.newOutputStream(filePath);
+
+		// @formatter:off
+		emfOdsExporterService.exportResourceTo(xmiResource, fileOutputStream, 
+				Map.of(
+						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+//						EMFODSExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
+//						EMFODSExportOptions.OPTION_GENERATE_LINKS, true // defaults to true
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true							
+					)
+				);
+		// @formatter:on
+	}
+	
+	@Test
+	public void testExportExampleModelBasicResourceToOdsExportNonContainmentDisabled(
+			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFODSExporter)") ServiceAware<EMFExporter> emfOdsExporterAware,
+			@InjectService BasicFactory basicFactory, @InjectService BasicPackage basicPackage) throws Exception {
+
+		assertThat(emfOdsExporterAware.getServices()).hasSize(1);
+		EMFExporter emfOdsExporterService = emfOdsExporterAware.getService();
+		assertThat(emfOdsExporterService).isNotNull();
+
+		ResourceSet resourceSet = createBasicPackageResourceSet(basicPackage);
+		Resource xmiResource = resourceSet.createResource(URI.createURI("testExportExampleModelBasicResourceToOdsExportNonContainmentDisabled.test"));
+		assertNotNull(xmiResource);
+
+		Family simpsonFamily = createSimpsonFamily(basicFactory);
+		xmiResource.getContents().add(simpsonFamily);
+
+		Family flintstonesFamily = createFlintstonesFamily(basicFactory);
+		xmiResource.getContents().add(flintstonesFamily);
+
+		BusinessPerson businessPerson = createBusinessPerson(basicFactory);
+		xmiResource.getContents().add(businessPerson);
+
+		Path filePath = Files.createTempFile("testExportExampleModelBasicResourceToOdsExportNonContainmentDisabled", ".ods");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
 
@@ -111,19 +221,19 @@ public class EMFODSExporterTest {
 		emfOdsExporterService.exportResourceTo(xmiResource, fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
-						EMFExportOptions.OPTION_EXPORT_METADATA, true,
-						EMFODSExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true,
-						EMFODSExportOptions.OPTION_GENERATE_LINKS, true,
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
+						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to true
+//						EMFODSExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
+						EMFODSExportOptions.OPTION_GENERATE_LINKS, false // defaults to true
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true							
 					)
 				);
 		// @formatter:on
-	}
-
-	@Disabled
+	}	
+	
 	@Test
-	public void testExportUtilitiesPackageResourceToOds(
+	public void testExportUtilModelEObjectsToOdsNonContainmentEnabled(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFODSExporter)") ServiceAware<EMFExporter> emfOdsExporterAware)
 			throws Exception {
 
@@ -131,29 +241,33 @@ public class EMFODSExporterTest {
 		EMFExporter emfOdsExporterService = emfOdsExporterAware.getService();
 		assertThat(emfOdsExporterService).isNotNull();
 
-		Request request = createRequest(UtilitiesFactory.eINSTANCE);
+		Request request1 = createRequest(UtilitiesFactory.eINSTANCE);
+		
+		Request request2 = createRequest(UtilitiesFactory.eINSTANCE);
+		
+		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);
 
-		Path filePath = Files.createTempFile("testUtilitiesPackageExport", ".ods");
+		Path filePath = Files.createTempFile("testExportUtilModelEObjectsToOdsNonContainmentEnabled", ".ods");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
 
 		// @formatter:off
-		emfOdsExporterService.exportEObjectsTo(List.of(request), fileOutputStream, 
+		emfOdsExporterService.exportEObjectsTo(List.of(request1, request2, request3), fileOutputStream, 
 				Map.of(
-						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
-						EMFExportOptions.OPTION_EXPORT_METADATA, true,
-						EMFODSExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true,
-						EMFODSExportOptions.OPTION_GENERATE_LINKS, true,
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true
+						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true // defaults to true						
+//						EMFODSExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
+//						EMFODSExportOptions.OPTION_GENERATE_LINKS, true // defaults to true
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true							
 					)
 				);
 		// @formatter:on
 	}
-	
-	@Disabled
+
 	@Test
-	public void testExportLotsOfEObjectsToODS(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
+	public void testExportTreesModelEObjectsToODSNonContainmentEnabled(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFODSExporter)") ServiceAware<EMFExporter> emfOdsExporterAware) throws Exception {
 
 		assertNotNull(rsAware);
@@ -175,63 +289,22 @@ public class EMFODSExporterTest {
         
         Resource resource = resourceSet.getResource(URI.createFileURI(new File(TREES_DATASET_XMI).getAbsolutePath()), true);
         
-		Path filePath = Files.createTempFile("treesPackageExportEObjectsToTest", ".ods");
+		Path filePath = Files.createTempFile("testExportTreesModelEObjectsToODSNonContainmentEnabled", ".ods");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
 
 		// @formatter:off
 		emfOdsExporterService.exportEObjectsTo(resource.getContents(), fileOutputStream, 
 				Map.of(
-						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
-						EMFExportOptions.OPTION_EXPORT_METADATA, true,
-						EMFODSExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true,
-						EMFODSExportOptions.OPTION_GENERATE_LINKS, true,
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true
+						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true // defaults to true						
+//						EMFODSExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
+//						EMFODSExportOptions.OPTION_GENERATE_LINKS, true // defaults to true
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true							
 					)
 				);
 		// @formatter:on		
 	}
-	
-//	@Disabled
-	@Test
-	public void testExportLotsOfEObjectsToXLSX(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
-			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter_POC)") ServiceAware<EMFExporter> emfxlsxExporterAware) throws Exception {
-
-		assertNotNull(rsAware);
-		assertThat(rsAware.getServices()).hasSize(1);
-		ResourceSet resourceSet = rsAware.getService();
-		assertNotNull(resourceSet);
-		
-		assertThat(emfxlsxExporterAware.getServices()).hasSize(1);
-		EMFExporter emfXlsxExporterService = emfxlsxExporterAware.getService();
-		assertThat(emfXlsxExporterService).isNotNull();	
-		
-		// register model
-		EPackage.Registry packageRegistry = resourceSet.getPackageRegistry();
-		packageRegistry.put(TreesPackage.eNS_URI, TreesPackage.eINSTANCE);
-        
-		// register xmi
-		Map<String, Object> extensionFactoryMap = Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap();
-        extensionFactoryMap.put("xmi", new XMIResourceFactoryImpl());
-        
-        Resource resource = resourceSet.getResource(URI.createFileURI(new File(TREES_DATASET_XMI).getAbsolutePath()), true);
-        
-		Path filePath = Files.createTempFile("treesPackageExportEObjectsToTest", ".xlsx");
-
-		OutputStream fileOutputStream = Files.newOutputStream(filePath);
-
-		// @formatter:off
-		emfXlsxExporterService.exportEObjectsTo(resource.getContents(), fileOutputStream, 
-				Map.of(
-						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, 
-						EMFExportOptions.OPTION_EXPORT_METADATA, true,
-						EMFODSExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true,
-						EMFODSExportOptions.OPTION_GENERATE_LINKS, true,
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true
-					)
-				);
-		// @formatter:on		
-	}	
 }
