@@ -44,11 +44,11 @@
 	org.gecko.emf.csv.tests;version=snapshot,\
 	org.gecko.emf.exporter.csv.api;version=snapshot,\
 	org.gecko.emf.exporter.csv;version=snapshot,\
-	org.gecko.emf.util.model;version=snapshot,\
 	com.google.guava;version='[32.1.2,32.1.3)',\
 	com.google.guava.failureaccess;version='[1.0.1,1.0.2)',\
 	de.siegmar.fastcsv;version='[2.2.2,2.2.3)',\
-	org.gecko.emf.bson;version=snapshot,\
+	org.gecko.emf.ods;version=snapshot,\
+	org.gecko.emf.util.model;version=snapshot,\
 	slf4j.jcl;version='[1.7.36,1.7.37)'
 
 -runrequires: \

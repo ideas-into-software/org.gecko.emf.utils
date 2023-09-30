@@ -13,6 +13,7 @@ package org.gecko.emf.exporter.xlsx.impl;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -36,12 +37,12 @@ import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.eclipse.emf.ecore.EObject;
 import org.gecko.emf.exporter.AbstractEMFExporter;
-import org.gecko.emf.exporter.EMFExportEObjectIDValueCell;
-import org.gecko.emf.exporter.EMFExportEObjectManyReferencesValueCell;
-import org.gecko.emf.exporter.EMFExportEObjectOneReferenceValueCell;
 import org.gecko.emf.exporter.EMFExportException;
-import org.gecko.emf.exporter.EMFExportMappingMatrixReferenceValueCell;
 import org.gecko.emf.exporter.EMFExporter;
+import org.gecko.emf.exporter.cells.EMFExportEObjectIDValueCell;
+import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
+import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
+import org.gecko.emf.exporter.cells.EMFExportMappingMatrixReferenceValueCell;
 import org.gecko.emf.exporter.xlsx.api.EMFXLSXExportOptions;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
@@ -89,12 +90,13 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 					LOG.info("  Adjust column width: {}", adjustColumnWidthEnabled(exportOptions));
 					LOG.info("  Generate links for references: {}", generateLinksEnabled(exportOptions));
 					LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
+					LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIs(exportOptions));
 				}
 
-				Map<String, Table<Integer, Character, Object>> mapOfMatrices = exportEObjectsToMatrices(eObjects,
+				Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap = exportEObjectsToMatrices(eObjects,
 						exportOptions);
 
-				exportMatricesToXLSX(outputStream, mapOfMatrices, exportOptions);
+				exportMatricesToXLSX(outputStream, matrixNameToMatrixMap, exportOptions);
 
 			} catch (Exception e) {
 				throw new EMFExportException(e);
@@ -103,14 +105,15 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 	}
 
 	private void exportMatricesToXLSX(OutputStream outputStream,
-			Map<String, Table<Integer, Character, Object>> mapOfMatrices, Map<Object, Object> exportOptions)
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, Map<Object, Object> exportOptions)
 			throws IOException {
 
 		resetStopwatch();
 
 		LOG.info("Starting generation of XLSX sheets");
 
-		Map<String, Table<Integer, Character, Object>> mapOfEObjectMatrices = eObjectMatricesOnly(mapOfMatrices);
+		Map<String, Table<Integer, Integer, Object>> matrixNameToEObjectMatrixMap = eObjectMatricesOnly(
+				matrixNameToMatrixMap);
 
 		try (Workbook workbook = new XSSFWorkbook()) {
 
@@ -126,23 +129,23 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 
 			CreationHelper creationHelper = workbook.getCreationHelper();
 
-			exportMatricesToXLSX(exportOptions, mapOfEObjectMatrices, workbook, creationHelper, headerCellStyle,
+			exportMatricesToXLSX(exportOptions, matrixNameToEObjectMatrixMap, workbook, creationHelper, headerCellStyle,
 					genericDataCellStyle, dateDataCellStyle);
 
 			if (exportMetadataEnabled(exportOptions)) {
-				Map<String, Table<Integer, Character, Object>> mapOfMetadataMatrices = metadataMatricesOnly(
-						mapOfMatrices);
+				Map<String, Table<Integer, Integer, Object>> matrixNameToMetadataMatrixMap = metadataMatricesOnly(
+						matrixNameToMatrixMap);
 
-				exportMatricesToXLSX(exportOptions, mapOfMetadataMatrices, workbook, creationHelper, headerCellStyle,
-						genericDataCellStyle, dateDataCellStyle);
+				exportMatricesToXLSX(exportOptions, matrixNameToMetadataMatrixMap, workbook, creationHelper,
+						headerCellStyle, genericDataCellStyle, dateDataCellStyle);
 			}
 
 			if (addMappingTableEnabled(exportOptions)) {
-				Map<String, Table<Integer, Character, Object>> mapOfMappingMatrices = mappingMatricesOnly(
-						mapOfMatrices);
+				Map<String, Table<Integer, Integer, Object>> matrixNameToMappingMatrixMap = mappingMatricesOnly(
+						matrixNameToMatrixMap);
 
-				exportMatricesToXLSX(exportOptions, mapOfMappingMatrices, workbook, creationHelper, headerCellStyle,
-						genericDataCellStyle, dateDataCellStyle);
+				exportMatricesToXLSX(exportOptions, matrixNameToMappingMatrixMap, workbook, creationHelper,
+						headerCellStyle, genericDataCellStyle, dateDataCellStyle);
 			}
 
 			workbook.write(outputStream);
@@ -152,27 +155,27 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 	}
 
 	private void exportMatricesToXLSX(Map<Object, Object> exportOptions,
-			Map<String, Table<Integer, Character, Object>> mapOfEObjectMatrices, Workbook workbook,
+			Map<String, Table<Integer, Integer, Object>> matrixNameToEObjectMatrixMap, Workbook workbook,
 			CreationHelper creationHelper, CellStyle headerCellStyle, CellStyle genericDataCellStyle,
 			CellStyle dateDataCellStyle) throws IOException {
-		for (String matrixName : mapOfEObjectMatrices.keySet()) {
+		for (String matrixName : matrixNameToEObjectMatrixMap.keySet()) {
 			LOG.debug("Generating XLSX sheet for matrix named '{}'", matrixName);
 
-			Table<Integer, Character, Object> matrix = mapOfEObjectMatrices.get(matrixName);
+			Table<Integer, Integer, Object> matrix = matrixNameToEObjectMatrixMap.get(matrixName);
 
 			exportMatrixToXLSX(workbook, matrixName, matrix, exportOptions, creationHelper, headerCellStyle,
 					genericDataCellStyle, dateDataCellStyle);
 		}
 	}
 
-	private void exportMatrixToXLSX(Workbook workbook, String matrixName, Table<Integer, Character, Object> matrix,
+	private void exportMatrixToXLSX(Workbook workbook, String matrixName, Table<Integer, Integer, Object> matrix,
 			Map<Object, Object> exportOptions, CreationHelper creationHelper, CellStyle headerCellStyle,
 			CellStyle genericDataCellStyle, CellStyle dateDataCellStyle) throws IOException {
 
 		Sheet sheet = constructXLSXSheet(workbook, matrixName);
 
 		boolean hasTypeLevelMetadataDocumentation = hasTypeLevelMetadataDocumentation(sheet,
-				matrix.row(Integer.valueOf(1)));
+				matrix.row(getMatrixRowKey(1)));
 		if (hasTypeLevelMetadataDocumentation) {
 			LOG.debug("Matrix named '{}' has type level metadata documentation ", matrixName);
 
@@ -198,11 +201,11 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 		return workbook.createSheet(matrixName);
 	}
 
-	private void constructXLSXSheetColumnHeaders(Table<Integer, Character, Object> matrix, Sheet sheet,
+	private void constructXLSXSheetColumnHeaders(Table<Integer, Integer, Object> matrix, Sheet sheet,
 			boolean hasTypeLevelMetadataDocumentation, Map<Object, Object> exportOptions, CellStyle headerCellStyle,
 			CellStyle genericDataCellStyle) {
 
-		Map<Character, Object> matrixHeaderRow = matrix.row(Integer.valueOf(hasTypeLevelMetadataDocumentation ? 2 : 1));
+		Map<Integer, Object> matrixHeaderRow = matrix.row(getMatrixRowKey(hasTypeLevelMetadataDocumentation ? 2 : 1));
 
 		// @formatter:off
 		List<String> sheetColumnHeaders = matrixHeaderRow.values()
@@ -221,10 +224,10 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 		}
 	}
 
-	private void populateXLSXSheetWithData(Table<Integer, Character, Object> matrix, Sheet sheet,
+	private void populateXLSXSheetWithData(Table<Integer, Integer, Object> matrix, Sheet sheet,
 			boolean hasTypeLevelMetadataDocumentation, Map<Object, Object> exportOptions, CreationHelper creationHelper,
 			CellStyle genericDataCellStyle, CellStyle dateDataCellStyle) {
-		Map<Integer, Map<Character, Object>> matrixRowMap = matrix.rowMap();
+		Map<Integer, Map<Integer, Object>> matrixRowMap = matrix.rowMap();
 
 		// @formatter:off
 		List<Integer> remainingRows = matrixRowMap.keySet()
@@ -234,7 +237,7 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 		// @formatter:on
 
 		for (Integer rowNumber : remainingRows) {
-			Map<Character, Object> row = matrixRowMap.get(rowNumber);
+			Map<Integer, Object> row = matrixRowMap.get(rowNumber);
 
 			int columnsCount = row.size();
 
@@ -249,14 +252,15 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 			// @formatter:on
 
 			for (int colIndex = 0; colIndex < columnsCount; colIndex++) {
-				createXLSXSheetDataCell(dataRow, colIndex, rowValues.get(colIndex), exportOptions, creationHelper,
+				populateXLSXSheetCellWithData(dataRow, colIndex, rowValues.get(colIndex), exportOptions, creationHelper,
 						genericDataCellStyle, dateDataCellStyle);
 			}
 		}
 	}
 
-	private void createXLSXSheetDataCell(Row dataRow, int colIndex, Object value, Map<Object, Object> exportOptions,
-			CreationHelper creationHelper, CellStyle genericDataCellStyle, CellStyle dateDataCellStyle) {
+	private void populateXLSXSheetCellWithData(Row dataRow, int colIndex, Object value,
+			Map<Object, Object> exportOptions, CreationHelper creationHelper, CellStyle genericDataCellStyle,
+			CellStyle dateDataCellStyle) {
 		if ((value != null) && !(value instanceof Optional)) {
 
 			if (value instanceof EMFExportEObjectIDValueCell) {
@@ -284,10 +288,6 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 			} else if (value instanceof Boolean) {
 				setBooleanValueCell(dataRow, colIndex, (Boolean) value, genericDataCellStyle);
 
-			} else if (value instanceof byte[]) {
-				// TODO: clarify how byte arrays should be handled
-				setStringValueCell(dataRow, colIndex, "EAttribute: byte[]", genericDataCellStyle);
-
 			} else {
 				setStringValueCell(dataRow, colIndex, String.valueOf(value), genericDataCellStyle);
 			}
@@ -300,20 +300,26 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 	private void setIDValueCell(Row dataRow, int colIndex, EMFExportEObjectIDValueCell idValue,
 			Map<Object, Object> exportOptions, CreationHelper creationHelper, CellStyle genericDataCellStyle) {
 		Cell cell = dataRow.createCell(colIndex);
-		cell.setCellValue(idValue.getValue());
+		cell.setCellValue(idValue.hasValue() ? idValue.getValue() : "");
 		cell.setCellStyle(genericDataCellStyle);
 	}
 
 	private void setOneReferenceValueCell(Row dataRow, int colIndex,
-			EMFExportEObjectOneReferenceValueCell referenceValue, Map<Object, Object> exportOptions,
+			EMFExportEObjectOneReferenceValueCell referenceValueCell, Map<Object, Object> exportOptions,
 			CreationHelper creationHelper, CellStyle genericDataCellStyle) {
 		Cell cell = dataRow.createCell(colIndex);
-		cell.setCellValue(referenceValue.getValue());
+
+		if (showURIs(exportOptions)) {
+			cell.setCellValue(referenceValueCell.hasURI() ? referenceValueCell.getURI() : "");
+		} else {
+			cell.setCellValue(referenceValueCell.hasRefID() ? referenceValueCell.getRefID() : "");
+		}
+
 		cell.setCellStyle(genericDataCellStyle);
 
-		if (generateLinksEnabled(exportOptions)) {
-			if (eObjectIDToMatrixNameMap.containsKey(referenceValue.getValue())) {
-				String matrixName = eObjectIDToMatrixNameMap.get(referenceValue.getValue());
+		if (generateLinksEnabled(exportOptions) && referenceValueCell.hasRefID()) {
+			if (eObjectIDToMatrixNameMap.containsKey(referenceValueCell.getRefID())) {
+				String matrixName = eObjectIDToMatrixNameMap.get(referenceValueCell.getRefID());
 
 				Hyperlink link = creationHelper.createHyperlink(HyperlinkType.DOCUMENT);
 				link.setAddress(constructHyperlinkAddress(matrixName));
@@ -323,43 +329,50 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 	}
 
 	private void setManyReferencesValueCell(Row dataRow, int colIndex,
-			EMFExportEObjectManyReferencesValueCell referenceValues, Map<Object, Object> exportOptions,
+			EMFExportEObjectManyReferencesValueCell referencesValueCell, Map<Object, Object> exportOptions,
 			CreationHelper creationHelper, CellStyle genericDataCellStyle) {
 		Cell cell = dataRow.createCell(colIndex);
-		cell.setCellValue(convertManyReferenceValuesToString(referenceValues));
+		cell.setCellValue(convertManyReferenceValuesToString(referencesValueCell, exportOptions));
 		cell.setCellStyle(genericDataCellStyle);
-		if (referenceValues.getValuesCount() > 1) {
+		if (referencesValueCell.getRefIDsCount() > 1) {
 			cell.getRow().setHeightInPoints(
-					cell.getSheet().getDefaultRowHeightInPoints() * referenceValues.getValues().size());
+					cell.getSheet().getDefaultRowHeightInPoints() * referencesValueCell.getRefIDs().size());
 		}
 
-		// multiple-line text, as in case of many reference values, is incompatible with links - 
-		//	once hyperlink is set, multi-line text becomes one long string;
-		// neither is multiple hyperlinks per cell supported 
-		/*
-		if (generateLinksEnabled(exportOptions)) {
-			String firstValue = referenceValues.getValues().get(0);
-			if (eObjectIDToMatrixNameMap.containsKey(firstValue)) {
-				String matrixName = eObjectIDToMatrixNameMap.get(firstValue);
-				
+		// multiple-line text, as in case of many reference values, is incompatible with
+		// links -
+		// once hyperlink is set, multi-line text becomes one long string;
+		// neither is having multiple hyperlinks per cell supported
+		// .. therefore, links are created only if there's at most one ref in list of
+		// one-to-many refs
+		if (generateLinksEnabled(exportOptions) && referencesValueCell.getRefIDsCount() == 1) {
+			if (eObjectIDToMatrixNameMap.containsKey(referencesValueCell.getRefIDs().get(0))) {
+				String matrixName = eObjectIDToMatrixNameMap.get(referencesValueCell.getRefIDs().get(0));
+
 				Hyperlink link = creationHelper.createHyperlink(HyperlinkType.DOCUMENT);
 				link.setAddress(constructHyperlinkAddress(matrixName));
 				cell.setHyperlink(link);
 			}
 		}
-		*/		
 	}
 
-	private String convertManyReferenceValuesToString(EMFExportEObjectManyReferencesValueCell referenceValues) {
+	private String convertManyReferenceValuesToString(EMFExportEObjectManyReferencesValueCell referenceValues,
+			Map<Object, Object> exportOptions) {
 		StringBuilder sb = new StringBuilder();
 
-		Iterator<String> referenceValuesIt = referenceValues.getValues().iterator();
+		List<String> manyReferencesValueCellValues = (showURIs(exportOptions) && referenceValues.hasURIs())
+				? referenceValues.getURIs()
+				: referenceValues.hasRefIDs() ? referenceValues.getRefIDs() : Collections.emptyList();
 
-		while (referenceValuesIt.hasNext()) {
-			sb.append(referenceValuesIt.next());
+		if (!manyReferencesValueCellValues.isEmpty()) {
+			Iterator<String> referenceValuesIt = manyReferencesValueCellValues.iterator();
 
-			if (referenceValuesIt.hasNext()) {
-				sb.append(System.lineSeparator());
+			while (referenceValuesIt.hasNext()) {
+				sb.append(referenceValuesIt.next());
+
+				if (referenceValuesIt.hasNext()) {
+					sb.append(System.lineSeparator());
+				}
 			}
 		}
 
@@ -403,7 +416,7 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 		cell.setCellValue(value);
 		cell.setCellStyle(genericDataCellStyle);
 
-		if (value.contains(System.lineSeparator())) {
+		if ((value != null) && value.contains(System.lineSeparator())) {
 			int linesCount = value.split(System.lineSeparator()).length;
 			if (linesCount > 1) {
 				cell.getRow().setHeightInPoints(cell.getSheet().getDefaultRowHeightInPoints() * linesCount);
@@ -451,17 +464,17 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 		sheet.createFreezePane(0, (hasTypeLevelMetadataDocumentation ? 2 : 1));
 	}
 
-	private boolean hasTypeLevelMetadataDocumentation(Sheet sheet, Map<Character, Object> firstRow) {
+	private boolean hasTypeLevelMetadataDocumentation(Sheet sheet, Map<Integer, Object> firstRow) {
 		boolean isMetadataSheet = (sheet.getSheetName() != null
 				&& sheet.getSheetName().contains(METADATA_MATRIX_NAME_SUFFIX));
 		boolean isTypeLevelMetadataDocumentationPresent = (firstRow.size() == 2)
-				&& firstRow.containsKey(getMatrixColumnName(0))
-				&& String.valueOf(firstRow.get(getMatrixColumnName(0))).equalsIgnoreCase(METADATA_DOCUMENTATION_HEADER);
+				&& firstRow.containsKey(getMatrixColumnKey(0))
+				&& String.valueOf(firstRow.get(getMatrixColumnKey(0))).equalsIgnoreCase(METADATA_DOCUMENTATION_HEADER);
 
 		return isMetadataSheet && isTypeLevelMetadataDocumentationPresent;
 	}
 
-	private void setTypeLevelMetadataDocumentation(Table<Integer, Character, Object> matrix, Sheet sheet,
+	private void setTypeLevelMetadataDocumentation(Table<Integer, Integer, Object> matrix, Sheet sheet,
 			CellStyle headerCellStyle, CellStyle genericDataCellStyle) {
 		Row typeLevelMetadataDocumentationRow = sheet.createRow(0);
 
@@ -469,7 +482,7 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 				METADATA_DOCUMENTATION_HEADER, headerCellStyle, 0);
 
 		constructTypeLevelMetadataDocumentationValueCell(typeLevelMetadataDocumentationRow,
-				String.valueOf(matrix.get(Integer.valueOf(1), getMatrixColumnName(1))), genericDataCellStyle, 1);
+				String.valueOf(matrix.get(getMatrixRowKey(1), getMatrixColumnKey(1))), genericDataCellStyle, 1);
 	}
 
 	private void constructTypeLevelMetadataDocumentationValueCell(Row row, String cellValue, CellStyle cellStyle,
@@ -520,15 +533,27 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 		return dataCellStyle;
 	}
 
+	@Override
+	protected Map<Object, Object> validateExportOptions(Map<?, ?> options) throws EMFExportException {
+		Map<Object, Object> exportOptions = super.validateExportOptions(options);
+
+		if (!exportNonContainmentEnabled(exportOptions) && generateLinksEnabled(exportOptions)) {
+			throw new EMFExportException(
+					"Incompatible combination of export options: 'export non-containment references' option cannot be turned off if 'generate links for references' option is turned on!");
+		}
+
+		return exportOptions;
+	}
+
 	private boolean adjustColumnWidthEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFXLSXExportOptions.OPTION_ADJUST_COLUMN_WIDTH, Boolean.FALSE));
+		return ((boolean) exportOptions.getOrDefault(EMFXLSXExportOptions.OPTION_ADJUST_COLUMN_WIDTH, Boolean.TRUE));
 	}
 
 	private boolean generateLinksEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFXLSXExportOptions.OPTION_GENERATE_LINKS, Boolean.FALSE));
+		return ((boolean) exportOptions.getOrDefault(EMFXLSXExportOptions.OPTION_GENERATE_LINKS, Boolean.TRUE));
 	}
 
 	private boolean freezeHeaderRowEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFXLSXExportOptions.OPTION_FREEZE_HEADER_ROW, Boolean.FALSE));
+		return ((boolean) exportOptions.getOrDefault(EMFXLSXExportOptions.OPTION_FREEZE_HEADER_ROW, Boolean.TRUE));
 	}
 }

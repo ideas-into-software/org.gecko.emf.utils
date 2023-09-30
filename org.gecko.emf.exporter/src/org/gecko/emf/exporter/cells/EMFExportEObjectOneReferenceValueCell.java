@@ -19,20 +19,30 @@ import java.util.Objects;
  * @author Michal H. Siemaszko
  */
 public class EMFExportEObjectOneReferenceValueCell extends AbstractEMFExportEObjectReferenceValueCell implements EMFExportEObjectReferenceValueCell {
-	private final String value;
+	private final String refID;
+	private final String refURI;
 
-	public EMFExportEObjectOneReferenceValueCell(String refMatrixName, String value) {
+	public EMFExportEObjectOneReferenceValueCell(String refMatrixName, String refID, String refURI) {
 		super(refMatrixName);
 
-		this.value = value;
+		this.refID = refID;
+		this.refURI = refURI;
 	}
 
-	public String getValue() {
-		return value;
+	public String getRefID() {
+		return refID;
 	}
 
-	public boolean hasValue() {
-		return (value != null);
+	public boolean hasRefID() {
+		return (refID != null);
+	}
+
+	public String getURI() {
+		return refURI;
+	}
+
+	public boolean hasURI() {
+		return (refURI != null);
 	}
 
 	/* 
@@ -43,7 +53,7 @@ public class EMFExportEObjectOneReferenceValueCell extends AbstractEMFExportEObj
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(refMatrixName, value);
+		result = prime * result + Objects.hash(refMatrixName, refURI, refID);
 		return result;
 	}
 
@@ -60,7 +70,8 @@ public class EMFExportEObjectOneReferenceValueCell extends AbstractEMFExportEObj
 		if (getClass() != obj.getClass())
 			return false;
 		EMFExportEObjectOneReferenceValueCell other = (EMFExportEObjectOneReferenceValueCell) obj;
-		return Objects.equals(refMatrixName, other.refMatrixName) && Objects.equals(value, other.value);
+		return Objects.equals(refMatrixName, other.refMatrixName) && Objects.equals(refURI, other.refURI)
+				&& Objects.equals(refID, other.refID);
 	}
 
 	/* 
@@ -69,6 +80,6 @@ public class EMFExportEObjectOneReferenceValueCell extends AbstractEMFExportEObj
 	 */
 	@Override
 	public String toString() {
-		return value;
+		return refID;
 	}
 }

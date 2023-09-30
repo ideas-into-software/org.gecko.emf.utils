@@ -132,11 +132,11 @@ public class EMFCSVExporterTestHelper {
 		return simpsonFamily;
 	}
 
-	private static Address createSimpsonsAddress(BasicFactory bf) {
+	public static Address createSimpsonsAddress(BasicFactory bf) {
 		return createAddress(bf, "742 Evergreen Terrace", "Springfield", "97482");
 	}
 
-	private static Person createHomerSimpson(BasicFactory bf, Address address) {
+	public static Person createHomerSimpson(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Homer", "Simpson", GenderType.MALE, address);
 
 		p.getContact().add(createHomePhoneContact(bf, p));
@@ -149,7 +149,7 @@ public class EMFCSVExporterTestHelper {
 		return p;
 	}
 
-	private static Person createMargeSimpson(BasicFactory bf, Address address) {
+	public static Person createMargeSimpson(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Marge", "Simpson", GenderType.FEMALE, address);
 
 		p.getContact().add(createHomePhoneContact(bf, p));
@@ -162,19 +162,19 @@ public class EMFCSVExporterTestHelper {
 		return p;
 	}
 
-	private static Person createBartSimpson(BasicFactory bf, Address address) {
+	public static Person createBartSimpson(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Bart", "Simpson", GenderType.MALE, address);
 
 		return p;
 	}
 
-	private static Person createLisaSimpson(BasicFactory bf, Address address) {
+	public static Person createLisaSimpson(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Lisa", "Simpson", GenderType.FEMALE, address);
 
 		return p;
 	}
 
-	private static Person createMaggieSimpson(BasicFactory bf, Address address) {
+	public static Person createMaggieSimpson(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Maggie", "Simpson", GenderType.FEMALE, address);
 
 		return p;
@@ -348,7 +348,7 @@ public class EMFCSVExporterTestHelper {
 		return c;
 	}	
 
-	private static Tag createMultiLevelTag(BasicFactory bf, String namePrefix) {
+	public static Tag createMultiLevelTag(BasicFactory bf, String namePrefix) {
 		Tag t1 = createTag(bf, namePrefix, "tag_level_1", "tag_level_1_value", "tag_level_1_description");
 
 		t1.setTag(createTag(bf, namePrefix, "tag_level_2", "tag_level_2_value", "tag_level_2_description"));
@@ -368,13 +368,13 @@ public class EMFCSVExporterTestHelper {
 		return t;
 	}
 
-	private static byte[] createByteArr() {
+	public static byte[] createByteArr() {
 		byte[] b = new byte[20];
 		new Random().nextBytes(b);
 		return b;
 	}
 
-	private static Map<String, String> createProperties(String namePrefix) {
+	public static Map<String, String> createProperties(String namePrefix) {
 		Map<String, String> props = new HashMap<String, String>();
 
 		props.put(createPropertyName(namePrefix, "prop_1"), "prop_1_value");
@@ -398,7 +398,7 @@ public class EMFCSVExporterTestHelper {
 		return resourceSet;
 	}	
 
-	private static String createUniquePrefix(int maxChars) {
+	public static String createUniquePrefix(int maxChars) {
 		// @formatter:off
 		return new RandomStringGenerator.Builder()
 				.withinRange('a', 'z')

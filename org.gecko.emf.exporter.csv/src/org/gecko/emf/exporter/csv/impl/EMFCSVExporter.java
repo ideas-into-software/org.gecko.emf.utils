@@ -19,6 +19,8 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,15 +41,15 @@ import org.gecko.emf.exporter.EMFExporter;
 import org.gecko.emf.exporter.cells.EMFExportEObjectIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
+import org.gecko.emf.exporter.cells.EMFExportEObjectReferenceValueCell;
 import org.gecko.emf.exporter.csv.api.EMFCSVExportMode;
 import org.gecko.emf.exporter.csv.api.EMFCSVExportOptions;
 import org.gecko.emf.exporter.headers.EMFExportEObjectColumnHeader;
-import org.gecko.emf.exporter.headers.EMFExportEObjectGenericColumnHeader;
-import org.gecko.emf.exporter.headers.EMFExportEObjectIDColumnHeader;
 import org.gecko.emf.exporter.headers.EMFExportEObjectManyReferencesColumnHeader;
 import org.gecko.emf.exporter.headers.EMFExportEObjectOneReferenceColumnHeader;
 import org.gecko.emf.exporter.headers.EMFExportEObjectReferenceColumnHeader;
 import org.gecko.emf.exporter.keys.EMFExportColumnHasValueCompositeKey;
+import org.gecko.emf.exporter.keys.EMFExportColumnRefsMaxValueCountCompositeKey;
 import org.gecko.emf.exporter.keys.EMFExportRefHasValueCompositeKey;
 import org.gecko.emf.exporter.keys.EMFExportRefMatrixNameIDCompositeKey;
 import org.gecko.emf.exporter.keys.EMFExportRefsMaxValueCountCompositeKey;
@@ -85,12 +87,17 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	// lookup index for storing information if specific column has value
 	protected final Map<EMFExportColumnHasValueCompositeKey, Boolean> columnHasValueIndex;
 
+	// lookup index for storing information about max number of references for
+	// specific column of type one-to-many reference
+	protected final Map<EMFExportColumnRefsMaxValueCountCompositeKey, Integer> columnRefsMaxValueCountIndex;
+
 	public EMFCSVExporter() {
 		super(LOG, Stopwatch.createStarted());
 
 		this.refsMaxValueCountIndex = new HashMap<>();
 		this.refHasValueIndex = new HashMap<>();
 		this.columnHasValueIndex = new HashMap<>();
+		this.columnRefsMaxValueCountIndex = new HashMap<>();
 	}
 
 	/*
@@ -122,6 +129,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 					LOG.info("  Export non-containment references: {}", exportNonContainmentEnabled(exportOptions));
 					LOG.info("  Export metadata: {}", exportMetadataEnabled(exportOptions));
 					LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
+					LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIs(exportOptions));
 				}
 
 				exportMatricesToCSV(outputStream, eObjects, exportOptions);
@@ -159,13 +167,27 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 
 				Table<Integer, Integer, Object> matrix = matrixNameToMatrixMap.get(matrixName);
 
-				exportMatrixToCSVInZipMode(zipOutputStream, matrixName, matrix);
+				exportMatrixToCSVInZipMode(zipOutputStream, matrixName, matrix, exportOptions);
 			}
 		} catch (IOException e) {
 			throw new EMFExportException(e);
 		}
 
 		LOG.info("Finished generation of CSV files in ZIP mode in {} second(s)", elapsedTimeInSeconds());
+	}
+
+	private void exportMatrixToCSVInZipMode(ZipOutputStream zipOutputStream, String matrixName,
+			Table<Integer, Integer, Object> matrix, Map<Object, Object> exportOptions) throws IOException {
+		final StringWriter csvStringWriter = new StringWriter();
+
+		try (CsvWriter csvWriter = CsvWriter.builder().build(csvStringWriter)) {
+
+			writeCSVHeader(matrix, csvWriter);
+
+			writeCSVData(matrix, csvWriter, exportOptions);
+
+			writeZipEntry(zipOutputStream, matrixName, csvStringWriter);
+		}
 	}
 
 	private void exportMatricesToCSVInFlatMode(OutputStream outputStream, List<EObject> eObjects,
@@ -193,11 +215,11 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 		// "filtering.Id") to avoid duplication of information presented
 		Set<String> nonRefMatrixNames = nonRefMatrixNames(eObjectMatrixNameToMatrixMap);
 
-		constructFlatMatrixColumnHeaders(eObjectMatrixNameToMatrixMap, nonRefMatrixNames, flatMatrix, exportOptions);
+		constructFlatMatrixColumnHeaders(eObjectMatrixNameToMatrixMap, exportOptions, nonRefMatrixNames, flatMatrix);
 
 		validateMatrixColumnsSize(flatMatrix, "flat matrix");
 
-		populateFlatMatrixWithData(eObjectMatrixNameToMatrixMap, nonRefMatrixNames, flatMatrix, exportOptions);
+		populateFlatMatrixWithData(eObjectMatrixNameToMatrixMap, nonRefMatrixNames, exportOptions, flatMatrix);
 
 		try (PrintWriter printWriterOutputStream = new PrintWriter(outputStream)) {
 
@@ -205,7 +227,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 
 				writeCSVHeader(flatMatrix, csvWriter);
 
-				writeCSVData(flatMatrix, csvWriter);
+				writeCSVData(flatMatrix, csvWriter, exportOptions);
 			}
 		}
 
@@ -213,18 +235,18 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void constructFlatMatrixColumnHeaders(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
-			Set<String> nonRefMatrixNames, Table<Integer, Integer, Object> flatMatrix,
-			Map<Object, Object> exportOptions) throws EMFExportException {
+			Map<Object, Object> exportOptions, Set<String> nonRefMatrixNames,
+			Table<Integer, Integer, Object> flatMatrix) throws EMFExportException {
 		AtomicInteger flatMatrixColumnKey = new AtomicInteger(1);
 
 		for (String nonRefMatrixName : nonRefMatrixNames) {
-			constructFlatMatrixColumnHeaders(matrixNameToMatrixMap, flatMatrix, exportOptions, flatMatrixColumnKey,
+			constructFlatMatrixColumnHeaders(matrixNameToMatrixMap, exportOptions, flatMatrix, flatMatrixColumnKey,
 					nonRefMatrixName);
 		}
 	}
 
 	private void constructFlatMatrixColumnHeaders(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
-			Table<Integer, Integer, Object> flatMatrix, Map<Object, Object> exportOptions,
+			Map<Object, Object> exportOptions, Table<Integer, Integer, Object> flatMatrix,
 			AtomicInteger flatMatrixColumnKey, String nonRefMatrixName) throws EMFExportException {
 		Table<Integer, Integer, Object> nonRefMatrix = matrixNameToMatrixMap.get(nonRefMatrixName);
 
@@ -232,49 +254,37 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 
 		for (Map.Entry<Integer, Object> firstNonRefMatrixRowColumn : firstNonRefMatrixRow.entrySet()) {
 
-			if (exportNonContainmentEnabled(exportOptions)) {
-
-				// @formatter:off
-				constructFlatMatrixColumnHeaders(
-						matrixNameToMatrixMap, 
-						flatMatrix, 
-						flatMatrixColumnKey,
-						nonRefMatrix,
-						nonRefMatrixName,
-						(EMFExportEObjectColumnHeader) firstNonRefMatrixRowColumn.getValue(),
-						firstNonRefMatrixRowColumn.getKey(),
-						firstNonRefMatrixRowColumn.getValue());
-				// @formatter:on
-
-				// when export non-containment references is disabled, we do not unpack
-				// non-containment references, we process those directly and output their
-				// identifiers only
-			} else {
-
-				// @formatter:off
-				constructFlatMatrixColumnHeader(
-						matrixNameToMatrixMap, 
-						flatMatrix, 
-						flatMatrixColumnKey,
-						(EMFExportEObjectColumnHeader) firstNonRefMatrixRowColumn.getValue(), 
-						firstNonRefMatrixRowColumn.getValue());
-				// @formatter:on				
-			}
+			// @formatter:off
+			constructFlatMatrixColumnHeaders(
+					matrixNameToMatrixMap, 
+					exportOptions,
+					flatMatrix, 
+					flatMatrixColumnKey,
+					nonRefMatrix,
+					nonRefMatrixName,
+					(EMFExportEObjectColumnHeader) firstNonRefMatrixRowColumn.getValue(),
+					firstNonRefMatrixRowColumn.getKey(),
+					firstNonRefMatrixRowColumn.getValue());
+			// @formatter:on
 		}
 	}
 
 	private void constructFlatMatrixColumnHeaders(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
-			Table<Integer, Integer, Object> flatMatrix, AtomicInteger flatMatrixColumnKey,
-			Table<Integer, Integer, Object> matrix, String matrixName,
+			Map<Object, Object> exportOptions, Table<Integer, Integer, Object> flatMatrix,
+			AtomicInteger flatMatrixColumnKey, Table<Integer, Integer, Object> matrix, String matrixName,
 			EMFExportEObjectColumnHeader nonRefMatrixColumnHeader, Integer matrixRowColumnKey, Object rawColumnHeader,
 			String... columnHeaderNameParts) throws EMFExportException {
 
-		if ((rawColumnHeader instanceof EMFExportEObjectOneReferenceColumnHeader) && matrixNameToMatrixMap
-				.containsKey(((EMFExportEObjectOneReferenceColumnHeader) rawColumnHeader).getRefMatrixName())) {
+		if ((rawColumnHeader instanceof EMFExportEObjectOneReferenceColumnHeader)
+				&& matrixNameToMatrixMap
+						.containsKey(((EMFExportEObjectOneReferenceColumnHeader) rawColumnHeader).getRefMatrixName())
+				&& !matrixName.equalsIgnoreCase(
+						((EMFExportEObjectOneReferenceColumnHeader) rawColumnHeader).getRefMatrixName())) {
 
 			// @formatter:off
 			constructFlatMatrixOneReferenceColumnHeaders(
 					matrixNameToMatrixMap, 
+					exportOptions,
 					flatMatrix, 
 					flatMatrixColumnKey,
 					nonRefMatrixColumnHeader, 
@@ -282,12 +292,16 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 					columnHeaderNameParts);
 			// @formatter:on
 
-		} else if ((rawColumnHeader instanceof EMFExportEObjectManyReferencesColumnHeader) && matrixNameToMatrixMap
-				.containsKey(((EMFExportEObjectManyReferencesColumnHeader) rawColumnHeader).getRefMatrixName())) {
+		} else if ((rawColumnHeader instanceof EMFExportEObjectManyReferencesColumnHeader)
+				&& matrixNameToMatrixMap
+						.containsKey(((EMFExportEObjectManyReferencesColumnHeader) rawColumnHeader).getRefMatrixName())
+				&& !matrixName.equalsIgnoreCase(
+						((EMFExportEObjectManyReferencesColumnHeader) rawColumnHeader).getRefMatrixName())) {
 
 			// @formatter:off
 			constructFlatMatrixManyReferencesColumnHeaders(
 					matrixNameToMatrixMap, 
+					exportOptions,
 					flatMatrix, 
 					flatMatrixColumnKey,
 					matrix, 
@@ -297,8 +311,22 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 					columnHeaderNameParts);
 			// @formatter:on
 
-		} else if ((rawColumnHeader instanceof EMFExportEObjectIDColumnHeader)
-				|| (rawColumnHeader instanceof EMFExportEObjectGenericColumnHeader)) {
+		} else if ((rawColumnHeader instanceof EMFExportEObjectManyReferencesColumnHeader)
+				&& ((!exportNonContainmentEnabled(exportOptions) && !matrixNameToMatrixMap
+						.containsKey(((EMFExportEObjectManyReferencesColumnHeader) rawColumnHeader).getRefMatrixName()))
+						|| matrixName.equalsIgnoreCase(
+								((EMFExportEObjectManyReferencesColumnHeader) rawColumnHeader).getRefMatrixName()))) {
+
+			// @formatter:off
+			constructNonContainmentDisabledOrSelfReferencingModelFlatMatrixColumnHeader(
+					matrixNameToMatrixMap,
+					exportOptions,
+					flatMatrix, 
+					flatMatrixColumnKey,
+					rawColumnHeader);
+			// @formatter:on
+
+		} else {
 
 			// @formatter:off
 			constructFlatMatrixColumnHeader(
@@ -308,9 +336,37 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 					nonRefMatrixColumnHeader, 
 					rawColumnHeader);
 			// @formatter:on
+		}
+	}
 
-		} else {
-			throw new EMFExportException("Unrecognized column type!");
+	private void constructNonContainmentDisabledOrSelfReferencingModelFlatMatrixColumnHeader(
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, Map<Object, Object> exportOptions,
+			Table<Integer, Integer, Object> flatMatrix, AtomicInteger flatMatrixColumnKey, Object rawColumnHeader,
+			String... columnHeaderNameParts) throws EMFExportException {
+
+		int columnRefsMaxValueCount = findColumnRefsMaxValueCount(matrixNameToMatrixMap,
+				(EMFExportEObjectColumnHeader) rawColumnHeader);
+
+		if (columnRefsMaxValueCount > 0) {
+
+			EMFExportEObjectManyReferencesColumnHeader manyReferencesColumnHeader = (EMFExportEObjectManyReferencesColumnHeader) rawColumnHeader;
+
+			String columnHeaderName = manyReferencesColumnHeader.getColumnHeaderName();
+
+			for (int colIndex = 0; colIndex < columnRefsMaxValueCount; colIndex++) {
+
+				// @formatter:off
+				constructFlatMatrixColumnHeader(
+						flatMatrix,
+						constructFlatMatrixReferenceColumnHeaderName(
+								constructFlatMatrixReferenceColumnHeaderNameParts(
+										Arrays.asList(columnHeaderNameParts),
+										columnHeaderName,
+										String.valueOf(colIndex))
+								), 	
+						flatMatrixColumnKey);
+				// @formatter:on
+			}
 		}
 	}
 
@@ -332,7 +388,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void constructFlatMatrixOneReferenceColumnHeaders(
-			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, Map<Object, Object> exportOptions,
 			Table<Integer, Integer, Object> flatMatrix, AtomicInteger flatMatrixColumnKey,
 			EMFExportEObjectColumnHeader nonRefMatrixColumnHeader, Object rawColumnHeader,
 			String... columnHeaderNameParts) throws EMFExportException {
@@ -365,6 +421,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 					// @formatter:off
 					constructFlatMatrixColumnHeaders(
 							matrixNameToMatrixMap, 
+							exportOptions,
 							flatMatrix, 
 							flatMatrixColumnKey, 
 							refMatrix,
@@ -373,6 +430,25 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 							firstRefMatrixRowColumn.getKey(),
 							firstRefMatrixRowColumn.getValue(), 
 							columnHeaderName);
+					// @formatter:on
+
+				} else if ((firstRefMatrixRowColumnValue instanceof EMFExportEObjectManyReferencesColumnHeader)
+						&& ((!exportNonContainmentEnabled(exportOptions) && !matrixNameToMatrixMap
+								.containsKey(((EMFExportEObjectManyReferencesColumnHeader) firstRefMatrixRowColumnValue)
+										.getRefMatrixName()))
+								|| refMatrixName.equalsIgnoreCase(
+										((EMFExportEObjectManyReferencesColumnHeader) firstRefMatrixRowColumnValue)
+												.getRefMatrixName()))) {
+
+					// @formatter:off
+					constructNonContainmentDisabledOrSelfReferencingModelFlatMatrixColumnHeader(
+							matrixNameToMatrixMap,
+							exportOptions,
+							flatMatrix, 
+							flatMatrixColumnKey,
+							firstRefMatrixRowColumnValue, 
+							normalizeFlatMatrixReferenceColumnHeaderName(
+									(EMFExportEObjectColumnHeader) rawColumnHeader));
 					// @formatter:on
 
 				} else {
@@ -396,7 +472,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void constructFlatMatrixManyReferencesColumnHeaders(
-			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, Map<Object, Object> exportOptions,
 			Table<Integer, Integer, Object> flatMatrix, AtomicInteger flatMatrixColumnKey,
 			Table<Integer, Integer, Object> matrix, EMFExportEObjectColumnHeader nonRefMatrixColumnHeader,
 			Integer matrixRowColumnKey, Object rawColumnHeader, String... columnHeaderNameParts)
@@ -433,6 +509,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 						// @formatter:off
 						constructFlatMatrixColumnHeaders(
 								matrixNameToMatrixMap, 
+								exportOptions,
 								flatMatrix, 
 								flatMatrixColumnKey, 
 								refMatrix,
@@ -445,6 +522,27 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 												Arrays.asList(columnHeaderNameParts), columnHeaderName,
 												String.valueOf(colIndex))));
 						// @formatter:on
+
+					} else if ((firstRefMatrixRowColumnValue instanceof EMFExportEObjectManyReferencesColumnHeader)
+							&& ((!exportNonContainmentEnabled(exportOptions) && !matrixNameToMatrixMap.containsKey(
+									((EMFExportEObjectManyReferencesColumnHeader) firstRefMatrixRowColumnValue)
+											.getRefMatrixName()))
+									|| refMatrixName.equalsIgnoreCase(
+											((EMFExportEObjectManyReferencesColumnHeader) firstRefMatrixRowColumnValue)
+													.getRefMatrixName()))) {
+
+						// @formatter:off
+						constructNonContainmentDisabledOrSelfReferencingModelFlatMatrixColumnHeader(
+								matrixNameToMatrixMap,
+								exportOptions,
+								flatMatrix, 
+								flatMatrixColumnKey,
+								firstRefMatrixRowColumnValue, 
+								constructFlatMatrixReferenceColumnHeaderName(
+										constructFlatMatrixReferenceColumnHeaderNameParts(
+												Arrays.asList(columnHeaderNameParts), columnHeaderName,
+												String.valueOf(colIndex))));
+						// @formatter:on						
 
 					} else {
 
@@ -460,8 +558,9 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 											constructFlatMatrixReferenceColumnHeaderNameParts(
 													Arrays.asList(columnHeaderNameParts), columnHeaderName,
 													String.valueOf(colIndex),
-													((EMFExportEObjectColumnHeader) firstRefMatrixRowColumnValue)
-													.getColumnHeaderName().replaceFirst(REF_COLUMN_PREFIX, ""))), 	
+													normalizeFlatMatrixReferenceColumnHeaderName(
+															(EMFExportEObjectColumnHeader) firstRefMatrixRowColumnValue))
+											), 	
 									flatMatrixColumnKey);
 							// @formatter:on
 						}
@@ -503,18 +602,30 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 		return parts.toArray(new String[parts.size()]);
 	}
 
-	private void populateFlatMatrixWithData(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
-			Set<String> nonRefMatrixNames, Table<Integer, Integer, Object> flatMatrix,
-			Map<Object, Object> exportOptions) throws EMFExportException {
-
-		// in flat mode, we only process non-ref matrices
-		for (String nonRefMatrixName : nonRefMatrixNames) {
-			populateFlatMatrixWithData(matrixNameToMatrixMap, flatMatrix, exportOptions, nonRefMatrixName);
+	private String normalizeFlatMatrixReferenceColumnHeaderName(EMFExportEObjectColumnHeader columnHeader) {
+		// for self-referencing models, we leave the 'ref_' prefix
+		if (columnHeader instanceof EMFExportEObjectReferenceColumnHeader
+				&& ((EMFExportEObjectReferenceColumnHeader) columnHeader).getMatrixName()
+						.equalsIgnoreCase(((EMFExportEObjectReferenceColumnHeader) columnHeader).getRefMatrixName())) {
+			return ((EMFExportEObjectColumnHeader) columnHeader).getColumnHeaderName();
+		} else {
+			return ((EMFExportEObjectColumnHeader) columnHeader).getColumnHeaderName().replaceFirst(REF_COLUMN_PREFIX,
+					"");
 		}
 	}
 
 	private void populateFlatMatrixWithData(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
-			Table<Integer, Integer, Object> flatMatrix, Map<Object, Object> exportOptions, String nonRefMatrixName)
+			Set<String> nonRefMatrixNames, Map<Object, Object> exportOptions,
+			Table<Integer, Integer, Object> flatMatrix) throws EMFExportException {
+
+		// in flat mode, we only process non-ref matrices
+		for (String nonRefMatrixName : nonRefMatrixNames) {
+			populateFlatMatrixWithData(matrixNameToMatrixMap, exportOptions, flatMatrix, nonRefMatrixName);
+		}
+	}
+
+	private void populateFlatMatrixWithData(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Map<Object, Object> exportOptions, Table<Integer, Integer, Object> flatMatrix, String nonRefMatrixName)
 			throws EMFExportException {
 
 		Table<Integer, Integer, Object> nonRefMatrix = matrixNameToMatrixMap.get(nonRefMatrixName);
@@ -538,47 +649,30 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 				Object rawNonRefMatrixColumnHeader = nonRefMatrix.get(getMatrixRowKey(1),
 						getMatrixColumnKey(nonRefMatrixRowColumn.getKey()));
 
-				if (exportNonContainmentEnabled(exportOptions)) {
-
-					// @formatter:off
-					populateFlatMatrixWithData(
-							matrixNameToMatrixMap, 
-							flatMatrix, 
-							flatMatrixColumnKey, 
-							nonRefMatrix, 
-							nonRefMatrixName,
-							nonRefMatrixRowNumber, 
-							(EMFExportEObjectColumnHeader) rawNonRefMatrixColumnHeader,
-							null,
-							nonRefMatrixRowColumn.getKey(),
-							nonRefMatrixRowColumn.getValue());
-					// @formatter:on
-
-					// when export non-containment references is disabled, we do not unpack
-					// non-containment references, we process those directly and output their
-					// identifiers only
-				} else {
-
-					// @formatter:off
-					populateFlatMatrixColumnWithData(
-							matrixNameToMatrixMap, 
-							flatMatrix, 
-							flatMatrixColumnKey,
-							nonRefMatrixRowNumber, 
-							(EMFExportEObjectColumnHeader) rawNonRefMatrixColumnHeader,
-							null, 
-							nonRefMatrixRowColumn.getValue());
-					// @formatter:on
-				}
+				// @formatter:off
+				populateFlatMatrixWithData(
+						matrixNameToMatrixMap, 
+						exportOptions,
+						flatMatrix, 
+						flatMatrixColumnKey, 
+						nonRefMatrix, 
+						nonRefMatrixName,
+						nonRefMatrixRowNumber, 
+						(EMFExportEObjectColumnHeader) rawNonRefMatrixColumnHeader,
+						null,
+						nonRefMatrixRowColumn.getKey(),
+						nonRefMatrixRowColumn.getValue());
+				// @formatter:on
 			}
 		}
 	}
 
 	private void populateFlatMatrixWithData(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
-			Table<Integer, Integer, Object> flatMatrix, AtomicInteger flatMatrixColumnKey,
-			Table<Integer, Integer, Object> matrix, String matrixName, Integer matrixRowNumber,
-			EMFExportEObjectColumnHeader matrixColumnHeader, EMFExportEObjectColumnHeader refMatrixColumnHeader,
-			Integer matrixRowColumnKey, Object rawMatrixRowColumnValue) throws EMFExportException {
+			Map<Object, Object> exportOptions, Table<Integer, Integer, Object> flatMatrix,
+			AtomicInteger flatMatrixColumnKey, Table<Integer, Integer, Object> matrix, String matrixName,
+			Integer matrixRowNumber, EMFExportEObjectColumnHeader matrixColumnHeader,
+			EMFExportEObjectColumnHeader refMatrixColumnHeader, Integer matrixRowColumnKey,
+			Object rawMatrixRowColumnValue) throws EMFExportException {
 
 		if ((rawMatrixRowColumnValue instanceof EMFExportEObjectOneReferenceValueCell)
 				&& matrixNameToMatrixMap.containsKey(
@@ -589,6 +683,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 			// @formatter:off
 			populateFlatMatrixOneReferenceColumnWithData(
 					matrixNameToMatrixMap, 
+					exportOptions,
 					flatMatrix, 
 					flatMatrixColumnKey, 
 					matrix,
@@ -608,6 +703,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 			// @formatter:off
 			populateFlatMatrixManyReferencesColumnWithData(
 					matrixNameToMatrixMap, 
+					exportOptions,
 					flatMatrix, 
 					flatMatrixColumnKey,
 					matrix, 
@@ -618,11 +714,30 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 					rawMatrixRowColumnValue);
 			// @formatter:on
 
+		} else if ((rawMatrixRowColumnValue instanceof EMFExportEObjectManyReferencesValueCell)
+				&& ((!exportNonContainmentEnabled(exportOptions) && !matrixNameToMatrixMap.containsKey(
+						((EMFExportEObjectManyReferencesValueCell) rawMatrixRowColumnValue).getRefMatrixName()))
+						|| matrixName
+								.equalsIgnoreCase(((EMFExportEObjectManyReferencesValueCell) rawMatrixRowColumnValue)
+										.getRefMatrixName()))) {
+
+			// @formatter:off
+			populateNonContainmentDisabledOrSelfReferencingModelFlatMatrixColumnWithData(
+					matrixNameToMatrixMap, 
+					exportOptions,
+					flatMatrix,
+					flatMatrixColumnKey, 
+					matrixRowNumber, 
+					(refMatrixColumnHeader != null) ? refMatrixColumnHeader: matrixColumnHeader,
+					rawMatrixRowColumnValue);
+			// @formatter:on			
+
 		} else {
 
 			// @formatter:off
 			populateFlatMatrixColumnWithData(
 					matrixNameToMatrixMap, 
+					exportOptions,
 					flatMatrix, 
 					flatMatrixColumnKey,
 					matrixRowNumber, 
@@ -633,20 +748,52 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void populateFlatMatrixColumnWithData(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+	private void populateNonContainmentDisabledOrSelfReferencingModelFlatMatrixColumnWithData(
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, Map<Object, Object> exportOptions,
 			Table<Integer, Integer, Object> flatMatrix, AtomicInteger flatMatrixColumnKey, Integer matrixRowNumber,
-			EMFExportEObjectColumnHeader matrixColumnHeader, EMFExportEObjectColumnHeader refMatrixColumnHeader,
-			Object rawMatrixRowColumnValue) throws EMFExportException {
+			EMFExportEObjectColumnHeader matrixColumnHeader, Object rawMatrixRowColumnValue) throws EMFExportException {
+
+		int columnRefsMaxValueCount = findColumnRefsMaxValueCount(matrixNameToMatrixMap, matrixColumnHeader);
+
+		if (columnRefsMaxValueCount > 0) {
+
+			EMFExportEObjectManyReferencesValueCell manyReferencesValueCell = (EMFExportEObjectManyReferencesValueCell) rawMatrixRowColumnValue;
+
+			List<String> manyReferencesValueCellValues = (showURIs(exportOptions) && manyReferencesValueCell.hasURIs())
+					? manyReferencesValueCell.getURIs()
+					: manyReferencesValueCell.hasRefIDs() ? manyReferencesValueCell.getRefIDs()
+							: Collections.emptyList();
+
+			for (int colIndex = 0; colIndex < columnRefsMaxValueCount; colIndex++) {
+
+				if (manyReferencesValueCellValues.size() > colIndex) {
+					populateFlatMatrixColumnWithData(exportOptions, flatMatrix, flatMatrixColumnKey, matrixRowNumber,
+							manyReferencesValueCellValues.get(colIndex));
+				} else {
+					populateFlatMatrixColumnWithData(exportOptions, flatMatrix, flatMatrixColumnKey, matrixRowNumber,
+							Optional.empty());
+				}
+			}
+		}
+	}
+
+	private void populateFlatMatrixColumnWithData(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Map<Object, Object> exportOptions, Table<Integer, Integer, Object> flatMatrix,
+			AtomicInteger flatMatrixColumnKey, Integer matrixRowNumber, EMFExportEObjectColumnHeader matrixColumnHeader,
+			EMFExportEObjectColumnHeader refMatrixColumnHeader, Object rawMatrixRowColumnValue)
+			throws EMFExportException {
 
 		boolean hasValue = hasValue(matrixNameToMatrixMap, matrixColumnHeader, refMatrixColumnHeader);
 
 		if (hasValue) {
-			populateFlatMatrixColumnWithData(flatMatrix, flatMatrixColumnKey, matrixRowNumber, rawMatrixRowColumnValue);
+			populateFlatMatrixColumnWithData(exportOptions, flatMatrix, flatMatrixColumnKey, matrixRowNumber,
+					rawMatrixRowColumnValue);
 		}
 	}
 
-	private void populateFlatMatrixColumnWithData(Table<Integer, Integer, Object> flatMatrix,
-			AtomicInteger flatMatrixColumnKey, Integer rowKey, Object value) {
+	private void populateFlatMatrixColumnWithData(Map<Object, Object> exportOptions,
+			Table<Integer, Integer, Object> flatMatrix, AtomicInteger flatMatrixColumnKey, Integer rowKey,
+			Object value) {
 
 		if ((value == null) || (value instanceof Optional)) {
 			LOG.debug("Inserting EMPTY value cell at row '{}' and column '{}'", rowKey,
@@ -664,7 +811,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void populateFlatMatrixOneReferenceColumnWithData(
-			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, Map<Object, Object> exportOptions,
 			Table<Integer, Integer, Object> flatMatrix, AtomicInteger flatMatrixColumnKey,
 			Table<Integer, Integer, Object> matrix, Integer matrixRowNumber,
 			EMFExportEObjectColumnHeader matrixColumnHeader, EMFExportEObjectColumnHeader refMatrixColumnHeader,
@@ -674,9 +821,9 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 
 		Table<Integer, Integer, Object> refMatrix = matrixNameToMatrixMap.get(refMatrixName);
 
-		if (((EMFExportEObjectOneReferenceValueCell) rawMatrixRowColumnValue).hasValue()) {
+		if (((EMFExportEObjectOneReferenceValueCell) rawMatrixRowColumnValue).hasRefID()) {
 
-			String refID = ((EMFExportEObjectOneReferenceValueCell) rawMatrixRowColumnValue).getValue();
+			String refID = ((EMFExportEObjectOneReferenceValueCell) rawMatrixRowColumnValue).getRefID();
 
 			int refMatrixRowKey = findRefMatrixRowKey(refMatrixName, refID);
 
@@ -689,6 +836,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 					// @formatter:off
 					populateFlatMatrixWithData(
 							matrixNameToMatrixMap,
+							exportOptions,
 							flatMatrix,
 							flatMatrixColumnKey, 
 							refMatrix,
@@ -724,8 +872,8 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 					// @formatter:on
 
 					if (refFeatureHasValue) {
-						populateFlatMatrixColumnWithData(flatMatrix, flatMatrixColumnKey, matrixRowNumber,
-								Optional.empty());
+						populateFlatMatrixColumnWithData(exportOptions, flatMatrix, flatMatrixColumnKey,
+								matrixRowNumber, Optional.empty());
 					}
 				}
 			}
@@ -733,7 +881,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void populateFlatMatrixManyReferencesColumnWithData(
-			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap, Map<Object, Object> exportOptions,
 			Table<Integer, Integer, Object> flatMatrix, AtomicInteger flatMatrixColumnKey,
 			Table<Integer, Integer, Object> matrix, Integer matrixRowNumber,
 			EMFExportEObjectColumnHeader matrixColumnHeader, EMFExportEObjectColumnHeader refMatrixColumnHeader,
@@ -743,9 +891,9 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 
 		Table<Integer, Integer, Object> refMatrix = matrixNameToMatrixMap.get(refMatrixName);
 
-		if (((EMFExportEObjectManyReferencesValueCell) rawMatrixRowColumnValue).hasValues()) {
+		if (((EMFExportEObjectManyReferencesValueCell) rawMatrixRowColumnValue).hasRefIDs()) {
 
-			List<String> refIDs = ((EMFExportEObjectManyReferencesValueCell) rawMatrixRowColumnValue).getValues();
+			List<String> refIDs = ((EMFExportEObjectManyReferencesValueCell) rawMatrixRowColumnValue).getRefIDs();
 
 			for (String refID : refIDs) {
 
@@ -760,6 +908,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 						// @formatter:off
 						populateFlatMatrixWithData(
 								matrixNameToMatrixMap,
+								exportOptions,
 								flatMatrix,
 								flatMatrixColumnKey, 
 								refMatrix,
@@ -779,17 +928,13 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 			// must be created
 		} else {
 
-			// @formatter:off
-			int manyReferencesMaxValueCount = findRefsMaxValueCount(
-					matrixNameToMatrixMap,
-					matrixColumnHeader, 
-					matrix,
-					matrixRowColumnKey);
-			// @formatter:on
+			int refsMaxValueCount = (refMatrixColumnHeader != null && (matrixColumnHeader != refMatrixColumnHeader))
+					? findRefsMaxValueCount(matrixNameToMatrixMap, matrixColumnHeader, refMatrixColumnHeader)
+					: findColumnRefsMaxValueCount(matrixNameToMatrixMap, matrixColumnHeader);
 
-			if (manyReferencesMaxValueCount > 0) {
+			if (refsMaxValueCount > 0) {
 
-				for (int emptyRefId = 0; emptyRefId <= manyReferencesMaxValueCount; emptyRefId++) {
+				for (int emptyRefId = 0; emptyRefId < refsMaxValueCount; emptyRefId++) {
 
 					for (Map.Entry<Integer, Object> firstRefMatrixRowColumn : refMatrix.row(getMatrixRowKey(1))
 							.entrySet()) {
@@ -804,8 +949,8 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 						// @formatter:on
 
 						if (refFeatureHasValue) {
-							populateFlatMatrixColumnWithData(flatMatrix, flatMatrixColumnKey, matrixRowNumber,
-									Optional.empty());
+							populateFlatMatrixColumnWithData(exportOptions, flatMatrix, flatMatrixColumnKey,
+									matrixRowNumber, Optional.empty());
 						}
 					}
 				}
@@ -813,85 +958,7 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void exportMatrixToCSVInZipMode(ZipOutputStream zipOutputStream, String matrixName,
-			Table<Integer, Integer, Object> matrix) throws IOException {
-		final StringWriter csvStringWriter = new StringWriter();
-
-		try (CsvWriter csvWriter = CsvWriter.builder().build(csvStringWriter)) {
-
-			writeCSVHeader(matrix, csvWriter);
-
-			writeCSVData(matrix, csvWriter);
-
-			writeZipEntry(zipOutputStream, matrixName, csvStringWriter);
-		}
-	}
-
-	private void writeCSVHeader(Table<Integer, Integer, Object> matrix, CsvWriter csvWriter) {
-		Map<Integer, Object> firstRow = matrix.row(getMatrixRowKey(1));
-
-		// @formatter:off
-		List<String> firstRowValuesAsString = firstRow.values()
-				.stream()
-				.map(v -> String.valueOf(v))
-				.collect(Collectors.toList());
-		// @formatter:on
-
-		csvWriter.writeRow(firstRowValuesAsString);
-	}
-
-	private void writeCSVData(Table<Integer, Integer, Object> matrix, CsvWriter csvWriter) {
-		Map<Integer, Map<Integer, Object>> matrixRowMap = matrix.rowMap();
-
-		// @formatter:off
-		List<Integer> remainingRows = matrixRowMap.keySet()
-				.stream()
-				.skip(1)
-				.collect(Collectors.toList());
-		// @formatter:on
-
-		for (Integer rowNumber : remainingRows) {
-			Map<Integer, Object> row = matrixRowMap.get(rowNumber);
-
-			// @formatter:off
-			List<String> rowValuesAsString = row.values()
-					.stream()
-					.map(v -> ((v instanceof Optional) ? "" : String.valueOf(v)))
-					.collect(Collectors.toList());
-			// @formatter:on						
-
-			csvWriter.writeRow(rowValuesAsString);
-		}
-	}
-
-	private void writeZipEntry(ZipOutputStream zipOutputStream, String matrixName, final StringWriter csvStringWriter)
-			throws IOException {
-		String zipEntryName = constructZipEntryName(matrixName);
-		ZipEntry zipEntry = new ZipEntry(zipEntryName);
-		zipOutputStream.putNextEntry(zipEntry);
-
-		try (InputStream bais = new ByteArrayInputStream(csvStringWriter.toString().getBytes())) {
-			byte[] bytes = new byte[1024];
-			int length;
-			while ((length = bais.read(bytes)) >= 0) {
-				zipOutputStream.write(bytes, 0, length);
-			}
-		}
-
-		zipOutputStream.closeEntry();
-	}
-
-	private String constructZipEntryName(String matrixName) {
-		String normalizedMatrixName = matrixName.strip().replaceAll("[()]", "").replaceAll("(?U)[^\\w\\._]+", "_");
-
-		StringBuilder sb = new StringBuilder(100);
-		sb.append(normalizedMatrixName);
-		sb.append(".");
-		sb.append(CSV_FILE_EXTENSION);
-		return sb.toString();
-	}
-
-	@SuppressWarnings("unused") // TODO: remove if not needed
+	@SuppressWarnings("unused")
 	private int findRefMatrixRowKey(String refID) {
 		if (eObjectIDToMatrixNameMap.containsKey(refID)) {
 			return findRefMatrixRowKey(eObjectIDToMatrixNameMap.get(refID), refID);
@@ -946,23 +1013,29 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 		for (Map.Entry<Integer, Object> matrixColumnRow : matrixColumn.entrySet()) {
 			if (matrixColumnRow.getValue() instanceof EMFExportEObjectManyReferencesValueCell) {
 				refsMaxValueCount = Math.max(refsMaxValueCount,
-						((EMFExportEObjectManyReferencesValueCell) matrixColumnRow.getValue()).getValuesCount());
+						((EMFExportEObjectManyReferencesValueCell) matrixColumnRow.getValue()).getRefIDsCount());
 			}
 		}
 		return refsMaxValueCount;
 	}
 
 	private int findRefsMaxValueCount(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
-			EMFExportEObjectColumnHeader nonRefMatrixColumnHeader, Table<Integer, Integer, Object> matrix,
-			Integer matrixRowColumnKey) throws EMFExportException {
+			EMFExportEObjectColumnHeader matrixColumnHeader, EMFExportEObjectColumnHeader refMatrixColumnHeader)
+			throws EMFExportException {
 
-		Object refMatrixColumnHeader = matrix.get(getMatrixRowKey(1), matrixRowColumnKey);
+		if (matrixColumnHeader == null) {
+			throw new EMFExportException(String.format("Matrix column header is required!"));
+		}
+
+		if (refMatrixColumnHeader == null) {
+			throw new EMFExportException(String.format("RefMatrix column header is required!"));
+		}
 
 		return findRefsMaxValueCount(matrixNameToMatrixMap,
-				((EMFExportEObjectReferenceColumnHeader) nonRefMatrixColumnHeader).getMatrixName(),
-				((EMFExportEObjectReferenceColumnHeader) nonRefMatrixColumnHeader).getColumnHeaderName(),
-				((EMFExportEObjectReferenceColumnHeader) refMatrixColumnHeader).getMatrixName(),
-				((EMFExportEObjectReferenceColumnHeader) refMatrixColumnHeader).getColumnHeaderName());
+				((EMFExportEObjectColumnHeader) matrixColumnHeader).getMatrixName(),
+				((EMFExportEObjectColumnHeader) matrixColumnHeader).getColumnHeaderName(),
+				((EMFExportEObjectColumnHeader) refMatrixColumnHeader).getMatrixName(),
+				((EMFExportEObjectColumnHeader) refMatrixColumnHeader).getColumnHeaderName());
 	}
 
 	private int findRefsMaxValueCount(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
@@ -1015,14 +1088,14 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 						if (refMatrixColumnRowValue instanceof EMFExportEObjectManyReferencesValueCell) {
 							refsMaxValueCount = Math.max(refsMaxValueCount,
 									((EMFExportEObjectManyReferencesValueCell) refMatrixColumnRowValue)
-											.getValuesCount());
+											.getRefIDsCount());
 						}
 					}
 				}
 			}
-		}
 
-		refsMaxValueCountIndex.put(refsMaxValueCountCompositeKey, getMatrixColumnKey(refsMaxValueCount));
+			refsMaxValueCountIndex.put(refsMaxValueCountCompositeKey, Integer.valueOf(refsMaxValueCount));
+		}
 
 		return refsMaxValueCount;
 	}
@@ -1047,9 +1120,6 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 				(EMFExportEObjectColumnHeader) refMatrixColumnHeader);
 	}
 
-	// TODO: decide if this should be used at all / if checks should be directly in
-	// #refHasValue(Map<String, Table<Integer, Integer, Object>>, String, String,
-	// String, String)
 	private boolean refHasValue(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
 			EMFExportEObjectColumnHeader matrixColumnHeader, Object refMatrixColumnHeader) throws EMFExportException {
 
@@ -1142,29 +1212,29 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 
 					refHasValue = refIDsHaveValue;
 				}
-			}
 
-			refHasValueIndex.put(refHasValueCompositeKey, Boolean.valueOf(refHasValue));
+				refHasValueIndex.put(refHasValueCompositeKey, Boolean.valueOf(refHasValue));
+			}
 		}
 
 		return refHasValue;
 	}
 
-	private boolean refHasValue(boolean refIDsHaveValue, Object refMatrixColumnRowValue) {
+	private boolean refHasValue(boolean refHasValue, Object refMatrixColumnRowValue) {
 		if ((refMatrixColumnRowValue != null)
 				&& !(refMatrixColumnRowValue instanceof Optional && ((Optional<?>) refMatrixColumnRowValue).isEmpty())
 				&& (((refMatrixColumnRowValue instanceof EMFExportEObjectOneReferenceValueCell)
-						&& ((EMFExportEObjectOneReferenceValueCell) refMatrixColumnRowValue).hasValue())
+						&& ((EMFExportEObjectOneReferenceValueCell) refMatrixColumnRowValue).hasRefID())
 						|| ((refMatrixColumnRowValue instanceof EMFExportEObjectManyReferencesValueCell)
-								&& ((EMFExportEObjectManyReferencesValueCell) refMatrixColumnRowValue).hasValues())
+								&& ((EMFExportEObjectManyReferencesValueCell) refMatrixColumnRowValue).hasRefIDs())
 						|| ((refMatrixColumnRowValue instanceof EMFExportEObjectIDValueCell)
 								&& ((EMFExportEObjectIDValueCell) refMatrixColumnRowValue).hasValue())
 						|| (String.valueOf(refMatrixColumnRowValue) != null
 								&& !String.valueOf(refMatrixColumnRowValue).isEmpty()))) {
-			refIDsHaveValue = true;
+			refHasValue = true;
 		}
 
-		return refIDsHaveValue;
+		return refHasValue;
 	}
 
 	private List<String> findRefIDs(Table<Integer, Integer, Object> matrix, Integer matrixColumnKey) {
@@ -1183,16 +1253,17 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 					refIDs.add(((EMFExportEObjectIDValueCell) matrixColumnRowValue).getValue());
 				}
 			} else if (matrixColumnRowValue instanceof EMFExportEObjectOneReferenceValueCell) {
-				if (((EMFExportEObjectOneReferenceValueCell) matrixColumnRowValue).hasValue()) {
-					refIDs.add(((EMFExportEObjectOneReferenceValueCell) matrixColumnRowValue).getValue());
+				if (((EMFExportEObjectOneReferenceValueCell) matrixColumnRowValue).hasRefID()) {
+					refIDs.add(((EMFExportEObjectOneReferenceValueCell) matrixColumnRowValue).getRefID());
 				}
 
 			} else if (matrixColumnRowValue instanceof EMFExportEObjectManyReferencesValueCell) {
-				if (((EMFExportEObjectManyReferencesValueCell) matrixColumnRowValue).hasValues()) {
-					refIDs.addAll(((EMFExportEObjectManyReferencesValueCell) matrixColumnRowValue).getValues());
+				if (((EMFExportEObjectManyReferencesValueCell) matrixColumnRowValue).hasRefIDs()) {
+					refIDs.addAll(((EMFExportEObjectManyReferencesValueCell) matrixColumnRowValue).getRefIDs());
 				}
 			}
 		}
+
 		return refIDs;
 	}
 
@@ -1278,13 +1349,57 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 		return ((matrixColumnRowValue != null)
 				&& !(matrixColumnRowValue instanceof Optional && ((Optional<?>) matrixColumnRowValue).isEmpty())
 				&& (((matrixColumnRowValue instanceof EMFExportEObjectOneReferenceValueCell)
-						&& ((EMFExportEObjectOneReferenceValueCell) matrixColumnRowValue).hasValue())
+						&& ((EMFExportEObjectOneReferenceValueCell) matrixColumnRowValue).hasRefID())
 						|| ((matrixColumnRowValue instanceof EMFExportEObjectManyReferencesValueCell)
-								&& ((EMFExportEObjectManyReferencesValueCell) matrixColumnRowValue).hasValues())
+								&& ((EMFExportEObjectManyReferencesValueCell) matrixColumnRowValue).hasRefIDs())
 						|| ((matrixColumnRowValue instanceof EMFExportEObjectIDValueCell)
 								&& ((EMFExportEObjectIDValueCell) matrixColumnRowValue).hasValue())
 						|| (String.valueOf(matrixColumnRowValue) != null
 								&& !String.valueOf(matrixColumnRowValue).isEmpty())));
+	}
+
+	private int findColumnRefsMaxValueCount(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			EMFExportEObjectColumnHeader matrixColumnHeader) throws EMFExportException {
+
+		if (matrixColumnHeader == null) {
+			throw new EMFExportException(String.format("Matrix column header is required!"));
+		}
+
+		return findColumnRefsMaxValueCount(matrixNameToMatrixMap,
+				((EMFExportEObjectColumnHeader) matrixColumnHeader).getMatrixName(),
+				((EMFExportEObjectColumnHeader) matrixColumnHeader).getColumnHeaderName());
+	}
+
+	private int findColumnRefsMaxValueCount(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
+			String matrixName, String columnHeaderName) throws EMFExportException {
+
+		EMFExportColumnRefsMaxValueCountCompositeKey columnRefsMaxValueCountCompositeKey = new EMFExportColumnRefsMaxValueCountCompositeKey(
+				matrixName, columnHeaderName);
+		if (columnRefsMaxValueCountIndex.containsKey(columnRefsMaxValueCountCompositeKey)) {
+			return columnRefsMaxValueCountIndex.get(columnRefsMaxValueCountCompositeKey);
+		}
+
+		int columnRefsMaxValueCount = 0;
+
+		if (matrixNameToMatrixMap.containsKey(matrixName)) {
+
+			Table<Integer, Integer, Object> matrix = matrixNameToMatrixMap.get(matrixName);
+
+			Map<Integer, Object> firstMatrixRow = matrix.row(getMatrixRowKey(1));
+
+			Integer matrixColumnKey = findMatrixColumnKey(columnHeaderName, firstMatrixRow);
+			if (matrixColumnKey == null) {
+				throw new EMFExportException(String.format("Column named %s does not exist in matrix named %s!",
+						columnHeaderName, matrixName));
+			}
+
+			columnRefsMaxValueCount = findRefsMaxValueCount(matrix, matrixColumnKey);
+
+			columnRefsMaxValueCountIndex.put(columnRefsMaxValueCountCompositeKey,
+					Integer.valueOf(columnRefsMaxValueCount));
+		}
+
+		return columnRefsMaxValueCount;
 	}
 
 	private boolean hasValue(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
@@ -1301,15 +1416,11 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	private Set<String> nonRefMatrixNames(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap) {
 		Set<String> refMatrixNames = refMatrixNames(matrixNameToMatrixMap);
 
-		return matrixNameToMatrixMap.keySet().stream().filter(matrixName -> !refMatrixNames.contains(matrixName))
+		// @formatter:off
+		return matrixNameToMatrixMap.keySet().stream()
+				.filter(matrixName -> !refMatrixNames.contains(matrixName))
 				.collect(Collectors.toSet());
-	}
-
-	@SuppressWarnings("unused") // TODO: remove if not needed
-	private Set<String> nonRefMatrixNames(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap,
-			Set<String> refMatrixNames) {
-		return matrixNameToMatrixMap.keySet().stream().filter(matrixName -> !refMatrixNames.contains(matrixName))
-				.collect(Collectors.toSet());
+		// @formatter:on
 	}
 
 	private Set<String> refMatrixNames(Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap) {
@@ -1323,14 +1434,119 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 			for (Map.Entry<Integer, Object> rowColumn : firstRow.entrySet()) {
 				Object value = rowColumn.getValue();
 
-				if (value instanceof EMFExportEObjectReferenceColumnHeader) {
+				if ((value != null) && (value instanceof EMFExportEObjectReferenceColumnHeader)) {
 					String refMatrixName = ((EMFExportEObjectReferenceColumnHeader) value).getRefMatrixName();
 
-					filterMatrixNames.add(refMatrixName);
+					// only non self-referencing models
+					if (!refMatrixName
+							.equalsIgnoreCase(((EMFExportEObjectReferenceColumnHeader) value).getMatrixName())) {
+						filterMatrixNames.add(refMatrixName);
+					}
 				}
 			}
 		}
+
 		return filterMatrixNames;
+	}
+
+	private void writeCSVHeader(Table<Integer, Integer, Object> matrix, CsvWriter csvWriter) {
+		Map<Integer, Object> firstRow = matrix.row(getMatrixRowKey(1));
+
+		// @formatter:off
+		List<String> firstRowValuesAsString = firstRow.values()
+				.stream()
+				.map(v -> String.valueOf(v))
+				.collect(Collectors.toList());
+		// @formatter:on
+
+		csvWriter.writeRow(firstRowValuesAsString);
+	}
+
+	private void writeCSVData(Table<Integer, Integer, Object> matrix, CsvWriter csvWriter,
+			Map<Object, Object> exportOptions) {
+		Map<Integer, Map<Integer, Object>> matrixRowMap = matrix.rowMap();
+
+		// @formatter:off
+		List<Integer> remainingRows = matrixRowMap.keySet()
+				.stream()
+				.skip(1)
+				.collect(Collectors.toList());
+		// @formatter:on
+
+		for (Integer rowNumber : remainingRows) {
+			Map<Integer, Object> row = matrixRowMap.get(rowNumber);
+
+			List<String> rowValuesAsString = convertValues(row.values(), exportOptions);
+
+			csvWriter.writeRow(rowValuesAsString);
+		}
+	}
+
+	private List<String> convertValues(Collection<Object> rowValues, Map<Object, Object> exportOptions) {
+		// @formatter:off
+		List<String> rowValuesAsString = rowValues
+				.stream()
+				.map(v -> convertValue(v, exportOptions) )
+				.collect(Collectors.toList());
+		// @formatter:on
+		return rowValuesAsString;
+	}
+
+	private String convertValue(Object v, Map<Object, Object> exportOptions) {
+		if ((v == null) || (v instanceof Optional)) {
+			return "";
+		} else {
+			if (showURIs(exportOptions) && (v instanceof EMFExportEObjectReferenceValueCell)) {
+				if (v instanceof EMFExportEObjectOneReferenceValueCell
+						&& ((EMFExportEObjectOneReferenceValueCell) v).hasURI()) {
+					return ((EMFExportEObjectOneReferenceValueCell) v).getURI();
+				} else if (v instanceof EMFExportEObjectManyReferencesValueCell
+						&& ((EMFExportEObjectManyReferencesValueCell) v).hasURIs()) {
+					if (((EMFExportEObjectManyReferencesValueCell) v).getURIsCount() == 1) {
+						return ((EMFExportEObjectManyReferencesValueCell) v).getURIs().get(0);
+					} else {
+						return Arrays.toString(((EMFExportEObjectManyReferencesValueCell) v).getURIs().toArray());
+					}
+				} else {
+					return "";
+				}
+
+			} else {
+				if ((v instanceof EMFExportEObjectManyReferencesValueCell)
+						&& ((EMFExportEObjectManyReferencesValueCell) v).getRefIDsCount() == 1) {
+					return ((EMFExportEObjectManyReferencesValueCell) v).getRefIDs().get(0);
+				} else {
+					return String.valueOf(v);
+				}
+			}
+		}
+	}
+
+	private void writeZipEntry(ZipOutputStream zipOutputStream, String matrixName, final StringWriter csvStringWriter)
+			throws IOException {
+		String zipEntryName = constructZipEntryName(matrixName);
+		ZipEntry zipEntry = new ZipEntry(zipEntryName);
+		zipOutputStream.putNextEntry(zipEntry);
+
+		try (InputStream bais = new ByteArrayInputStream(csvStringWriter.toString().getBytes())) {
+			byte[] bytes = new byte[1024];
+			int length;
+			while ((length = bais.read(bytes)) >= 0) {
+				zipOutputStream.write(bytes, 0, length);
+			}
+		}
+
+		zipOutputStream.closeEntry();
+	}
+
+	private String constructZipEntryName(String matrixName) {
+		String normalizedMatrixName = matrixName.strip().replaceAll("[()]", "").replaceAll("(?U)[^\\w\\._]+", "_");
+
+		StringBuilder sb = new StringBuilder(100);
+		sb.append(normalizedMatrixName);
+		sb.append(".");
+		sb.append(CSV_FILE_EXTENSION);
+		return sb.toString();
 	}
 
 	private void validateClassHierarchyForRootObjects(List<EObject> eObjects) throws EMFExportException {
@@ -1404,5 +1620,6 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 		this.refsMaxValueCountIndex.clear();
 		this.refHasValueIndex.clear();
 		this.columnHasValueIndex.clear();
+		this.columnRefsMaxValueCountIndex.clear();
 	}
 }
