@@ -1,0 +1,76 @@
+
+# Detailed logging
+-runproperties.debug: \
+	felix.log.level=4,\
+	org.osgi.service.log.admin.loglevel=DEBUG
+
+-runtrace: true
+
+-runfw: org.apache.felix.framework;version='[7.0.1,7.0.1]'
+-runee: JavaSE-17
+
+-runprovidedcapabilities: ${native_capability}
+
+-resolve.effective: active
+
+-runbundles.junit5: ${test.runbundles}
+
+-runproperties.trees: \
+	TREES_DATASET_XMI="${.}/testdata/Trees/CityTree.xmi"
+
+-runrequires: \
+	bnd.identity;id='org.gecko.emf.exporter.r_lang',\
+	bnd.identity;id='org.gecko.emf.exporter.r_lang.tests'
+
+-runrequires.slf4j: \
+	bnd.identity;id='org.slf4j.osgi-over-slf4j',\
+	bnd.identity;id='org.apache.felix.log'
+
+-runbundles: \
+	junit-jupiter-api;version='[5.8.2,5.8.3)',\
+	junit-platform-commons;version='[1.8.2,1.8.3)',\
+	org.apache.felix.configadmin;version='[1.9.22,1.9.23)',\
+	org.apache.felix.scr;version='[2.1.30,2.1.31)',\
+	org.eclipse.emf.common;version='[2.23.0,2.23.1)',\
+	org.eclipse.emf.ecore;version='[2.25.0,2.25.1)',\
+	org.eclipse.emf.ecore.xmi;version='[2.16.0,2.16.1)',\
+	org.gecko.emf.osgi.api;version='[4.1.1,4.1.2)',\
+	org.gecko.emf.osgi.component;version='[4.1.1,4.1.2)',\
+	org.gecko.emf.osgi.example.model.basic;version='[4.1.1,4.1.2)',\
+	org.opentest4j;version='[1.2.0,1.2.1)',\
+	org.osgi.util.function;version='[1.1.0,1.1.1)',\
+	org.osgi.util.pushstream;version='[1.0.1,1.0.2)',\
+	org.apache.felix.converter;version='[1.0.18,1.0.19)',\
+	org.osgi.util.promise;version='[1.2.0,1.2.1)',\
+	assertj-core;version='[3.22.0,3.22.1)',\
+	junit-jupiter-params;version='[5.8.2,5.8.3)',\
+	org.osgi.test.common;version='[1.1.0,1.1.1)',\
+	org.osgi.test.junit5;version='[1.1.0,1.1.1)',\
+	org.yaml.snakeyaml;version='[1.33.0,1.33.1)',\
+	org.gecko.emf.exporter;version=snapshot,\
+	com.fasterxml.jackson.core.jackson-annotations;version='[2.14.1,2.14.2)',\
+	com.fasterxml.jackson.core.jackson-core;version='[2.14.1,2.14.2)',\
+	com.fasterxml.jackson.core.jackson-databind;version='[2.14.1,2.14.2)',\
+	com.fasterxml.jackson.dataformat.jackson-dataformat-properties;version='[2.14.1,2.14.2)',\
+	com.fasterxml.jackson.dataformat.jackson-dataformat-yaml;version='[2.14.1,2.14.2)',\
+	de.undercouch.bson4jackson;version='[2.13.1,2.13.2)',\
+	org.apache.commons.commons-text;version='[1.10.0,1.10.1)',\
+	org.apache.commons.lang3;version='[3.12.0,3.12.1)',\
+	org.eclipse.emfcloud.emfjson-jackson;version='[2.2.0,2.2.1)',\
+	org.gecko.emf.json;version=snapshot,\
+	org.gecko.emf.util.model;version=snapshot,\
+	com.fasterxml.jackson.datatype.jackson-datatype-jsr310;version='[2.14.1,2.14.2)',\
+	slf4j.api;version='[1.7.36,1.7.37)',\
+	com.google.guava;version='[32.1.2,32.1.3)',\
+	com.google.guava.failureaccess;version='[1.0.1,1.0.2)',\
+	org.gecko.emf.collections;version=snapshot,\
+	org.gecko.emf.csv;version=snapshot,\
+	org.gecko.emf.exporter.r_lang;version=snapshot,\
+	org.gecko.emf.exporter.r_lang.tests;version=snapshot,\
+	org.osgi.service.component;version='[1.4.0,1.4.1)',\
+	se.alipsa.renjin-client-data-utils;version='[1.5.0,1.5.1)',\
+	org.renjin.script-engine;version='[3.5.77,3.5.78)',\
+	org.apache.felix.log;version='[1.2.4,1.2.5)',\
+	org.slf4j.osgi-over-slf4j;version='[1.7.36,1.7.37)',\
+	org.gecko.emf.trees.model;version=snapshot
+-runblacklist: bnd.identity;id='slf4j.jdk14'

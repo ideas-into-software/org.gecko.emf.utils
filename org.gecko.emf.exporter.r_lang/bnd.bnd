@@ -1,0 +1,15 @@
+Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Name: Gecko EMF R Language Exporter
+Bundle-Description: R Language Exporter for EMF
+
+-library: enable-emf
+
+-buildpath: \
+	org.gecko.emf.exporter,\
+	org.gecko.emf.exporter.r_lang.api;version=latest,\
+	com.google.guava,\
+	slf4j.api,\
+	org.renjin.script-engine;version='3.5.77',\
+	se.alipsa.renjin-client-data-utils;version='1.5'
+
+Private-Package: org.gecko.emf.exporter.r_lang.impl

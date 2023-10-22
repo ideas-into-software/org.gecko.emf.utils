@@ -17,7 +17,10 @@
 	bnd.identity;id='org.gecko.emf.exporter.csv',\
 	bnd.identity;id='org.gecko.emf.exporter.xlsx.api',\
 	bnd.identity;id='org.gecko.emf.xlsx',\
-	bnd.identity;id='org.gecko.emf.exporter.xlsx'
+	bnd.identity;id='org.gecko.emf.exporter.xlsx',\
+	bnd.identity;id='org.gecko.emf.exporter.r_lang.api',\
+	bnd.identity;id='org.gecko.emf.r_lang',\
+	bnd.identity;id='org.gecko.emf.exporter.r_lang'
 
 -runblacklist: \
 	bnd.identity;id='ch.qos.logback.classic',\
@@ -47,7 +50,6 @@
 	com.fasterxml.jackson.dataformat.jackson-dataformat-properties;version='[2.14.1,2.14.2)',\
 	com.fasterxml.jackson.dataformat.jackson-dataformat-yaml;version='[2.14.1,2.14.2)',\
 	org.eclipse.emfcloud.emfjson-jackson;version='[2.2.0,2.2.1)',\
-	org.osgi.service.cm;version='[1.6.0,1.6.1)',\
 	org.yaml.snakeyaml;version='[1.33.0,1.33.1)',\
 	org.gecko.emf.exporter;version=snapshot,\
 	org.gecko.emf.exporter.ods;version=snapshot,\
@@ -55,9 +57,7 @@
 	org.yaml.snakeyaml;version='[1.33.0,1.33.1)',\
 	com.fasterxml.jackson.datatype.jackson-datatype-jsr310;version='[2.14.1,2.14.2)',\
 	com.github.miachm.sods;version='[1.6.2,1.6.3)',\
-	org.apache.commons.logging;version='[1.2.0,1.2.1)',\
 	slf4j.api;version='[1.7.36,1.7.37)',\
-	slf4j.simple;version='[1.7.25,1.7.26)',\
 	com.google.guava;version='[32.1.2,32.1.3)',\
 	com.google.guava.failureaccess;version='[1.0.1,1.0.2)',\
 	de.siegmar.fastcsv;version='[2.2.2,2.2.3)',\
@@ -70,4 +70,9 @@
 	org.gecko.emf.xlsx;version=snapshot,\
 	org.gecko.emf.exporter.ods.api;version=snapshot,\
 	org.gecko.emf.exporter.xlsx.api;version=snapshot,\
-	org.osgi.service.component;version='[1.4.0,1.4.1)'
+	org.osgi.service.component;version='[1.4.0,1.4.1)',\
+	org.gecko.emf.exporter.r_lang;version=snapshot,\
+	org.gecko.emf.exporter.r_lang.api;version=snapshot,\
+	org.gecko.emf.r_lang;version=snapshot,\
+	org.renjin.script-engine;version='[3.5.77,3.5.78)',\
+	se.alipsa.renjin-client-data-utils;version='[1.5.0,1.5.1)'
