@@ -73,7 +73,7 @@ import trees.TreesPackage;
 @ExtendWith(ServiceExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class EMFCSVExporterTest {
-	
+
 	private static final String TREES_DATASET_XMI = System.getProperty("TREES_DATASET_XMI");
 
 	@Order(value = -1)
@@ -85,7 +85,7 @@ public class EMFCSVExporterTest {
 		ServiceReference<EMFExporter> emfCsvExporterReference = emfCsvExporterAware.getServiceReference();
 		assertThat(emfCsvExporterReference).isNotNull();
 	}
-	
+
 	@Test
 	public void testExportExampleModelBasicInvalidClassHierarchyException(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFCSVExporter)") ServiceAware<EMFExporter> emfCsvExporterAware,
@@ -114,17 +114,18 @@ public class EMFCSVExporterTest {
 			emfCsvExporterService.exportEObjectsTo(List.of(simpsonFamily, flintstonesFamily, businessPerson), fileOutputStream, 
 					Map.of(
 							EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-//							EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+//							EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to false
 //							EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to false in FLAT export mode
 //							EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to false in FLAT export mode
 //							EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//							EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 							EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.FLAT
 						)
 					);
 			// @formatter:on
 		});
 	}
-	
+
 	@Test
 	public void testExportExampleModelBasicExportNonContainmentDisabledAddMappingTableEnabledException(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFCSVExporter)") ServiceAware<EMFExporter> emfCsvExporterAware,
@@ -153,17 +154,18 @@ public class EMFCSVExporterTest {
 			emfCsvExporterService.exportEObjectsTo(List.of(simpsonFamily, flintstonesFamily, businessPerson), fileOutputStream, 
 					Map.of(
 							EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-							EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to true
-//							EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
-//							EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+//							EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to false
+//							EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true in ZIP export mode
+							EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to false
 //							EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//							EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 							EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.ZIP
 						)
 					);
 			// @formatter:on
 		});
 	}
-	
+
 	@Test
 	public void testExportExampleModelBasicFlatExportModeNoExportMetadataNorAddMappingTableEnabledException(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFCSVExporter)") ServiceAware<EMFExporter> emfCsvExporterAware,
@@ -191,16 +193,17 @@ public class EMFCSVExporterTest {
 			emfCsvExporterService.exportEObjectsTo(List.of(simpsonFamily, flintstonesFamily, businessPerson), fileOutputStream, 
 					Map.of(
 							EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-//							EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+//							EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to false
 //							EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to false in FLAT export mode
 							EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to false in FLAT export mode
 //							EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//							EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 							EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.FLAT
 						)
 					);
 			// @formatter:on
 		});
-	}	
+	}
 
 	@Test
 	public void testExportExampleModelBasicEObjectsToCsvFlatModeNonContainmenEnabled(
@@ -215,18 +218,20 @@ public class EMFCSVExporterTest {
 
 		Family flintstonesFamily = createFlintstonesFamily(basicFactory);
 
-		Path filePath = Files.createTempFile("testExportExampleModelBasicEObjectsToCsvFlatModeNonContainmenEnabled", ".csv");
+		Path filePath = Files.createTempFile("testExportExampleModelBasicEObjectsToCsvFlatModeNonContainmenEnabled",
+				".csv");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
-		
+
 		// @formatter:off
 		emfCsvExporterService.exportEObjectsTo(List.of(simpsonFamily, flintstonesFamily), fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
 //						EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to false in FLAT export mode
 //						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to false in FLAT export mode
 //						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.FLAT
 					)
 				);
@@ -248,7 +253,8 @@ public class EMFCSVExporterTest {
 
 		BusinessPerson businessPerson = createBusinessPerson(basicFactory);
 
-		Path filePath = Files.createTempFile("testExportExampleModelBasicEObjectsToCsvZipModeNonContainmentDisabled", ".zip");
+		Path filePath = Files.createTempFile("testExportExampleModelBasicEObjectsToCsvZipModeNonContainmentDisabled",
+				".zip");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
 
@@ -256,21 +262,22 @@ public class EMFCSVExporterTest {
 		emfCsvExporterService.exportEObjectsTo(List.of(simpsonFamily, flintstonesFamily, businessPerson), fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to true
-//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to false
+//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true in ZIP export mode
+						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to true in ZIP export mode
 //						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.ZIP
 					)
 				);
 		// @formatter:on
 	}
-	
+
 	@Test
 	public void testExportUtilModelResourceToCsvFlatModeNonContainmentDisabled(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFCSVExporter)") ServiceAware<EMFExporter> emfCsvExporterAware,
 			@InjectService BasicFactory basicFactory, @InjectService BasicPackage basicPackage) throws Exception {
-		
+
 		assertThat(emfCsvExporterAware.getServices()).hasSize(1);
 		EMFExporter emfCsvExporterService = emfCsvExporterAware.getService();
 		assertThat(emfCsvExporterService).isNotNull();
@@ -279,13 +286,13 @@ public class EMFCSVExporterTest {
 		Resource xmiResource = resourceSet
 				.createResource(URI.createURI("testExportUtilModelResourceToCsvFlatModeNonContainmentDisabled.test"));
 		assertNotNull(xmiResource);
-		
+
 		Request request1 = createRequest(UtilitiesFactory.eINSTANCE);
 		xmiResource.getContents().add(request1);
-		
+
 		Request request2 = createRequest(UtilitiesFactory.eINSTANCE);
 		xmiResource.getContents().add(request2);
-		
+
 		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);
 		xmiResource.getContents().add(request3);
 
@@ -297,17 +304,17 @@ public class EMFCSVExporterTest {
 		emfCsvExporterService.exportResourceTo(xmiResource, fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false,
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to false
 //						EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to false in FLAT export mode
 //						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to false in FLAT export mode
 //						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.FLAT
 					)
 				);
 		// @formatter:on
 	}
-	
+
 	@Test
 	public void testExportExampleModelBasicResourceToCsvFlatModeDifferentRootObjectsNonContainmentDisabled(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFCSVExporter)") ServiceAware<EMFExporter> emfCsvExporterAware,
@@ -318,15 +325,15 @@ public class EMFCSVExporterTest {
 		assertThat(emfCsvExporterService).isNotNull();
 
 		ResourceSet resourceSet = createBasicPackageResourceSet(basicPackage);
-		Resource xmiResource = resourceSet
-				.createResource(URI.createURI("testExportExampleModelBasicResourceToCsvFlatModeDifferentRootObjectsNonContainmentDisabled.test"));
+		Resource xmiResource = resourceSet.createResource(URI.createURI(
+				"testExportExampleModelBasicResourceToCsvFlatModeDifferentRootObjectsNonContainmentDisabled.test"));
 		assertNotNull(xmiResource);
 
 		Address address = EMFCSVExporterTestHelper.createSimpsonsAddress(basicFactory);
 
 		Person homerSimpson = EMFCSVExporterTestHelper.createHomerSimpson(basicFactory, address);
 		xmiResource.getContents().add(homerSimpson);
-		
+
 		Person margeSimpson = EMFCSVExporterTestHelper.createMargeSimpson(basicFactory, address);
 		xmiResource.getContents().add(margeSimpson);
 
@@ -364,7 +371,8 @@ public class EMFCSVExporterTest {
 		maggieSimpson.getRelatives().add(lisaSimpson);
 		maggieSimpson.getRelatives().add(maggieSimpson);
 
-		homerSimpson.getTags().add(EMFCSVExporterTestHelper.createMultiLevelTag(basicFactory, EMFCSVExporterTestHelper.createUniquePrefix(10)));
+		homerSimpson.getTags().add(EMFCSVExporterTestHelper.createMultiLevelTag(basicFactory,
+				EMFCSVExporterTestHelper.createUniquePrefix(10)));
 
 		homerSimpson.setBigInt(BigInteger.TEN);
 
@@ -374,9 +382,11 @@ public class EMFCSVExporterTest {
 
 		homerSimpson.setImage(EMFCSVExporterTestHelper.createByteArr());
 
-		homerSimpson.getProperties().putAll(EMFCSVExporterTestHelper.createProperties(EMFCSVExporterTestHelper.createUniquePrefix(10)));		
+		homerSimpson.getProperties()
+				.putAll(EMFCSVExporterTestHelper.createProperties(EMFCSVExporterTestHelper.createUniquePrefix(10)));
 
-		Path filePath = Files.createTempFile("testExportExampleModelBasicResourceToCsvFlatModeDifferentRootObjectsNonContainmentDisabled", ".csv");
+		Path filePath = Files.createTempFile(
+				"testExportExampleModelBasicResourceToCsvFlatModeDifferentRootObjectsNonContainmentDisabled", ".csv");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
 
@@ -384,17 +394,18 @@ public class EMFCSVExporterTest {
 		emfCsvExporterService.exportResourceTo(xmiResource, fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false,
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to false
 //						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
 //						EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to false in FLAT export mode
 //						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to false in FLAT export mode
 //						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.FLAT
 					)
 				);
 		// @formatter:on
 	}
-	
+
 	@Test
 	public void testExportExampleModelBasicResourceToCsvFlatModeNonContainmentDisabled(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFCSVExporter)") ServiceAware<EMFExporter> emfCsvExporterAware,
@@ -405,8 +416,8 @@ public class EMFCSVExporterTest {
 		assertThat(emfCsvExporterService).isNotNull();
 
 		ResourceSet resourceSet = createBasicPackageResourceSet(basicPackage);
-		Resource xmiResource = resourceSet
-				.createResource(URI.createURI("testExportExampleModelBasicResourceToCsvFlatModeNonContainmentDisabled.test"));
+		Resource xmiResource = resourceSet.createResource(
+				URI.createURI("testExportExampleModelBasicResourceToCsvFlatModeNonContainmentDisabled.test"));
 		assertNotNull(xmiResource);
 
 		Family simpsonFamily = createSimpsonFamily(basicFactory);
@@ -415,7 +426,8 @@ public class EMFCSVExporterTest {
 		Family flintstonesFamily = createFlintstonesFamily(basicFactory);
 		xmiResource.getContents().add(flintstonesFamily);
 
-		Path filePath = Files.createTempFile("testExportExampleModelBasicResourceToCsvFlatModeNonContainmentDisabled", ".csv");
+		Path filePath = Files.createTempFile("testExportExampleModelBasicResourceToCsvFlatModeNonContainmentDisabled",
+				".csv");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
 
@@ -423,17 +435,18 @@ public class EMFCSVExporterTest {
 		emfCsvExporterService.exportResourceTo(xmiResource, fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false,
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to false
 //						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
 //						EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to false in FLAT export mode
 //						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to false in FLAT export mode
 //						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.FLAT
 					)
 				);
 		// @formatter:on
-	}	
-	
+	}
+
 	@Test
 	public void testExportExampleModelBasicResourceToCsvZipModeNonContainmenEnabled(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFCSVExporter)") ServiceAware<EMFExporter> emfCsvExporterAware,
@@ -444,8 +457,8 @@ public class EMFCSVExporterTest {
 		assertThat(emfCsvExporterService).isNotNull();
 
 		ResourceSet resourceSet = createBasicPackageResourceSet(basicPackage);
-		Resource xmiResource = resourceSet
-				.createResource(URI.createURI("testExportExampleModelBasicResourceToCsvZipModeNonContainmenEnabled.test"));
+		Resource xmiResource = resourceSet.createResource(
+				URI.createURI("testExportExampleModelBasicResourceToCsvZipModeNonContainmenEnabled.test"));
 		assertNotNull(xmiResource);
 
 		Family simpsonFamily = createSimpsonFamily(basicFactory);
@@ -457,7 +470,8 @@ public class EMFCSVExporterTest {
 		BusinessPerson businessPerson = createBusinessPerson(basicFactory);
 		xmiResource.getContents().add(businessPerson);
 
-		Path filePath = Files.createTempFile("testExportExampleModelBasicResourceToCsvZipModeNonContainmenEnabled", ".zip");
+		Path filePath = Files.createTempFile("testExportExampleModelBasicResourceToCsvZipModeNonContainmenEnabled",
+				".zip");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
 
@@ -465,16 +479,17 @@ public class EMFCSVExporterTest {
 		emfCsvExporterService.exportResourceTo(xmiResource, fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
-//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
-//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
+//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true in ZIP export mode
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true in ZIP export mode
 //						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.ZIP
 					)
 				);
 		// @formatter:on
 	}
-	
+
 	@Test
 	public void testExportUtilModelEObjectsToCsvFlatModeNonContainmenEnabled(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFCSVExporter)") ServiceAware<EMFExporter> emfCsvExporterAware)
@@ -485,10 +500,10 @@ public class EMFCSVExporterTest {
 		assertThat(emfCsvExporterService).isNotNull();
 
 		Request request1 = createRequest(UtilitiesFactory.eINSTANCE);
-		
+
 		Request request2 = createRequest(UtilitiesFactory.eINSTANCE);
-		
-		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);		
+
+		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);
 
 		Path filePath = Files.createTempFile("testExportUtilModelEObjectsToCsvFlatModeNonContainmenEnabled", ".csv");
 
@@ -498,16 +513,17 @@ public class EMFCSVExporterTest {
 		emfCsvExporterService.exportEObjectsTo(List.of(request1, request2, request3), fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
 //						EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to false in FLAT export mode
 //						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to false in FLAT export mode
 //						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.FLAT
 					)
 				);
 		// @formatter:on
 	}
-	
+
 	@Test
 	public void testExportUtilModelEObjectsToCsvZipModeNonContainmenEnabled(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFCSVExporter)") ServiceAware<EMFExporter> emfCsvExporterAware)
@@ -518,10 +534,10 @@ public class EMFCSVExporterTest {
 		assertThat(emfCsvExporterService).isNotNull();
 
 		Request request1 = createRequest(UtilitiesFactory.eINSTANCE);
-		
+
 		Request request2 = createRequest(UtilitiesFactory.eINSTANCE);
-		
-		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);		
+
+		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);
 
 		Path filePath = Files.createTempFile("testExportUtilModelEObjectsToCsvZipModeNonContainmenEnabled", ".zip");
 
@@ -531,16 +547,17 @@ public class EMFCSVExporterTest {
 		emfCsvExporterService.exportEObjectsTo(List.of(request1, request2, request3), fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
-//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
-//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
+//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true in ZIP export mode
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true in ZIP export mode
 //						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.ZIP
 					)
 				);
 		// @formatter:on
 	}
-	
+
 	@Test
 	public void testExportUtilModelEObjectsToCsvZipModeNonContainmentDisabled(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFCSVExporter)") ServiceAware<EMFExporter> emfCsvExporterAware)
@@ -551,10 +568,10 @@ public class EMFCSVExporterTest {
 		assertThat(emfCsvExporterService).isNotNull();
 
 		Request request1 = createRequest(UtilitiesFactory.eINSTANCE);
-		
+
 		Request request2 = createRequest(UtilitiesFactory.eINSTANCE);
-		
-		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);		
+
+		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);
 
 		Path filePath = Files.createTempFile("testExportUtilModelEObjectsToCsvZipModeNonContainmentDisabled", ".zip");
 
@@ -564,15 +581,16 @@ public class EMFCSVExporterTest {
 		emfCsvExporterService.exportEObjectsTo(List.of(request1, request2, request3), fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to true
-//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to false
+//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true in ZIP export mode
+						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to true in ZIP export mode
 //						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.ZIP
 					)
 				);
 		// @formatter:on
-	}	
+	}
 
 	@Test
 	public void testExportTreesModelEObjectsToCsvFlatModeNonContainmentDisabled(
@@ -583,8 +601,8 @@ public class EMFCSVExporterTest {
 		assertNotNull(rsAware);
 		assertThat(rsAware.getServices()).hasSize(1);
 		ResourceSet resourceSet = rsAware.getService();
-		assertNotNull(resourceSet);		
-		
+		assertNotNull(resourceSet);
+
 		assertThat(emfCsvExporterAware.getServices()).hasSize(1);
 		EMFExporter emfCsvExporterService = emfCsvExporterAware.getService();
 		assertThat(emfCsvExporterService).isNotNull();
@@ -592,13 +610,14 @@ public class EMFCSVExporterTest {
 		// register model
 		EPackage.Registry packageRegistry = resourceSet.getPackageRegistry();
 		packageRegistry.put(TreesPackage.eNS_URI, TreesPackage.eINSTANCE);
-        
+
 		// register xmi
 		Map<String, Object> extensionFactoryMap = Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap();
-        extensionFactoryMap.put("xmi", new XMIResourceFactoryImpl());
-        
-        Resource resource = resourceSet.getResource(URI.createFileURI(new File(TREES_DATASET_XMI).getAbsolutePath()), true);		
-		
+		extensionFactoryMap.put("xmi", new XMIResourceFactoryImpl());
+
+		Resource resource = resourceSet.getResource(URI.createFileURI(new File(TREES_DATASET_XMI).getAbsolutePath()),
+				true);
+
 		Path filePath = Files.createTempFile("testExportTreesModelEObjectsToCsvFlatModeNonContainmentDisabled", ".csv");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
@@ -607,16 +626,17 @@ public class EMFCSVExporterTest {
 		emfCsvExporterService.exportEObjectsTo(resource.getContents(), fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to false
 //						EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to false in FLAT export mode
 //						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to false in FLAT export mode
 //						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.FLAT
 					)
 				);
 		// @formatter:on
 	}
-	
+
 	@Test
 	public void testExportTreesModelEObjectsToCsvZipModeNonContainmenEnabled(
 			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
@@ -626,8 +646,8 @@ public class EMFCSVExporterTest {
 		assertNotNull(rsAware);
 		assertThat(rsAware.getServices()).hasSize(1);
 		ResourceSet resourceSet = rsAware.getService();
-		assertNotNull(resourceSet);		
-		
+		assertNotNull(resourceSet);
+
 		assertThat(emfCsvExporterAware.getServices()).hasSize(1);
 		EMFExporter emfCsvExporterService = emfCsvExporterAware.getService();
 		assertThat(emfCsvExporterService).isNotNull();
@@ -635,13 +655,14 @@ public class EMFCSVExporterTest {
 		// register model
 		EPackage.Registry packageRegistry = resourceSet.getPackageRegistry();
 		packageRegistry.put(TreesPackage.eNS_URI, TreesPackage.eINSTANCE);
-        
+
 		// register xmi
 		Map<String, Object> extensionFactoryMap = Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap();
-        extensionFactoryMap.put("xmi", new XMIResourceFactoryImpl());
-        
-        Resource resource = resourceSet.getResource(URI.createFileURI(new File(TREES_DATASET_XMI).getAbsolutePath()), true);		
-		
+		extensionFactoryMap.put("xmi", new XMIResourceFactoryImpl());
+
+		Resource resource = resourceSet.getResource(URI.createFileURI(new File(TREES_DATASET_XMI).getAbsolutePath()),
+				true);
+
 		Path filePath = Files.createTempFile("testExportTreesModelEObjectsToCsvZipModeNonContainmenEnabled", ".zip");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
@@ -650,10 +671,11 @@ public class EMFCSVExporterTest {
 		emfCsvExporterService.exportEObjectsTo(resource.getContents(), fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
-//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
-//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
+//						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true in ZIP export mode
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true in ZIP export mode
 //						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.ZIP
 					)
 				);

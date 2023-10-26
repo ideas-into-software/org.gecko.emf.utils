@@ -46,14 +46,15 @@
 	com.google.guava.failureaccess;version='[1.0.1,1.0.2)',\
 	com.github.miachm.sods;version='[1.6.2,1.6.3)',\
 	org.gecko.emf.exporter.ods;version=snapshot,\
-	org.gecko.emf.util.model;version=snapshot,\
-	slf4j.jcl;version='[1.7.36,1.7.37)'
+	slf4j.jcl;version='[1.7.36,1.7.37)',\
+	org.gecko.emf.bson;version=snapshot,\
+	org.gecko.emf.util.model;version=snapshot
 
 -runrequires: \
 	bnd.identity;id='org.gecko.emf.exporter.ods',\
 	bnd.identity;id='org.gecko.emf.ods.tests'
 
--runee: JavaSE-11
+-runee: JavaSE-17
 
 -runtrace: true
 

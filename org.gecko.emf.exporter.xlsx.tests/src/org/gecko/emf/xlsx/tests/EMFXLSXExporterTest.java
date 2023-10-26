@@ -71,13 +71,13 @@ public class EMFXLSXExporterTest {
 	@Order(value = -1)
 	@Test
 	public void testServices(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
-			@InjectService(timeout = 2000) ServiceAware<BasicFactory> bfAware, 
+			@InjectService(timeout = 2000) ServiceAware<BasicFactory> bfAware,
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter)") ServiceAware<EMFExporter> emfXlsxExporterAware) {
 
 		assertThat(emfXlsxExporterAware.getServices()).hasSize(1);
 		ServiceReference<EMFExporter> emfXlsxExporterReference = emfXlsxExporterAware.getServiceReference();
-		assertThat(emfXlsxExporterReference).isNotNull();		
-		
+		assertThat(emfXlsxExporterReference).isNotNull();
+
 		assertThat(rsAware.getServices()).hasSize(1);
 		ServiceReference<ResourceSet> rsReference = rsAware.getServiceReference();
 		assertThat(rsReference).isNotNull();
@@ -86,7 +86,7 @@ public class EMFXLSXExporterTest {
 		ServiceReference<BasicFactory> bfReference = bfAware.getServiceReference();
 		assertThat(bfReference).isNotNull();
 	}
-	
+
 	@Test
 	public void testExportUtilModelExportNonContainmentDisabledAddMappingTableEnabledException(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter)") ServiceAware<EMFExporter> emfXlsxExporterAware)
@@ -97,15 +97,16 @@ public class EMFXLSXExporterTest {
 		assertThat(emfXlsxExporterService).isNotNull();
 
 		Request request1 = createRequest(UtilitiesFactory.eINSTANCE);
-		
+
 		Request request2 = createRequest(UtilitiesFactory.eINSTANCE);
-		
+
 		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);
 
-		Path filePath = Files.createTempFile("testExportUtilModelExportNonContainmentDisabledAddMappingTableEnabledException", ".xlsx");
+		Path filePath = Files.createTempFile(
+				"testExportUtilModelExportNonContainmentDisabledAddMappingTableEnabledException", ".xlsx");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
-		
+
 		// incompatible combination of export options: 'export non-containment
 		// references' option cannot be turned off if 'generate mapping table' option is
 		// turned on!
@@ -114,13 +115,13 @@ public class EMFXLSXExporterTest {
 			emfXlsxExporterService.exportEObjectsTo(List.of(request1, request2, request3), fileOutputStream, 
 					Map.of(
 							EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-							EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false // defaults to true
-//							EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+//							EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false // defaults to false
+							EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true // defaults to false
 						)
 					);
 			// @formatter:on
-		});		
-	}	
+		});
+	}
 
 	@Test
 	public void testExportUtilModelExportNonContainmentDisabledGenerateLinksEnabledException(
@@ -132,15 +133,16 @@ public class EMFXLSXExporterTest {
 		assertThat(emfXlsxExporterService).isNotNull();
 
 		Request request1 = createRequest(UtilitiesFactory.eINSTANCE);
-		
+
 		Request request2 = createRequest(UtilitiesFactory.eINSTANCE);
-		
+
 		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);
 
-		Path filePath = Files.createTempFile("testExportUtilModelExportNonContainmentDisabledGenerateLinksEnabledException", ".xlsx");
+		Path filePath = Files.createTempFile(
+				"testExportUtilModelExportNonContainmentDisabledGenerateLinksEnabledException", ".xlsx");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
-		
+
 		// incompatible combination of export options: 'export non-containment
 		// references' option cannot be turned off if 'generate links for references'
 		// option is turned on!
@@ -149,14 +151,14 @@ public class EMFXLSXExporterTest {
 			emfXlsxExporterService.exportEObjectsTo(List.of(request1, request2, request3), fileOutputStream, 
 					Map.of(
 							EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-							EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false // defaults to true
-//							EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true // defaults to true
+//							EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false // defaults to false
+							EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true // defaults to false
 						)
 					);
 			// @formatter:on
-		});		
-	}	
-	
+		});
+	}
+
 	@Test
 	public void testExportExampleModelBasicResourceToXlsxNonContainmenEnabled(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter)") ServiceAware<EMFExporter> emfXlsxExporterAware,
@@ -187,14 +189,15 @@ public class EMFXLSXExporterTest {
 		// @formatter:off
 		emfXlsxExporterService.exportResourceTo(xmiResource, fileOutputStream, 
 				Map.of(
-						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
 //						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
-//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to false
 //						EMFXLSXExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
-//						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true, // defaults to true
+						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true // defaults to false
 //						EMFXLSXExportOptions.OPTION_FREEZE_HEADER_ROW, true // defaults to true
-//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true						
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 					)
 				);
 		// @formatter:on
@@ -215,26 +218,28 @@ public class EMFXLSXExporterTest {
 
 		BusinessPerson businessPerson = createBusinessPerson(basicFactory);
 
-		Path filePath = Files.createTempFile("testExportExampleModelBasicEObjectsToXlsxNoExportMetadataNorAddMappingTable", ".xlsx");
+		Path filePath = Files
+				.createTempFile("testExportExampleModelBasicEObjectsToXlsxNoExportMetadataNorAddMappingTable", ".xlsx");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
-		
+
 		// @formatter:off
 		emfXlsxExporterService.exportEObjectsTo(List.of(simpsonFamily, flintstonesFamily, businessPerson), fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
 						EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to true
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false // defaults to true
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false // defaults to false
 //						EMFXLSXExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
-//						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true, // defaults to true
+						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true // defaults to false
 //						EMFXLSXExportOptions.OPTION_FREEZE_HEADER_ROW, true // defaults to true
-//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true							
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 					)
 				);
 		// @formatter:on
 	}
-	
+
 	@Test
 	public void testExportExampleModelBasicEObjectsToXlsxNonContainmentDisabled(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter)") ServiceAware<EMFExporter> emfXlsxExporterAware,
@@ -250,43 +255,47 @@ public class EMFXLSXExporterTest {
 
 		BusinessPerson businessPerson = createBusinessPerson(basicFactory);
 
-		Path filePath = Files.createTempFile("testExportExampleModelBasicEObjectsToXlsxNonContainmentDisabled", ".xlsx");
+		Path filePath = Files.createTempFile("testExportExampleModelBasicEObjectsToXlsxNonContainmentDisabled",
+				".xlsx");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
-		
+
 		// @formatter:off
 		emfXlsxExporterService.exportEObjectsTo(List.of(simpsonFamily, flintstonesFamily, businessPerson), fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to true
-						EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to true
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to false
+						EMFExportOptions.OPTION_EXPORT_METADATA, false // defaults to true
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to false
 //						EMFXLSXExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
-						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, false // defaults to true
+//						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, false // defaults to false
 //						EMFXLSXExportOptions.OPTION_FREEZE_HEADER_ROW, true // defaults to true
-//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true							
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 					)
 				);
 		// @formatter:on
-	}	
-	
+	}
+
 	@Test
 	public void testExportUtilModelResourceToXlsxNonContainmenEnabled(
 			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
-			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter)") ServiceAware<EMFExporter> emfXlsxExporterAware) throws Exception {
+			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter)") ServiceAware<EMFExporter> emfXlsxExporterAware)
+			throws Exception {
 
 		assertNotNull(rsAware);
 		assertThat(rsAware.getServices()).hasSize(1);
 		ResourceSet resourceSet = rsAware.getService();
 		assertNotNull(resourceSet);
-		
+
 		assertThat(emfXlsxExporterAware.getServices()).hasSize(1);
 		EMFExporter emfXlsxExporterService = emfXlsxExporterAware.getService();
-		assertThat(emfXlsxExporterService).isNotNull();		
-		
-		Resource xmiResource = resourceSet.createResource(URI.createURI("testExportUtilModelResourceToXlsxNonContainmenEnabled.test"));
+		assertThat(emfXlsxExporterService).isNotNull();
+
+		Resource xmiResource = resourceSet
+				.createResource(URI.createURI("testExportUtilModelResourceToXlsxNonContainmenEnabled.test"));
 		assertNotNull(xmiResource);
-		
+
 		Request request = createRequest(UtilitiesFactory.eINSTANCE);
 		xmiResource.getContents().add(request);
 
@@ -297,14 +306,15 @@ public class EMFXLSXExporterTest {
 		// @formatter:off
 		emfXlsxExporterService.exportResourceTo(xmiResource, fileOutputStream, 
 				Map.of(
-						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
 //						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
-//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to false
 //						EMFXLSXExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
-//						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true, // defaults to true
+						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true // defaults to false
 //						EMFXLSXExportOptions.OPTION_FREEZE_HEADER_ROW, true // defaults to true
-//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true							
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 					)
 				);
 		// @formatter:on
@@ -312,19 +322,21 @@ public class EMFXLSXExporterTest {
 
 	@Test
 	public void testExportUtilModelEObjectsToXlsxNoExportMetadataNorAddMappingTable(
-			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter)") ServiceAware<EMFExporter> emfXlsxExporterAware) throws Exception {
+			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter)") ServiceAware<EMFExporter> emfXlsxExporterAware)
+			throws Exception {
 
 		assertThat(emfXlsxExporterAware.getServices()).hasSize(1);
 		EMFExporter emfXlsxExporterService = emfXlsxExporterAware.getService();
 		assertThat(emfXlsxExporterService).isNotNull();
-		
+
 		Request request1 = createRequest(UtilitiesFactory.eINSTANCE);
-		
+
 		Request request2 = createRequest(UtilitiesFactory.eINSTANCE);
-		
+
 		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);
 
-		Path filePath = Files.createTempFile("testExportUtilModelEObjectsToXlsxNoExportMetadataNorAddMappingTable", ".xlsx");
+		Path filePath = Files.createTempFile("testExportUtilModelEObjectsToXlsxNoExportMetadataNorAddMappingTable",
+				".xlsx");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
 
@@ -332,30 +344,32 @@ public class EMFXLSXExporterTest {
 		emfXlsxExporterService.exportEObjectsTo(List.of(request1, request2, request3), fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
-						EMFExportOptions.OPTION_EXPORT_METADATA, false,
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
+						EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to true
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false // defaults to false
 //						EMFXLSXExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
-//						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true, // defaults to true
+						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true // defaults to false
 //						EMFXLSXExportOptions.OPTION_FREEZE_HEADER_ROW, true // defaults to true
-//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true							
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 					)
 				);
 		// @formatter:on
 	}
-	
+
 	@Test
 	public void testExportUtilModelEObjectsToXlsxNonContainmentDisabled(
-			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter)") ServiceAware<EMFExporter> emfXlsxExporterAware) throws Exception {
+			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter)") ServiceAware<EMFExporter> emfXlsxExporterAware)
+			throws Exception {
 
 		assertThat(emfXlsxExporterAware.getServices()).hasSize(1);
 		EMFExporter emfXlsxExporterService = emfXlsxExporterAware.getService();
 		assertThat(emfXlsxExporterService).isNotNull();
-		
+
 		Request request1 = createRequest(UtilitiesFactory.eINSTANCE);
-		
+
 		Request request2 = createRequest(UtilitiesFactory.eINSTANCE);
-		
+
 		Request request3 = createRequest(UtilitiesFactory.eINSTANCE);
 
 		Path filePath = Files.createTempFile("testExportUtilModelEObjectsToXlsxNonContainmentDisabled", ".xlsx");
@@ -366,43 +380,47 @@ public class EMFXLSXExporterTest {
 		emfXlsxExporterService.exportEObjectsTo(List.of(request1, request2, request3), fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to true
-						EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to true
-						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to true
+//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, false, // defaults to false
+						EMFExportOptions.OPTION_EXPORT_METADATA, false // defaults to true
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to false
 //						EMFXLSXExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
-						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, false // defaults to true
+//						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, false // defaults to false
 //						EMFXLSXExportOptions.OPTION_FREEZE_HEADER_ROW, true // defaults to true
-//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true							
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 					)
 				);
 		// @formatter:on
-	}	
-	
+	}
+
 	private static final String TREES_DATASET_XMI = System.getProperty("TREES_DATASET_XMI");
-	
+
 	@Test
-	public void testExportTreesModelEObjectsToXLSXNonContainmenEnabled(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
-			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter)") ServiceAware<EMFExporter> emfxlsxExporterAware) throws Exception {
+	public void testExportTreesModelEObjectsToXLSXNonContainmenEnabled(
+			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
+			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFXLSXExporter)") ServiceAware<EMFExporter> emfxlsxExporterAware)
+			throws Exception {
 
 		assertNotNull(rsAware);
 		assertThat(rsAware.getServices()).hasSize(1);
 		ResourceSet resourceSet = rsAware.getService();
 		assertNotNull(resourceSet);
-		
+
 		assertThat(emfxlsxExporterAware.getServices()).hasSize(1);
 		EMFExporter emfXlsxExporterService = emfxlsxExporterAware.getService();
-		assertThat(emfXlsxExporterService).isNotNull();	
-		
+		assertThat(emfXlsxExporterService).isNotNull();
+
 		// register model
 		EPackage.Registry packageRegistry = resourceSet.getPackageRegistry();
 		packageRegistry.put(TreesPackage.eNS_URI, TreesPackage.eINSTANCE);
-        
+
 		// register xmi
 		Map<String, Object> extensionFactoryMap = Resource.Factory.Registry.INSTANCE.getExtensionToFactoryMap();
-        extensionFactoryMap.put("xmi", new XMIResourceFactoryImpl());
-        
-        Resource resource = resourceSet.getResource(URI.createFileURI(new File(TREES_DATASET_XMI).getAbsolutePath()), true);
-        
+		extensionFactoryMap.put("xmi", new XMIResourceFactoryImpl());
+
+		Resource resource = resourceSet.getResource(URI.createFileURI(new File(TREES_DATASET_XMI).getAbsolutePath()),
+				true);
+
 		Path filePath = Files.createTempFile("testExportTreesModelEObjectsToXLSXNonContainmenEnabled", ".xlsx");
 
 		OutputStream fileOutputStream = Files.newOutputStream(filePath);
@@ -410,16 +428,17 @@ public class EMFXLSXExporterTest {
 		// @formatter:off
 		emfXlsxExporterService.exportEObjectsTo(resource.getContents(), fileOutputStream, 
 				Map.of(
-						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
 //						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
-//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to false
 //						EMFXLSXExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
-//						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true, // defaults to true
+						EMFXLSXExportOptions.OPTION_GENERATE_LINKS, true // defaults to false
 //						EMFXLSXExportOptions.OPTION_FREEZE_HEADER_ROW, true // defaults to true
-//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true					
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 					)
 				);
 		// @formatter:on		
-	}	
+	}
 }

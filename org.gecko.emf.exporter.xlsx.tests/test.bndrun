@@ -6,7 +6,7 @@
 
 -runbundles.junit5: ${test.runbundles}
 
--runee: JavaSE-11
+-runee: JavaSE-17
 
 -runtrace: true
 
@@ -67,5 +67,5 @@
 	org.gecko.emf.exporter.xlsx;version=snapshot,\
 	org.gecko.emf.exporter.xlsx.tests;version=snapshot,\
 	org.gecko.emf.trees.model;version=snapshot,\
-	org.gecko.emf.ods;version=snapshot,\
-	slf4j.jcl;version='[1.7.36,1.7.37)'
+	slf4j.jcl;version='[1.7.36,1.7.37)',\
+	org.gecko.emf.bson;version=snapshot

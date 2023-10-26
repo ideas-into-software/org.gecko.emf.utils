@@ -99,13 +99,14 @@ public class EMFODSResourceTest {
 		// @formatter:off
 		resource.save(fileOutputStream, 
 				Map.of(
-						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
 //						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
-//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
+						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true // defaults to false
 //						EMFODSExportOptions.OPTION_ADJUST_COLUMN_WIDTH, true, // defaults to true
 //						EMFODSExportOptions.OPTION_GENERATE_LINKS, true // defaults to true
-//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true							
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 					));
 		// @formatter:on
 	}
