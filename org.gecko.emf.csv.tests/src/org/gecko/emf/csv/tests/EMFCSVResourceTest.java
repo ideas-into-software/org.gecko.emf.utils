@@ -98,10 +98,11 @@ public class EMFCSVResourceTest {
 		resource.save(fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
 //						EMFExportOptions.OPTION_EXPORT_METADATA, false, // defaults to false in FLAT export mode
-//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to false in FLAT export mode
-//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true						
+//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, false, // defaults to false
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true	
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.FLAT
 					));
 		// @formatter:on
@@ -142,10 +143,11 @@ public class EMFCSVResourceTest {
 		resource.save(fileOutputStream, 
 				Map.of(
 						EMFExportOptions.OPTION_LOCALE, Locale.GERMANY,
-//						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to true
+						EMFExportOptions.OPTION_EXPORT_NONCONTAINMENT, true, // defaults to false
 //						EMFExportOptions.OPTION_EXPORT_METADATA, true, // defaults to true
-//						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to true
-//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true						
+						EMFExportOptions.OPTION_ADD_MAPPING_TABLE, true, // defaults to false
+//						EMFExportOptions.OPTION_SHOW_URIS, true, // defaults to true
+//						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 						EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.ZIP
 					));
 		// @formatter:on

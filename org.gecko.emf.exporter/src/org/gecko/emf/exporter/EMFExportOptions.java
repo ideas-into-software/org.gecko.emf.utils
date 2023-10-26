@@ -33,4 +33,7 @@ public interface EMFExportOptions {
 
 	// show URIs instead of IDs
 	String OPTION_SHOW_URIS = "SHOW_URIS";
+
+	// show columns containing references
+	String OPTION_SHOW_REFS = "SHOW_REFS";
 }

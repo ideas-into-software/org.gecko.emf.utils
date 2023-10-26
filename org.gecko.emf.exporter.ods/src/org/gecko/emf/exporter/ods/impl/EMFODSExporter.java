@@ -101,13 +101,13 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 					LOG.info("  Adjust column width: {}", adjustColumnWidthEnabled(exportOptions));
 					LOG.info("  Generate links for references: {}", generateLinksEnabled(exportOptions));
 					LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
-					LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIs(exportOptions));
+					LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIsEnabled(exportOptions));
+					LOG.info("  Show columns containing references: {}", showREFsEnabled(exportOptions));
 				}
 
-				Map<String, Table<Integer, Integer, Object>> matrixNameToMatrixMap = exportEObjectsToMatrices(eObjects,
-						exportOptions);
+				ProcessedEObjectsDTO processedEObjectsDTO = exportEObjectsToMatrices(eObjects, exportOptions);
 
-				exportMatricesToODS(outputStream, matrixNameToMatrixMap, exportOptions);
+				exportMatricesToODS(outputStream, processedEObjectsDTO, exportOptions);
 
 			} catch (Exception e) {
 				throw new EMFExportException(e);
@@ -116,7 +116,7 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void exportMatricesToODS(OutputStream outputStream,
-			Map<String, Table<Integer, Integer, Object>> allMatrixNameToMatrixMap, Map<Object, Object> exportOptions)
+			ProcessedEObjectsDTO processedEObjectsDTO, Map<Object, Object> exportOptions)
 			throws IOException {
 
 		resetStopwatch();
@@ -124,7 +124,7 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 		LOG.info("Starting generation of ODS sheets");
 
 		Map<String, Table<Integer, Integer, Object>> matrixNameToEObjectMatrixMap = eObjectMatricesOnly(
-				allMatrixNameToMatrixMap);
+				processedEObjectsDTO.matrixNameToMatrixMap);
 
 		SpreadSheet document = new SpreadSheet();
 
@@ -132,14 +132,14 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 
 		if (exportMetadataEnabled(exportOptions)) {
 			Map<String, Table<Integer, Integer, Object>> matrixNameToMetadataMatrixMap = metadataMatricesOnly(
-					allMatrixNameToMatrixMap);
+					processedEObjectsDTO.matrixNameToMatrixMap);
 
 			exportMatricesToODS(matrixNameToMetadataMatrixMap, exportOptions, document);
 		}
 
 		if (addMappingTableEnabled(exportOptions)) {
 			Map<String, Table<Integer, Integer, Object>> matrixNameToMappingMatrixMap = mappingMatricesOnly(
-					allMatrixNameToMatrixMap);
+					processedEObjectsDTO.matrixNameToMatrixMap);
 
 			exportMatricesToODS(matrixNameToMappingMatrixMap, exportOptions, document);
 		}
@@ -295,7 +295,7 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 	private void setOneReferenceValueCell(SpreadSheet document, Range dataRow, int colIndex,
 			EMFExportEObjectOneReferenceValueCell referenceValueCell, Map<Object, Object> exportOptions) {
 
-		String refValue = (showURIs(exportOptions) && referenceValueCell.hasURI()) ? referenceValueCell.getURI()
+		String refValue = (showURIsEnabled(exportOptions) && referenceValueCell.hasURI()) ? referenceValueCell.getURI()
 				: referenceValueCell.hasRefID() ? referenceValueCell.getRefID() : "";
 
 		if (generateLinks(exportOptions, referenceValueCell.hasRefID())) {
@@ -316,7 +316,7 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 
 			Sheet sheet = getOrConstructODSSheetIfNotExists(document, referencesValueCell.getRefMatrixName());
 
-			List<String> refValues = (showURIs(exportOptions) && referencesValueCell.hasURIs())
+			List<String> refValues = (showURIsEnabled(exportOptions) && referencesValueCell.hasURIs())
 					? referencesValueCell.getURIs()
 					: referencesValueCell.hasRefIDs() ? referencesValueCell.getRefIDs() : Collections.emptyList();
 
@@ -341,7 +341,7 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 			Map<Object, Object> exportOptions) {
 		StringBuilder sb = new StringBuilder();
 
-		List<String> manyReferencesValueCellValues = (showURIs(exportOptions) && referencesValueCell.hasURIs())
+		List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions) && referencesValueCell.hasURIs())
 				? referencesValueCell.getURIs()
 				: referencesValueCell.hasRefIDs() ? referencesValueCell.getRefIDs() : Collections.emptyList();
 
@@ -494,6 +494,6 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private boolean generateLinksEnabled(Map<Object, Object> exportOptions) {
-		return ((boolean) exportOptions.getOrDefault(EMFODSExportOptions.OPTION_GENERATE_LINKS, Boolean.TRUE));
+		return ((boolean) exportOptions.getOrDefault(EMFODSExportOptions.OPTION_GENERATE_LINKS, Boolean.FALSE));
 	}
 }
