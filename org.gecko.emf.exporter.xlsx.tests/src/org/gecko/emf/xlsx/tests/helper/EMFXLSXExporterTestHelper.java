@@ -44,30 +44,30 @@ import org.gecko.emf.utilities.SortType;
 import org.gecko.emf.utilities.UtilitiesFactory;
 
 public class EMFXLSXExporterTestHelper {
-	
+
 	public static Request createRequest(UtilitiesFactory uf) {
 		Request request = uf.createRequest();
-		
+
 		Instant now = Instant.now();
-		
+
 		request.setId(UUID.randomUUID().toString());
 		request.setFrom(Date.from(now));
 		request.setTo(Date.from(now.plus(7, ChronoUnit.DAYS)));
-		
+
 		Sort sort = uf.createSort();
 		sort.setIndex(0);
 		sort.setField("cartoon");
 		sort.setType(SortType.ASCENDING);
-		
+
 		request.getSorting().add(sort);
-		
+
 		Filter filter = uf.createFilter();
 		filter.setIndex(0);
 		filter.setField("cartoon");
 		filter.getValue().add("Simpsons");
-		
+
 		request.getFiltering().add(filter);
-		
+
 		return request;
 	}
 
@@ -132,11 +132,11 @@ public class EMFXLSXExporterTestHelper {
 		return simpsonFamily;
 	}
 
-	private static Address createSimpsonsAddress(BasicFactory bf) {
+	public static Address createSimpsonsAddress(BasicFactory bf) {
 		return createAddress(bf, "742 Evergreen Terrace", "Springfield", "97482");
 	}
 
-	private static Person createHomerSimpson(BasicFactory bf, Address address) {
+	public static Person createHomerSimpson(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Homer", "Simpson", GenderType.MALE, address);
 
 		p.getContact().add(createHomePhoneContact(bf, p));
@@ -149,7 +149,7 @@ public class EMFXLSXExporterTestHelper {
 		return p;
 	}
 
-	private static Person createMargeSimpson(BasicFactory bf, Address address) {
+	public static Person createMargeSimpson(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Marge", "Simpson", GenderType.FEMALE, address);
 
 		p.getContact().add(createHomePhoneContact(bf, p));
@@ -162,19 +162,19 @@ public class EMFXLSXExporterTestHelper {
 		return p;
 	}
 
-	private static Person createBartSimpson(BasicFactory bf, Address address) {
+	public static Person createBartSimpson(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Bart", "Simpson", GenderType.MALE, address);
 
 		return p;
 	}
 
-	private static Person createLisaSimpson(BasicFactory bf, Address address) {
+	public static Person createLisaSimpson(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Lisa", "Simpson", GenderType.FEMALE, address);
 
 		return p;
 	}
 
-	private static Person createMaggieSimpson(BasicFactory bf, Address address) {
+	public static Person createMaggieSimpson(BasicFactory bf, Address address) {
 		Person p = createPerson(bf, "Maggie", "Simpson", GenderType.FEMALE, address);
 
 		return p;
@@ -334,12 +334,11 @@ public class EMFXLSXExporterTestHelper {
 	}
 
 	private static Contact createHomeWebAddressContact(BasicFactory bf, Person p) {
-		return createContact(bf, ContactType.WEBADDRESS, ContactContextType.HOME, UUID.randomUUID().toString(),
-				p);
+		return createContact(bf, ContactType.WEBADDRESS, ContactContextType.HOME, UUID.randomUUID().toString(), p);
 	}
 
-	private static Contact createContact(BasicFactory bf, ContactType type, ContactContextType context,
-			String value, Person p) {
+	private static Contact createContact(BasicFactory bf, ContactType type, ContactContextType context, String value,
+			Person p) {
 		Contact c = bf.createContact();
 
 		c.setContext(context);
@@ -349,7 +348,7 @@ public class EMFXLSXExporterTestHelper {
 		return c;
 	}
 
-	private static Tag createMultiLevelTag(BasicFactory bf, String namePrefix) {
+	public static Tag createMultiLevelTag(BasicFactory bf, String namePrefix) {
 		Tag t1 = createTag(bf, namePrefix, "tag_level_1", "tag_level_1_value", "tag_level_1_description");
 
 		t1.setTag(createTag(bf, namePrefix, "tag_level_2", "tag_level_2_value", "tag_level_2_description"));
@@ -369,13 +368,13 @@ public class EMFXLSXExporterTestHelper {
 		return t;
 	}
 
-	private static byte[] createByteArr() {
+	public static byte[] createByteArr() {
 		byte[] b = new byte[20];
 		new Random().nextBytes(b);
 		return b;
 	}
 
-	private static Map<String, String> createProperties(String namePrefix) {
+	public static Map<String, String> createProperties(String namePrefix) {
 		Map<String, String> props = new HashMap<String, String>();
 
 		props.put(createPropertyName(namePrefix, "prop_1"), "prop_1_value");
@@ -397,9 +396,9 @@ public class EMFXLSXExporterTestHelper {
 		resourceSet.getResourceFactoryRegistry().getContentTypeToFactoryMap().put(BasicPackage.eCONTENT_TYPE,
 				new BasicResourceFactoryImpl());
 		return resourceSet;
-	}	
+	}
 
-	private static String createUniquePrefix(int maxChars) {
+	public static String createUniquePrefix(int maxChars) {
 		// @formatter:off
 		return new RandomStringGenerator.Builder()
 				.withinRange('a', 'z')

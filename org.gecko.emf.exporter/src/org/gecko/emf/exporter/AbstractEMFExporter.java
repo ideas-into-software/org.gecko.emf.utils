@@ -28,6 +28,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EAnnotation;
 import org.eclipse.emf.ecore.EAttribute;
 import org.eclipse.emf.ecore.EClass;
@@ -113,7 +114,13 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 		try {
 
-			exportEObjectsTo(resource.getContents(), outputStream, options);
+			final Map<Object, Object> exportOptions = validateExportOptions(options);
+
+			if (!exportNonContainmentEnabled(exportOptions)) {
+				exportEObjectsTo(preProcessResourceEObjects(resource, exportOptions), outputStream, options);
+			} else {
+				exportEObjectsTo(resource.getContents(), outputStream, options);
+			}
 
 		} catch (Exception e) {
 			throw new EMFExportException(e);
@@ -191,18 +198,20 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 				eObject);
 		// @formatter:on
 
-		if (showREFsEnabled(exportOptions)) {
-			for (EReference eReference : eObject.eClass().getEAllReferences()) {
+		for (EReference eReference : eObject.eClass().getEAllReferences()) {
 
-				// @formatter:off
-				constructMatrixForEReference(
-						processedEObjectsDTO, 
-						eObjectsIdentifiers, 
-						exportOptions, 
-						eObject, 
-						eReference);
-				// @formatter:on
+			if (!showREFsEnabled(exportOptions)) {
+				return;
 			}
+
+			// @formatter:off
+			constructMatrixForEReference(
+					processedEObjectsDTO, 
+					eObjectsIdentifiers, 
+					exportOptions, 
+					eObject, 
+					eReference);
+			// @formatter:on
 		}
 	}
 
@@ -229,18 +238,20 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 							matrixName);
 				}
 
-				if (showREFsEnabled(exportOptions)) {
-					for (EReference eReference : eObject.eClass().getEAllReferences()) {
+				for (EReference eReference : eObject.eClass().getEAllReferences()) {
 
-						// @formatter:off
-						constructMatrixForEReference(
-								processedEObjectsDTO,
-								eObjectsIdentifiers, 
-								exportOptions, 
-								eObject, 
-								eReference);
-						// @formatter:on
+					if (!showREFsEnabled(exportOptions)) {
+						return;
 					}
+
+					// @formatter:off
+					constructMatrixForEReference(
+							processedEObjectsDTO,
+							eObjectsIdentifiers, 
+							exportOptions, 
+							eObject, 
+							eReference);
+					// @formatter:on
 				}
 			}
 		}
@@ -459,19 +470,21 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 			constructMatrixGenericColumnHeader(matrix, matrixName, columnHeaderName, colIndex);
 
 		} else if (eStructuralFeature instanceof EReference) {
-			if (showREFsEnabled(exportOptions)) {
-				EReference eReference = (EReference) eStructuralFeature;
 
-				String refMatrixName = constructEClassMatrixName(eReference.getEReferenceType());
+			EReference eReference = (EReference) eStructuralFeature;
 
-				if (!eReference.isMany()) {
-					constructMatrixOneReferenceColumnHeader(matrix, matrixName, refMatrixName, columnHeaderName,
-							colIndex);
+			if (!showREFsEnabled(exportOptions)) {
+				return;
+			}
 
-				} else if (eReference.isMany()) {
-					constructMatrixManyReferencesColumnHeader(matrix, matrixName, refMatrixName, columnHeaderName,
-							colIndex);
-				}
+			String refMatrixName = constructEClassMatrixName(eReference.getEReferenceType());
+
+			if (!eReference.isMany()) {
+				constructMatrixOneReferenceColumnHeader(matrix, matrixName, refMatrixName, columnHeaderName, colIndex);
+
+			} else if (eReference.isMany()) {
+				constructMatrixManyReferencesColumnHeader(matrix, matrixName, refMatrixName, columnHeaderName,
+						colIndex);
 			}
 
 		} else {
@@ -540,22 +553,25 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 				eObject);
 		// @formatter:on
 
-		if (showREFsEnabled(exportOptions)) {
-			for (EReference eReference : eObject.eClass().getEAllReferences()) {
-				try {
+		for (EReference eReference : eObject.eClass().getEAllReferences()) {
 
-					// @formatter:off
-					populateMatrixWithDataForEReference(
-							processedEObjectsDTO,
-							eObjectsIdentifiers,
-							exportOptions,
-							eObject,
-							eReference);
-					// @formatter:on
+			if (!showREFsEnabled(exportOptions)) {
+				return;
+			}
 
-				} catch (EMFExportException e) {
-					throw new EMFExportException(e);
-				}
+			try {
+
+				// @formatter:off
+				populateMatrixWithDataForEReference(
+						processedEObjectsDTO,
+						eObjectsIdentifiers,
+						exportOptions,
+						eObject,
+						eReference);
+				// @formatter:on
+
+			} catch (EMFExportException e) {
+				throw new EMFExportException(e);
 			}
 		}
 	}
@@ -578,22 +594,25 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 						exportOptions);
 				// @formatter:on
 
-				if (showREFsEnabled(exportOptions)) {
-					for (EReference eReference : eObject.eClass().getEAllReferences()) {
-						try {
+				for (EReference eReference : eObject.eClass().getEAllReferences()) {
 
-							// @formatter:off
-							populateMatrixWithDataForEReference(
-									processedEObjectsDTO,
-									eObjectsIdentifiers,
-									exportOptions,
-									eObject,
-									eReference);
-							// @formatter:on
+					if (!showREFsEnabled(exportOptions)) {
+						return;
+					}
 
-						} catch (EMFExportException e) {
-							throw new EMFExportException(e);
-						}
+					try {
+
+						// @formatter:off
+						populateMatrixWithDataForEReference(
+								processedEObjectsDTO,
+								eObjectsIdentifiers,
+								exportOptions,
+								eObject,
+								eReference);
+						// @formatter:on
+
+					} catch (EMFExportException e) {
+						throw new EMFExportException(e);
 					}
 				}
 			}
@@ -602,16 +621,18 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 	@SuppressWarnings("unchecked")
 	private void populateMatrixWithDataForEReference(ProcessedEObjectsDTO processedEObjectsDTO,
-			Set<String> eObjectsIdentifiers, Map<Object, Object> exportOptions, EObject eObject, EReference r)
+			Set<String> eObjectsIdentifiers, Map<Object, Object> exportOptions, EObject eObject, EReference eReference)
 			throws EMFExportException {
-		if (!exportNonContainmentEnabled(exportOptions) && !r.isContainment()) {
+
+		if (!exportNonContainmentEnabled(exportOptions) && !eReference.isContainment()) {
 			return;
 		}
 
-		Object value = eObject.eGet(r);
+		Object value = eObject.eGet(eReference);
 
 		if (value != null) {
-			if (!r.isMany()) {
+
+			if (!eReference.isMany()) {
 
 				// @formatter:off
 				populateMatrixWithData(
@@ -621,7 +642,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 						(EObject) value);
 				// @formatter:on
 
-			} else if (r.isMany()) {
+			} else if (eReference.isMany()) {
 
 				// @formatter:off
 				populateMatrixWithData(
@@ -744,21 +765,23 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 			}
 
 		} else if (eStructuralFeature instanceof EReference) {
-			if (showREFsEnabled(exportOptions)) {
 
-				EReference eReference = (EReference) eStructuralFeature;
+			EReference eReference = (EReference) eStructuralFeature;
 
-				// @formatter:off
-				setEReferenceValueCell(
-						processedEObjectsDTO,
-						matrix, 
-						rowIndex, 
-						colIndex, 
-						eObject, 
-						eReference, 
-						exportOptions);
-				// @formatter:on
+			if (!showREFsEnabled(exportOptions)) {
+				return;
 			}
+
+			// @formatter:off
+			setEReferenceValueCell(
+					processedEObjectsDTO,
+					matrix, 
+					rowIndex, 
+					colIndex, 
+					eObject, 
+					eReference, 
+					exportOptions);
+			// @formatter:on
 		}
 	}
 
@@ -813,23 +836,24 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 	@SuppressWarnings("unchecked")
 	private void setEReferenceValueCell(ProcessedEObjectsDTO processedEObjectsDTO,
-			Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex, EObject eObject, EReference r,
+			Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex, EObject eObject, EReference eReference,
 			Map<Object, Object> exportOptions) throws EMFExportException {
-		Object value = eObject.eGet(r);
 
-		String refMatrixName = constructEClassMatrixName(r.getEReferenceType());
+		Object value = eObject.eGet(eReference);
 
-		if (!r.isMany() && (value == null)) {
+		String refMatrixName = constructEClassMatrixName(eReference.getEReferenceType());
+
+		if (!eReference.isMany() && (value == null)) {
 			setEmptyOneEReferenceValueCell(matrix, refMatrixName, rowIndex, colIndex);
 			return;
 
-		} else if ((r.isMany() && (value == null))
-				|| (r.isMany() && (value != null) && ((List<EObject>) value).isEmpty())) {
+		} else if ((eReference.isMany() && (value == null))
+				|| (eReference.isMany() && (value != null) && ((List<EObject>) value).isEmpty())) {
 			setEmptyManyEReferencesValueCell(matrix, refMatrixName, rowIndex, colIndex);
 			return;
 		}
 
-		if (!r.isMany()) {
+		if (!eReference.isMany()) {
 
 			// @formatter:off
 			setOneEReferenceValueCell(
@@ -842,7 +866,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 					exportOptions);
 			// @formatter:on
 
-		} else if (r.isMany()) {
+		} else if (eReference.isMany()) {
 
 			if (addMappingTableEnabled(exportOptions)
 					&& (!((List<EObject>) value).isEmpty() && (((List<EObject>) value).size() > 1))) {
@@ -854,7 +878,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 						rowIndex, 
 						colIndex,
 						eObject, 
-						r, 
+						eReference, 
 						((List<EObject>) value), 
 						exportOptions);
 				// @formatter:on
@@ -1446,9 +1470,9 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 			generatePseudoID(processedEObjectsDTO, eObject);
 
-			eObject.eClass().getEAllReferences().stream().forEach(eReference -> {
+			for (EReference eReference : eObject.eClass().getEAllReferences()) {
 				generatePseudoID(processedEObjectsDTO, eObject, eReference, processedEObjectsIdentifiers);
-			});
+			}
 		}
 	}
 
@@ -1456,6 +1480,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	private void generatePseudoID(ProcessedEObjectsDTO processedEObjectsDTO, EObject eObject, EReference eReference,
 			Set<String> processedEObjectsIdentifiers) {
 		Object value = eObject.eGet(eReference);
+
 		if (value != null) {
 			if (!eReference.isMany()) {
 				generatePseudoID(processedEObjectsDTO, (EObject) value);
@@ -1777,6 +1802,156 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 			this.eObjectsClasses = new HashSet<>();
 			this.eObjectsEnums = new HashSet<>();
 			this.refMatrixRowKeyIndex = new HashMap<>();
+		}
+	}
+
+	private List<EObject> preProcessResourceEObjects(Resource resource, Map<Object, Object> exportOptions) {
+		resetStopwatch();
+
+		logger.info("Starting preprocessing EObjects contained in Resource");
+
+		final PreProcessedResourceEObjectsDTO preProcessedEObjectsDTO = new PreProcessedResourceEObjectsDTO();
+
+		preProcessedEObjectsDTO.rawResourceEObjects.addAll(resource.getContents());
+
+		preProcessedEObjectsDTO.resourceEObjectsURIs
+				.addAll(extractResourceEObjectsURIs(preProcessedEObjectsDTO.rawResourceEObjects));
+
+		final Set<String> processedEObjectsIdentifiers = new HashSet<String>();
+
+		preProcessResourceEObjects(preProcessedEObjectsDTO.rawResourceEObjects, processedEObjectsIdentifiers,
+				preProcessedEObjectsDTO, exportOptions);
+
+		if (!preProcessedEObjectsDTO.unProcessableResourceEObjects.isEmpty()) {
+			EcoreUtil.deleteAll(preProcessedEObjectsDTO.unProcessableResourceEObjects, true);
+		}
+
+		logger.info("Finished preprocessing EObjects contained in Resource in {} second(s)", elapsedTimeInSeconds());
+
+		return preProcessedEObjectsDTO.preProcessedResourceEObjects;
+	}
+
+	private List<URI> extractResourceEObjectsURIs(List<EObject> resourceEObjects) {
+		return resourceEObjects.stream().map(eObject -> EcoreUtil.getURI(eObject)).collect(Collectors.toList());
+	}
+
+	private void preProcessResourceEObjects(List<? extends EObject> eObjects, Set<String> processedEObjectsIdentifiers,
+			PreProcessedResourceEObjectsDTO preProcessedEObjectsDTO, Map<Object, Object> exportOptions) {
+		for (EObject eObject : eObjects) {
+			if (isProcessed(processedEObjectsIdentifiers, eObject)) {
+				continue;
+			}
+
+			processedEObjectsIdentifiers.add(getEObjectIdentifier(eObject));
+
+			preProcessResourceEObject(eObject, preProcessedEObjectsDTO);
+
+			for (EReference eReference : eObject.eClass().getEAllReferences()) {
+				preProcessResourceEObject(eObject, eReference, processedEObjectsIdentifiers, preProcessedEObjectsDTO,
+						exportOptions);
+			}
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private void preProcessResourceEObject(EObject eObject, EReference eReference,
+			Set<String> processedEObjectsIdentifiers, PreProcessedResourceEObjectsDTO preProcessedEObjectsDTO,
+			Map<Object, Object> exportOptions) {
+
+		Object rawEObject = eObject.eGet(eReference, exportNonContainmentEnabled(exportOptions));
+
+		if (rawEObject != null) {
+
+			if (!eReference.isMany()) {
+
+				if (shouldPreProcessResourceEObject((EObject) rawEObject, preProcessedEObjectsDTO)) {
+					preProcessResourceEObject((EObject) rawEObject, preProcessedEObjectsDTO);
+				} else {
+					preProcessedEObjectsDTO.unProcessableResourceEObjects.add((EObject) rawEObject);
+				}
+
+			} else if (eReference.isMany()) {
+
+				if (((List<EObject>) rawEObject).isEmpty()) {
+					EcoreUtil.remove(eObject, eReference, rawEObject);
+					return;
+				}
+
+				List<EObject> processableEObjects = new ArrayList<>();
+				List<EObject> unProcessableEObjects = new ArrayList<>();
+
+				for (EObject maybeProcessableEObject : (List<EObject>) rawEObject) {
+					if (shouldPreProcessResourceEObject(maybeProcessableEObject, preProcessedEObjectsDTO)) {
+						processableEObjects.add(maybeProcessableEObject);
+					} else {
+						unProcessableEObjects.add(maybeProcessableEObject);
+					}
+				}
+
+				preProcessedEObjectsDTO.unProcessableResourceEObjects.addAll(unProcessableEObjects);
+
+				preProcessResourceEObjects(processableEObjects, processedEObjectsIdentifiers, preProcessedEObjectsDTO,
+						exportOptions);
+			}
+		}
+	}
+
+	private boolean shouldPreProcessResourceEObject(EObject eObject,
+			PreProcessedResourceEObjectsDTO preProcessedEObjectsDTO) {
+		if (eObject.eIsProxy()) {
+			return uriMatches(preProcessedEObjectsDTO.resourceEObjectsURIs, EcoreUtil.getURI(eObject), true);
+		} else {
+			return preProcessedEObjectsDTO.rawResourceEObjects.contains(eObject);
+		}
+	}
+
+	private void preProcessResourceEObject(EObject eObject, PreProcessedResourceEObjectsDTO preProcessedEObjectsDTO) {
+		if (!preProcessedEObjectsDTO.preProcessedResourceEObjects.contains(eObject)) {
+			preProcessedEObjectsDTO.preProcessedResourceEObjects.add(eObject);
+		}
+	}
+
+	private boolean uriMatches(List<URI> resourceEObjectsURIs, URI eObjectURI, boolean exactMatch) {
+		return resourceEObjectsURIs.stream()
+				.anyMatch(resourceEObjectURI -> (uriMatches(resourceEObjectURI, eObjectURI, exactMatch)));
+	}
+
+	private boolean uriMatches(URI resourceEObjectURI, URI eObjectURI, boolean exactMatch) {
+		// TODO: clarify which part of URI should match ? entire URI ? last segment ?
+		// fragment ? (RE: "you need to look if the URI matches the Resources you are
+		// exporting")
+
+//		( eObjectURI.toString() ).contains("");
+//		( eObjectURI.toString() ).startsWith("");
+//		( eObjectURI.toString() ).endsWith("");
+//		
+//		( eObjectURI.fragment() ).contains("");
+//		( eObjectURI.fragment() ).startsWith("");
+//		( eObjectURI.fragment() ).endsWith("");		
+//		
+//		( eObjectURI.lastSegment() ).contains("");
+//		( eObjectURI.lastSegment() ).startsWith("");
+//		( eObjectURI.lastSegment() ).endsWith("");	
+
+		// TODO: vary processing depending on whether 'exactMatch' is set/true
+
+		return (resourceEObjectURI.toString()).equalsIgnoreCase(eObjectURI.toString());
+	}
+
+	protected class PreProcessedResourceEObjectsDTO {
+		public final List<EObject> rawResourceEObjects;
+
+		public final List<URI> resourceEObjectsURIs;
+
+		public final List<EObject> preProcessedResourceEObjects;
+
+		public final Set<EObject> unProcessableResourceEObjects;
+
+		public PreProcessedResourceEObjectsDTO() {
+			this.rawResourceEObjects = new ArrayList<>();
+			this.resourceEObjectsURIs = new ArrayList<>();
+			this.preProcessedResourceEObjects = new ArrayList<>();
+			this.unProcessableResourceEObjects = new HashSet<>();
 		}
 	}
 }

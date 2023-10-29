@@ -44,12 +44,11 @@
 	com.google.guava.failureaccess;version='[1.0.1,1.0.2)',\
 	org.apache.commons.logging;version='[1.2.0,1.2.1)',\
 	org.gecko.emf.exporter;version=snapshot,\
-	org.gecko.emf.util.model;version=snapshot,\
 	slf4j.api;version='[1.7.36,1.7.37)',\
 	slf4j.jcl;version='[1.7.36,1.7.37)',\
 	com.github.miachm.sods;version='[1.6.2,1.6.3)',\
 	org.gecko.emf.exporter.ods;version=snapshot,\
-	org.gecko.emf.bson;version=snapshot
+	org.gecko.emf.pushstreams;version=snapshot
 	
 
 
