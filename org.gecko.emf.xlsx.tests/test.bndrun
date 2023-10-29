@@ -63,5 +63,4 @@
 	org.apache.servicemix.bundles.poi;version='[5.2.2,5.2.3)',\
 	org.gecko.emf.exporter.xlsx;version=snapshot,\
 	slf4j.jcl;version='[1.7.36,1.7.37)',\
-	org.gecko.emf.bson;version=snapshot,\
-	org.gecko.emf.util.model;version=snapshot
+	org.gecko.emf.pushstreams;version=snapshot

@@ -64,4 +64,4 @@
 	com.google.guava.failureaccess;version='[1.0.1,1.0.2)',\
 	org.gecko.emf.trees.model;version=snapshot,\
 	slf4j.jcl;version='[1.7.36,1.7.37)',\
-	org.gecko.emf.bson;version=snapshot
+	org.gecko.emf.pushstreams;version=snapshot

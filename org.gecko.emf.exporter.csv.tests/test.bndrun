@@ -65,6 +65,6 @@
 	org.gecko.emf.trees.model;version=snapshot,\
 	slf4j.jcl;version='[1.7.36,1.7.37)',\
 	de.siegmar.fastcsv;version='[2.2.2,2.2.3)',\
-	org.gecko.emf.bson;version=snapshot
+	org.gecko.emf.pushstreams;version=snapshot
 
 
