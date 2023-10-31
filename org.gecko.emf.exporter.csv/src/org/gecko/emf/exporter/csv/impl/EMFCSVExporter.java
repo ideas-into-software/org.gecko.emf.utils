@@ -76,6 +76,8 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 
 	private static final String CSV_FILE_EXTENSION = "csv";
 
+	private static final String REF_COLUMN_SUFFIX_PART = REF_COLUMN_SUFFIX.replaceFirst(".", "");
+
 	public EMFCSVExporter() {
 		super(LOG, Stopwatch.createStarted());
 	}
@@ -592,19 +594,29 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private String constructFlatMatrixColumnHeaderName(EMFExportEObjectColumnHeader columnHeader) {
-		if (!(columnHeader.getColumnHeaderName()).equalsIgnoreCase(ID_COLUMN_NAME)) {
-			return columnHeader.getColumnHeaderName();
-		}
-
-		StringBuilder sb = new StringBuilder(100);
-		sb.append(columnHeader.getMatrixName());
-		sb.append(ID_COLUMN_NAME);
-
-		return sb.toString();
+		return columnHeader.getColumnHeaderName();
 	}
 
 	private String constructFlatMatrixReferenceColumnHeaderName(String... columnHeaderNameParts) {
+		boolean hasRefColumnHeaderNamePart = hasRefColumnHeaderNamePart(columnHeaderNameParts);
+		if (hasRefColumnHeaderNamePart) {
+			columnHeaderNameParts = swapRefColumnHeaderNamePart(columnHeaderNameParts);
+		}
+
 		return String.join(".", columnHeaderNameParts);
+	}
+
+	private String[] swapRefColumnHeaderNamePart(String... columnHeaderNameParts) {
+		List<String> parts = Arrays.stream(columnHeaderNameParts)
+				.map(columnHeaderNamePart -> columnHeaderNamePart.replace(REF_COLUMN_SUFFIX, ""))
+				.collect(Collectors.toList());
+		parts.add(REF_COLUMN_SUFFIX_PART);
+		return parts.toArray(String[]::new);
+	}
+
+	private boolean hasRefColumnHeaderNamePart(String... columnHeaderNameParts) {
+		return Arrays.stream(columnHeaderNameParts)
+				.anyMatch(columnHeaderNamePart -> columnHeaderNamePart.endsWith(REF_COLUMN_SUFFIX));
 	}
 
 	private String[] constructFlatMatrixReferenceColumnHeaderNameParts(List<String> existingParts, String... newParts) {
@@ -787,10 +799,10 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 
 			EMFExportEObjectManyReferencesValueCell manyReferencesValueCell = (EMFExportEObjectManyReferencesValueCell) rawMatrixRowColumnValue;
 
-			List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions) && manyReferencesValueCell.hasURIs())
-					? manyReferencesValueCell.getURIs()
-					: manyReferencesValueCell.hasRefIDs() ? manyReferencesValueCell.getRefIDs()
-							: Collections.emptyList();
+			List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions)
+					&& manyReferencesValueCell.hasURIs()) ? manyReferencesValueCell.getURIs()
+							: manyReferencesValueCell.hasRefIDs() ? manyReferencesValueCell.getRefIDs()
+									: Collections.emptyList();
 
 			for (int colIndex = 0; colIndex < columnRefsMaxValueCount; colIndex++) {
 

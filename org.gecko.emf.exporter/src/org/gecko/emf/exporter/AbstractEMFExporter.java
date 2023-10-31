@@ -40,6 +40,7 @@ import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.util.InternalEList;
 import org.gecko.emf.exporter.cells.EMFExportEObjectIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
@@ -49,6 +50,7 @@ import org.gecko.emf.exporter.headers.EMFExportEObjectGenericColumnHeader;
 import org.gecko.emf.exporter.headers.EMFExportEObjectIDColumnHeader;
 import org.gecko.emf.exporter.headers.EMFExportEObjectManyReferencesColumnHeader;
 import org.gecko.emf.exporter.headers.EMFExportEObjectOneReferenceColumnHeader;
+import org.gecko.emf.exporter.headers.EMFExportInternalIDColumnHeader;
 import org.gecko.emf.exporter.keys.EMFExportRefMatrixNameIDCompositeKey;
 import org.slf4j.Logger;
 
@@ -84,7 +86,13 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 	protected static final String ECORE_PACKAGE_NAME = "ecore";
 
-	protected static final String ID_COLUMN_NAME = "_id";
+	protected static final String ID_COLUMN_NAME = "id";
+
+	protected static final int ID_COLUMN_POSITION = 1;
+
+	protected static final String INTERNAL_ID_COLUMN_NAME = "_id";
+
+	protected static final int INTERNAL_ID_COLUMN_POSITION = 0;
 
 	protected static final String ID_ATTRIBUTE_NAME = "id";
 
@@ -341,6 +349,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 		if (idAttribute == null || idAttribute.getName().equalsIgnoreCase(ID_ATTRIBUTE_NAME)) {
 			sb.append(eClass.getName().toLowerCase());
+			sb.append("_");
 			sb.append(ID_COLUMN_NAME);
 		} else {
 			sb.append(idAttribute.getName());
@@ -430,12 +439,13 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		boolean hasIDOrPseudoID = hasPseudoID || hasID(eObject);
 
 		if (hasIDOrPseudoID) {
+			constructMatrixInternalIDColumnHeader(matrix, matrixName);
 			constructMatrixIDColumnHeader(matrix, matrixName);
 		}
 
 		Iterator<EStructuralFeature> eAllStructuralFeaturesIt = eAllStructuralFeatures.iterator();
 
-		int colIndex = 0;
+		int colIndex = (hasIDOrPseudoID ? 1 : 0);
 
 		while (eAllStructuralFeaturesIt.hasNext()) {
 			EStructuralFeature eStructuralFeature = eAllStructuralFeaturesIt.next();
@@ -492,8 +502,14 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
+	private void constructMatrixInternalIDColumnHeader(Table<Integer, Integer, Object> matrix, String matrixName) {
+		constructMatrixColumnHeader(matrix, new EMFExportInternalIDColumnHeader(matrixName, INTERNAL_ID_COLUMN_NAME),
+				INTERNAL_ID_COLUMN_POSITION);
+	}
+
 	private void constructMatrixIDColumnHeader(Table<Integer, Integer, Object> matrix, String matrixName) {
-		constructMatrixColumnHeader(matrix, new EMFExportEObjectIDColumnHeader(matrixName, ID_COLUMN_NAME), 0);
+		constructMatrixColumnHeader(matrix, new EMFExportEObjectIDColumnHeader(matrixName, ID_COLUMN_NAME),
+				ID_COLUMN_POSITION);
 	}
 
 	private void constructMatrixOneReferenceColumnHeader(Table<Integer, Integer, Object> matrix, String matrixName,
@@ -673,19 +689,27 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 		if (hasIDOrPseudoID) {
 			// @formatter:off
+			setInternalIDValueCell(
+					matrix, 
+					rowIndex,
+					INTERNAL_ID_COLUMN_POSITION, 
+					getIDOrPseudoID(processedEObjectsDTO, eObject));
+			// @formatter:on
+
+			// @formatter:off
 			setIDValueCell(
 					processedEObjectsDTO,
 					matrix, 
 					matrixName,
 					rowIndex, 
-					0,
+					ID_COLUMN_POSITION,
 					getIDOrPseudoID(processedEObjectsDTO, eObject));
 			// @formatter:on
 		}
 
 		Iterator<EStructuralFeature> eAllStructuralFeaturesIt = eAllStructuralFeatures.iterator();
 
-		int colIndex = 0;
+		int colIndex = (hasIDOrPseudoID ? 1 : 0);
 
 		while (eAllStructuralFeaturesIt.hasNext()) {
 			EStructuralFeature eStructuralFeature = eAllStructuralFeaturesIt.next();
@@ -707,6 +731,11 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 			colIndex++;
 		}
+	}
+
+	private void setInternalIDValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
+			String value) {
+		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex), new EMFExportEObjectIDValueCell(value));
 	}
 
 	private void setIDValueCell(ProcessedEObjectsDTO processedEObjectsDTO, Table<Integer, Integer, Object> matrix,
@@ -1810,7 +1839,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 		logger.info("Starting preprocessing EObjects contained in Resource");
 
-		final PreProcessedResourceEObjectsDTO preProcessedEObjectsDTO = new PreProcessedResourceEObjectsDTO();
+		final PreProcessedResourceEObjectsDTO preProcessedEObjectsDTO = new PreProcessedResourceEObjectsDTO(
+				resource.getURI());
 
 		preProcessedEObjectsDTO.rawResourceEObjects.addAll(resource.getContents());
 
@@ -1872,26 +1902,28 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 			} else if (eReference.isMany()) {
 
-				if (((List<EObject>) rawEObject).isEmpty()) {
-					EcoreUtil.remove(eObject, eReference, rawEObject);
-					return;
-				}
+				InternalEList<EObject> rawEObjectList = (InternalEList<EObject>) rawEObject;
 
-				List<EObject> processableEObjects = new ArrayList<>();
-				List<EObject> unProcessableEObjects = new ArrayList<>();
+				if (!rawEObjectList.isEmpty()) {
 
-				for (EObject maybeProcessableEObject : (List<EObject>) rawEObject) {
-					if (shouldPreProcessResourceEObject(maybeProcessableEObject, preProcessedEObjectsDTO)) {
-						processableEObjects.add(maybeProcessableEObject);
-					} else {
-						unProcessableEObjects.add(maybeProcessableEObject);
+					List<EObject> processableEObjects = new ArrayList<>();
+					List<EObject> unProcessableEObjects = new ArrayList<>();
+
+					for (int i = 0; i < rawEObjectList.size(); i++) {
+						EObject maybeProcessableEObject = rawEObjectList.basicGet(i);
+
+						if (shouldPreProcessResourceEObject(maybeProcessableEObject, preProcessedEObjectsDTO)) {
+							processableEObjects.add(maybeProcessableEObject);
+						} else {
+							unProcessableEObjects.add(maybeProcessableEObject);
+						}
 					}
+
+					preProcessedEObjectsDTO.unProcessableResourceEObjects.addAll(unProcessableEObjects);
+
+					preProcessResourceEObjects(processableEObjects, processedEObjectsIdentifiers,
+							preProcessedEObjectsDTO, exportOptions);
 				}
-
-				preProcessedEObjectsDTO.unProcessableResourceEObjects.addAll(unProcessableEObjects);
-
-				preProcessResourceEObjects(processableEObjects, processedEObjectsIdentifiers, preProcessedEObjectsDTO,
-						exportOptions);
 			}
 		}
 	}
@@ -1899,7 +1931,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	private boolean shouldPreProcessResourceEObject(EObject eObject,
 			PreProcessedResourceEObjectsDTO preProcessedEObjectsDTO) {
 		if (eObject.eIsProxy()) {
-			return uriMatches(preProcessedEObjectsDTO.resourceEObjectsURIs, EcoreUtil.getURI(eObject), true);
+			return uriMatches(preProcessedEObjectsDTO.resourceURI, EcoreUtil.getURI(eObject));
 		} else {
 			return preProcessedEObjectsDTO.rawResourceEObjects.contains(eObject);
 		}
@@ -1911,35 +1943,22 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private boolean uriMatches(List<URI> resourceEObjectsURIs, URI eObjectURI, boolean exactMatch) {
-		return resourceEObjectsURIs.stream()
-				.anyMatch(resourceEObjectURI -> (uriMatches(resourceEObjectURI, eObjectURI, exactMatch)));
-	}
+	private boolean uriMatches(URI resourceURI, URI eObjectURI) {
+		if (!resourceURI.hasQuery()) {
+			eObjectURI = eObjectURI.trimQuery();
+		}
 
-	private boolean uriMatches(URI resourceEObjectURI, URI eObjectURI, boolean exactMatch) {
-		// TODO: clarify which part of URI should match ? entire URI ? last segment ?
-		// fragment ? (RE: "you need to look if the URI matches the Resources you are
-		// exporting")
+		if (!resourceURI.hasFragment()) {
+			eObjectURI = eObjectURI.trimFragment();
+		}
 
-//		( eObjectURI.toString() ).contains("");
-//		( eObjectURI.toString() ).startsWith("");
-//		( eObjectURI.toString() ).endsWith("");
-//		
-//		( eObjectURI.fragment() ).contains("");
-//		( eObjectURI.fragment() ).startsWith("");
-//		( eObjectURI.fragment() ).endsWith("");		
-//		
-//		( eObjectURI.lastSegment() ).contains("");
-//		( eObjectURI.lastSegment() ).startsWith("");
-//		( eObjectURI.lastSegment() ).endsWith("");	
-
-		// TODO: vary processing depending on whether 'exactMatch' is set/true
-
-		return (resourceEObjectURI.toString()).equalsIgnoreCase(eObjectURI.toString());
+		return resourceURI.equals(eObjectURI);
 	}
 
 	protected class PreProcessedResourceEObjectsDTO {
 		public final List<EObject> rawResourceEObjects;
+
+		public final URI resourceURI;
 
 		public final List<URI> resourceEObjectsURIs;
 
@@ -1947,7 +1966,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 		public final Set<EObject> unProcessableResourceEObjects;
 
-		public PreProcessedResourceEObjectsDTO() {
+		public PreProcessedResourceEObjectsDTO(URI resourceURI) {
+			this.resourceURI = resourceURI;
 			this.rawResourceEObjects = new ArrayList<>();
 			this.resourceEObjectsURIs = new ArrayList<>();
 			this.preProcessedResourceEObjects = new ArrayList<>();

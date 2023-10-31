@@ -42,6 +42,7 @@ import org.gecko.emf.exporter.EMFExporter;
 import org.gecko.emf.exporter.cells.EMFExportEObjectIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
+import org.gecko.emf.exporter.cells.EMFExportInternalIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportMappingMatrixReferenceValueCell;
 import org.gecko.emf.exporter.xlsx.api.EMFXLSXExportOptions;
 import org.osgi.service.component.annotations.Component;
@@ -264,7 +265,11 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 			CellStyle genericDataCellStyle, CellStyle dateDataCellStyle) {
 		if ((value != null) && !(value instanceof Optional)) {
 
-			if (value instanceof EMFExportEObjectIDValueCell) {
+			if (value instanceof EMFExportInternalIDValueCell) {
+				setInternalIDValueCell(dataRow, colIndex, (EMFExportInternalIDValueCell) value, exportOptions,
+						creationHelper, genericDataCellStyle);
+
+			} else if (value instanceof EMFExportEObjectIDValueCell) {
 				setIDValueCell(dataRow, colIndex, (EMFExportEObjectIDValueCell) value, exportOptions, creationHelper,
 						genericDataCellStyle);
 
@@ -298,6 +303,13 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 		} else {
 			setVoidValueCell(dataRow, colIndex);
 		}
+	}
+
+	private void setInternalIDValueCell(Row dataRow, int colIndex, EMFExportInternalIDValueCell internalIdValue,
+			Map<Object, Object> exportOptions, CreationHelper creationHelper, CellStyle genericDataCellStyle) {
+		Cell cell = dataRow.createCell(colIndex);
+		cell.setCellValue(internalIdValue.hasValue() ? internalIdValue.getValue() : "");
+		cell.setCellStyle(genericDataCellStyle);
 	}
 
 	private void setIDValueCell(Row dataRow, int colIndex, EMFExportEObjectIDValueCell idValue,
