@@ -47,7 +47,8 @@
 	com.github.miachm.sods;version='[1.6.2,1.6.3)',\
 	org.gecko.emf.exporter.ods;version=snapshot,\
 	slf4j.jcl;version='[1.7.36,1.7.37)',\
-	org.gecko.emf.pushstreams;version=snapshot
+	org.gecko.emf.pushstreams;version=snapshot,\
+	org.gecko.emf.xlsx;version=snapshot
 
 -runrequires: \
 	bnd.identity;id='org.gecko.emf.exporter.ods',\

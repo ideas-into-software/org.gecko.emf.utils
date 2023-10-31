@@ -30,6 +30,7 @@ import org.gecko.emf.exporter.EMFExporter;
 import org.gecko.emf.exporter.cells.EMFExportEObjectIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
+import org.gecko.emf.exporter.cells.EMFExportInternalIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportMappingMatrixReferenceValueCell;
 import org.gecko.emf.exporter.ods.api.EMFODSExportOptions;
 import org.osgi.service.component.annotations.Component;
@@ -47,7 +48,8 @@ import com.google.common.base.Stopwatch;
 import com.google.common.collect.Table;
 
 /**
- * Implementation of the {@link EMFExporter} to provide support for exporting EMF resources and lists of EMF objects to ODS format.
+ * Implementation of the {@link EMFExporter} to provide support for exporting
+ * EMF resources and lists of EMF objects to ODS format.
  * 
  * @author Michal H. Siemaszko
  */
@@ -115,9 +117,8 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 		}
 	}
 
-	private void exportMatricesToODS(OutputStream outputStream,
-			ProcessedEObjectsDTO processedEObjectsDTO, Map<Object, Object> exportOptions)
-			throws IOException {
+	private void exportMatricesToODS(OutputStream outputStream, ProcessedEObjectsDTO processedEObjectsDTO,
+			Map<Object, Object> exportOptions) throws IOException {
 
 		resetStopwatch();
 
@@ -255,7 +256,10 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 
 		if ((value != null) && !(value instanceof Optional) && String.valueOf(value) != null) {
 
-			if (value instanceof EMFExportEObjectIDValueCell) {
+			if (value instanceof EMFExportInternalIDValueCell) {
+				setInternalIDValueCell(sheetDataRow, colIndex, (EMFExportInternalIDValueCell) value);
+
+			} else if (value instanceof EMFExportEObjectIDValueCell) {
 				setIDValueCell(sheetDataRow, colIndex, (EMFExportEObjectIDValueCell) value);
 
 			} else if (value instanceof EMFExportEObjectOneReferenceValueCell) {
@@ -286,6 +290,10 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 		} else {
 			setVoidValueCell(sheetDataRow, colIndex);
 		}
+	}
+
+	private void setInternalIDValueCell(Range dataRow, int colIndex, EMFExportInternalIDValueCell idValue) {
+		dataRow.getCell(0, colIndex).setValue(idValue.hasValue() ? idValue.getValue() : "");
 	}
 
 	private void setIDValueCell(Range dataRow, int colIndex, EMFExportEObjectIDValueCell idValue) {

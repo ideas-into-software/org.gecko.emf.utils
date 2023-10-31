@@ -68,4 +68,5 @@
 	org.gecko.emf.exporter.xlsx.tests;version=snapshot,\
 	org.gecko.emf.trees.model;version=snapshot,\
 	slf4j.jcl;version='[1.7.36,1.7.37)',\
-	org.gecko.emf.pushstreams;version=snapshot
+	org.gecko.emf.pushstreams;version=snapshot,\
+	org.gecko.emf.xlsx;version=snapshot
