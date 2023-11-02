@@ -51,6 +51,5 @@
 	com.github.miachm.sods;version='[1.6.2,1.6.3)',\
 	org.apache.commons.logging;version='[1.2.0,1.2.1)',\
 	slf4j.api;version='[1.7.36,1.7.37)',\
-	slf4j.jcl;version='[1.7.36,1.7.37)',\
-	org.osgi.service.cm;version='[1.6.0,1.6.1)',\
-	org.osgi.service.component;version='[1.4.0,1.4.1)'
+	org.osgi.service.component;version='[1.4.0,1.4.1)',\
+	slf4j.simple;version='[1.7.25,1.7.26)'

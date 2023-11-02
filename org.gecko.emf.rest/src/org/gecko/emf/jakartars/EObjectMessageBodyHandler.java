@@ -62,7 +62,7 @@ import org.osgi.service.jakartars.whiteboard.propertytypes.JakartarsName;
 @Provider
 @Produces(MediaType.WILDCARD)
 @Consumes(MediaType.WILDCARD)
-public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> extends AbstractEMFMessageBodyReaderWriter<R, W>{
+public class EObjectMessageBodyHandler<R extends EObject, W extends EObject> extends BaseEMFMessageBodyReaderWriter<R, W>{
 
 	@Reference
 	private ResourceSetFactory resourceSetFactory;
