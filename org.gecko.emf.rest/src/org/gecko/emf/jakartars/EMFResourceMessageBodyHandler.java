@@ -59,7 +59,7 @@ import jakarta.ws.rs.ext.Provider;
 @Provider
 @Produces(MediaType.WILDCARD)
 @Consumes(MediaType.WILDCARD)
-public class EMFResourceMessageBodyHandler<R extends Resource, W extends Resource> extends AbstractEMFMessageBodyReaderWriter<R, W>{
+public class EMFResourceMessageBodyHandler<R extends Resource, W extends Resource> extends BaseEMFMessageBodyReaderWriter<R, W>{
 
 	@Reference
 	private ResourceSetFactory resourceSetFactory;
