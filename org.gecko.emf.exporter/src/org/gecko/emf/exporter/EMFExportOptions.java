@@ -21,23 +21,19 @@ public interface EMFExportOptions {
 	// locale to use
 	String OPTION_LOCALE = "LOCALE";
 
-	// export non-containment references, in addition to containment references (exported by default)
+	// export non-containment references, in addition to containment references
+	// (exported by default)
 	String OPTION_EXPORT_NONCONTAINMENT = "EXPORT_NONCONTAINMENT";
 
 	// extract and export metadata as additional sheets
 	String OPTION_EXPORT_METADATA = "EXPORT_METADATA";
 
-	// automatically adjust column width based on contents
-	String OPTION_ADJUST_COLUMN_WIDTH = "ADJUST_COLUMN_WIDTH";
-
-	// generate links for references
-	String OPTION_GENERATE_LINKS = "GENERATE_LINKS";
-	
 	// generate mapping table
 	String OPTION_ADD_MAPPING_TABLE = "ADD_MAPPING_TABLE";
-	
-	// TODO: freezing rows is currently not supported in SODS
-	// freeze header row
-//	String OPTION_FREEZE_HEADER_ROW = "FREEZE_HEADER_ROW";
 
+	// show URIs instead of IDs
+	String OPTION_SHOW_URIS = "SHOW_URIS";
+
+	// show columns containing references
+	String OPTION_SHOW_REFS = "SHOW_REFS";
 }

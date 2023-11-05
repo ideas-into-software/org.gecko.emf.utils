@@ -12,6 +12,7 @@ Bundle-Version: 1.0.2.SNAPSHOT
 	org.eclipse.emf.ecore,\
 	org.gecko.emf.osgi.example.model.basic,\
 	org.gecko.emf.exporter;version=latest,\
+	org.gecko.emf.exporter.ods.api;version=latest,\
 	org.apache.commons.commons-text,\
 	org.gecko.emf.util.model,\
-	com.github.miachm.sods;version=latest
+	org.gecko.emf.trees.model;version=latest
