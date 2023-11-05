@@ -1,0 +1,14 @@
+Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Name: Gecko EMF XLSX Exporter
+Bundle-Description: XLSX (Microsoft Excel Open XML Spreadsheet) Exporter for EMF
+
+-library: enable-emf
+
+-buildpath: \
+	org.gecko.emf.exporter;version=latest,\
+	org.gecko.emf.exporter.xlsx.api;version=latest,\
+	org.apache.servicemix.bundles.poi,\
+	com.google.guava,\
+	slf4j.api
+
+Private-Package: org.gecko.emf.exporter.xlsx.impl
