@@ -4,6 +4,8 @@ biz.aQute:biz.aQute.gogo.commands.provider:1.8.0
 biz.aQute:biz.aQute.wrapper.hamcrest:1.9.0
 
 jakarta.ws.rs:jakarta.ws.rs-api:3.1.0
+jakarta.ws.rs:jakarta.ws.rs-api:2.1.6
+
 jakarta.annotation:jakarta.annotation-api:2.1.1
 jakarta.xml.bind:jakarta.xml.bind-api:4.0.0
 jakarta.activation:jakarta.activation-api:2.1.0
@@ -99,6 +101,7 @@ org.osgi:org.osgi.service.event:1.4.0
 org.osgi:org.osgi.service.http.whiteboard:1.1.0
 org.osgi:org.osgi.service.http:1.2.1
 org.osgi:org.osgi.service.jakartars:jar:2.0.0
+org.osgi:org.osgi.service.jaxrs:1.0.1
 org.osgi:org.osgi.service.jdbc:1.0.0
 org.osgi:org.osgi.service.log:1.5.0
 org.osgi:org.osgi.service.metatype.annotations:1.4.0
