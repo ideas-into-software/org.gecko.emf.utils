@@ -1,0 +1,13 @@
+Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Name: Gecko EMF ODS Exporter API
+Bundle-Description: ODS (OpenDocument Spreadsheet) Exporter API for EMF
+
+-library: enable-emf
+
+-buildpath: \
+	org.gecko.emf.exporter;version=latest,\
+	com.github.miachm.sods,\
+	org.apache.commons.commons-text;version='1.10',\
+	slf4j.api
+
+Export-Package: org.gecko.emf.exporter.ods.api

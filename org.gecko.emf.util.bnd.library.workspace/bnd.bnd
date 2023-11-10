@@ -1,11 +1,5 @@
 -resourceonly: true
--include: ${.}/buildpath.bnd	
-mavendeps: ${sjoin;\n; ${template;-maven-dependencies;${@}}}
 
-
--includeresource: resources,\
-	{template/geckoEMFUtil.maven=resources/template/geckoEMFUtil.maven}	
-	
 Provide-Capability: \
 	${gecko-base}
 

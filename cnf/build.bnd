@@ -11,21 +11,21 @@
 
 # Needed because we enabled library 'gecko-dimc' 	
 github-project: org.gecko.emf.util
-base-version: 1.0.0.SNAPSHOT
+base-version: 2.1.0.SNAPSHOT
 
 # Maven Central Group-Id
 -groupid: org.geckoprojects.emf.utils
 
 # No simultanious release - We only release new version to Maven Central
-#releaseNotNeeded: ${findproviders;osgi.identity;(&(osgi.identity=${bsn})(version=${version}));REPOS}
+releaseNotNeeded: ${findproviders;osgi.identity;(&(osgi.identity=${bsn})(version=${versionmask;===;${Bundle-Version}}));REPOS}
 
 # If release not needed is empty, no Bundle has been found and for maven we do a release to the remote Repo. If not, we only do a release to the local .m2 Repo
-#-maven-release.local: ${if;${def;releaseNotNeeded};local;remote}
+-maven-release.local: ${if;${def;releaseNotNeeded};local;remote}
 
 javac.source: 11
 javac.target: 11
 
--require-bnd "(version>=6.2.0)"
+-require-bnd "(version>=6.4.0)"
 
 -plugin.Central: \
     aQute.bnd.repository.maven.provider.MavenBndRepository; \
@@ -33,7 +33,6 @@ javac.target: 11
         releaseUrl=https://repo.maven.apache.org/maven2/; \
         index=${.}/central.mvn; \
         readOnly=true; \
-        poll.time=-1; \
         name="Central"
 
 -plugin.Local: \
@@ -47,4 +46,31 @@ javac.target: 11
 		name = Temp; \
 		pretty = true; \
 		local = ${build}/cache/temp
+		
+-plugin.baseline:\
+    aQute.bnd.repository.maven.provider.MavenBndRepository; \
+        snapshotUrl="https://oss.sonatype.org/content/repositories/snapshots/"; \
+        releaseUrl=https://repo.maven.apache.org/maven2/; \
+        index=${.}/baseline.mvn; \
+        readOnly=true;\
+		name=Baseline
 
+-diffignore: *.xml,\
+	*/pom.properties,\
+	Git-SHA,\
+	Bundle-Vendor,\
+	Bundle-License,\
+	Bundle-DocURL,\
+	Bundle-SCM,\
+	Bundle-Developers,\
+	Bundle-Copyright,\
+	Bundle-ContactAddress,\
+	META-INF/maven/*,\
+	OSGI-OPT/*
+		
+#-baselinerepo: Baseline
+#-baseline: *
+
+#X-Test: ${if;${def;releaseNotNeeded};local;remote}
+X-Test: ${-maven-release.local}
+X-Test2: ${-maven-release}
