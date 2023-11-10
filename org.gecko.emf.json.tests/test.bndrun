@@ -46,10 +46,12 @@
 	slf4j.api;version='[1.7.36,1.7.37)',\
 	com.github.miachm.sods;version='[1.6.2,1.6.3)',\
 	org.gecko.emf.exporter.ods;version=snapshot,\
-	org.gecko.emf.pushstreams;version=snapshot,\
-	org.gecko.emf.json;version='[1.4.2,1.4.3)',\
-	org.osgi.service.cm;version='[1.6.0,1.6.1)',\
 	org.osgi.service.component;version='[1.4.0,1.4.1)',\
+	org.gecko.emf.exporter;version='[1.0.1,1.0.2)',\
+	org.gecko.emf.json;version='[1.4.2,1.4.3)',\
+	org.gecko.emf.util.model;version=snapshot,\
+	org.gecko.emf.xlsx;version='[1.0.0,1.0.1)',\
+	org.osgi.service.cm;version='[1.6.0,1.6.1)',\
 	slf4j.simple;version='[1.7.25,1.7.26)'
 	
 

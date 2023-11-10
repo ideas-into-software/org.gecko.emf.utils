@@ -5,7 +5,7 @@ Bundle-Description: ODS (OpenDocument Spreadsheet) Exporter API for EMF
 -library: enable-emf
 
 -buildpath: \
-	org.gecko.emf.exporter,\
+	org.gecko.emf.exporter;version=latest,\
 	com.github.miachm.sods,\
 	org.apache.commons.commons-text;version='1.10',\
 	slf4j.api

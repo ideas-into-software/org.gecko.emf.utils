@@ -5,4 +5,4 @@ Bundle-Description: Extension to save EMF objects to XLSX
 -library: enable-emf
 
 -buildpath: \
-	org.gecko.emf.exporter
+	org.gecko.emf.exporter;version=latest
