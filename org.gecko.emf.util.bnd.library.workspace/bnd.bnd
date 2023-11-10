@@ -1,1 +1,9 @@
 -resourceonly: true
+
+Provide-Capability: \
+	${gecko-base}
+
+gecko-base:\
+    bnd.library;\
+        bnd.library     = geckoEMFUtil; \
+        path            = template
