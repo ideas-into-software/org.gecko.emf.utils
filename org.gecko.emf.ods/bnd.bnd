@@ -1,0 +1,8 @@
+Bundle-Version: 1.0.2.SNAPSHOT
+Bundle-Name: Gecko EMF ODS Extension
+Bundle-Description: Extension to save EMF objects to ODS using SODS
+
+-library: enable-emf
+
+-buildpath: \
+	org.gecko.emf.exporter;version=latest
