@@ -55,8 +55,6 @@
 	org.apache.commons.commons-text;version='[1.10.0,1.10.1)',\
 	org.apache.commons.lang3;version='[3.12.0,3.12.1)',\
 	org.eclipse.emfcloud.emfjson-jackson;version='[2.2.0,2.2.1)',\
-	org.gecko.emf.json;version=snapshot,\
-	org.gecko.emf.util.model;version=snapshot,\
 	com.fasterxml.jackson.datatype.jackson-datatype-jsr310;version='[2.14.1,2.14.2)',\
 	org.apache.commons.logging;version='[1.2.0,1.2.1)',\
 	slf4j.api;version='[1.7.36,1.7.37)',\
@@ -64,9 +62,13 @@
 	com.google.guava.failureaccess;version='[1.0.1,1.0.2)',\
 	org.apache.commons.commons-compress;version='[1.21.0,1.21.1)',\
 	org.apache.servicemix.bundles.poi;version='[5.2.2,5.2.3)',\
-	org.gecko.emf.exporter.xlsx;version=snapshot,\
 	org.gecko.emf.exporter.xlsx.tests;version=snapshot,\
 	org.gecko.emf.trees.model;version=snapshot,\
-	slf4j.jcl;version='[1.7.36,1.7.37)',\
-	org.gecko.emf.pushstreams;version=snapshot,\
-	org.gecko.emf.xlsx;version=snapshot
+	org.osgi.service.component;version='[1.4.0,1.4.1)',\
+	org.gecko.emf.exporter;version='[1.0.1,1.0.2)',\
+	org.gecko.emf.exporter.xlsx;version='[1.0.0,1.0.1)',\
+	org.gecko.emf.json;version='[1.4.2,1.4.3)',\
+	org.gecko.emf.util.model;version=snapshot,\
+	org.gecko.emf.xlsx;version='[1.0.0,1.0.1)',\
+	org.osgi.service.cm;version='[1.6.0,1.6.1)',\
+	slf4j.simple;version='[1.7.25,1.7.26)'
