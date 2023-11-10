@@ -5,7 +5,7 @@ Bundle-Description: XLSX (Microsoft Excel Open XML Spreadsheet) Exporter API for
 -library: enable-emf
 
 -buildpath: \
-	org.gecko.emf.exporter,\
+	org.gecko.emf.exporter;version=latest,\
 	org.apache.servicemix.bundles.poi,\
 	org.apache.commons.commons-text,\
 	slf4j.api
