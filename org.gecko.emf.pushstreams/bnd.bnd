@@ -22,6 +22,7 @@ javac.target: 11
 -library: enable-emf
 
 -buildpath: ,\
-	org.osgi.util.pushstream
+	org.osgi.util.pushstream,\
+	org.osgi.service.condition
 	
 Bundle-Version: 1.1.4.SNAPSHOT
