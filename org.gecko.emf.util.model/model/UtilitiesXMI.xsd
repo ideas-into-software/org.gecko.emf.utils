@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" xmlns:util="http://gecko.io/utils/1.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://gecko.io/utils/1.0">
+  <xsd:import namespace="http://www.omg.org/XMI" schemaLocation="platform:/plugin/org.eclipse.emf.ecore/model/XMI.xsd"/>
+  <xsd:import namespace="http://www.eclipse.org/emf/2002/Ecore" schemaLocation="ecore.xsd"/>
+  <xsd:simpleType name="SortType">
+    <xsd:restriction base="xsd:NCName">
+      <xsd:enumeration value="ASCENDING"/>
+      <xsd:enumeration value="DESCENDING"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  <xsd:complexType name="FeaturePath">
+    <xsd:choice maxOccurs="unbounded" minOccurs="0">
+      <xsd:element name="feature" type="ecore:EStructuralFeature"/>
+      <xsd:element ref="xmi:Extension"/>
+    </xsd:choice>
+    <xsd:attribute ref="xmi:id"/>
+    <xsd:attributeGroup ref="xmi:ObjectAttribs"/>
+    <xsd:attribute name="name" type="xsd:string"/>
+    <xsd:attribute name="feature" type="xsd:string"/>
+  </xsd:complexType>
+  <xsd:element name="FeaturePath" type="util:FeaturePath"/>
+  <xsd:complexType name="Converter">
+    <xsd:choice maxOccurs="unbounded" minOccurs="0">
+      <xsd:element name="fromType" type="ecore:EClassifier"/>
+      <xsd:element name="toType" type="ecore:EClassifier"/>
+      <xsd:element ref="xmi:Extension"/>
+    </xsd:choice>
+    <xsd:attribute ref="xmi:id"/>
+    <xsd:attributeGroup ref="xmi:ObjectAttribs"/>
+    <xsd:attribute name="converterId" type="xsd:string" use="required"/>
+    <xsd:attribute name="fromType" type="xsd:string"/>
+    <xsd:attribute name="toType" type="xsd:string"/>
+  </xsd:complexType>
+  <xsd:element name="Converter" type="util:Converter"/>
+  <xsd:complexType name="LatLng">
+    <xsd:choice maxOccurs="unbounded" minOccurs="0">
+      <xsd:element ref="xmi:Extension"/>
+    </xsd:choice>
+    <xsd:attribute ref="xmi:id"/>
+    <xsd:attributeGroup ref="xmi:ObjectAttribs"/>
+    <xsd:attribute name="latitude" type="xsd:double"/>
+    <xsd:attribute name="longitude" type="xsd:double"/>
+  </xsd:complexType>
+  <xsd:element name="LatLng" type="util:LatLng"/>
+  <xsd:complexType name="StringToStringMap">
+    <xsd:choice maxOccurs="unbounded" minOccurs="0">
+      <xsd:element ref="xmi:Extension"/>
+    </xsd:choice>
+    <xsd:attribute ref="xmi:id"/>
+    <xsd:attributeGroup ref="xmi:ObjectAttribs"/>
+    <xsd:attribute name="key" type="xsd:string"/>
+    <xsd:attribute name="value" type="xsd:string"/>
+  </xsd:complexType>
+  <xsd:element name="StringToStringMap" type="util:StringToStringMap"/>
+  <xsd:complexType name="Request">
+    <xsd:annotation>
+      <xsd:documentation>General purpose request object</xsd:documentation>
+    </xsd:annotation>
+    <xsd:choice maxOccurs="unbounded" minOccurs="0">
+      <xsd:element name="objectId" nillable="true" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>One or many primary key filter values</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="projection" nillable="true" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>The fields to project to</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="sorting" type="util:Sort">
+        <xsd:annotation>
+          <xsd:documentation>Sort definition</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element name="filtering" type="util:Filter">
+        <xsd:annotation>
+          <xsd:documentation>Additional filter definition</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element ref="xmi:Extension"/>
+    </xsd:choice>
+    <xsd:attribute ref="xmi:id"/>
+    <xsd:attributeGroup ref="xmi:ObjectAttribs"/>
+    <xsd:attribute name="id" type="xsd:string"/>
+    <xsd:attribute name="from" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The from value for a time range query</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="to" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>The to value for a time range query</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="page" type="xsd:int">
+      <xsd:annotation>
+        <xsd:documentation>Paging: the page offset, should be 1-based index</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="pageSize" type="xsd:int">
+      <xsd:annotation>
+        <xsd:documentation>Paging: Entries size per page</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="returnResultSize" type="xsd:boolean">
+      <xsd:annotation>
+        <xsd:documentation>Parameter to force the response to return the result size value for the query, if paging is set</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="query" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>A field to provide additional custom query Strings</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="Request" type="util:Request">
+    <xsd:annotation>
+      <xsd:documentation>General purpose request object</xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:complexType name="Response">
+    <xsd:annotation>
+      <xsd:documentation>Response wrapper object. Usually used in combination with the request object</xsd:documentation>
+    </xsd:annotation>
+    <xsd:choice maxOccurs="unbounded" minOccurs="0">
+      <xsd:element name="data" type="ecore:EObject">
+        <xsd:annotation>
+          <xsd:documentation>General purpose data, depending on the request</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element ref="xmi:Extension"/>
+    </xsd:choice>
+    <xsd:attribute ref="xmi:id"/>
+    <xsd:attributeGroup ref="xmi:ObjectAttribs"/>
+    <xsd:attribute name="timestamp" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Response timestamp</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="resultSize" type="xsd:int">
+      <xsd:annotation>
+        <xsd:documentation>Returns the whole query return size, if 'returnResultSize' was set to true in the request</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="responseCode" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Can be used to return a response code, when working outside protocols like HTTP</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="responseMessage" type="xsd:string">
+      <xsd:annotation>
+        <xsd:documentation>Can be used for an error text</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="Response" type="util:Response">
+    <xsd:annotation>
+      <xsd:documentation>Response wrapper object. Usually used in combination with the request object</xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:complexType name="Sort">
+    <xsd:annotation>
+      <xsd:documentation>Sort definition</xsd:documentation>
+    </xsd:annotation>
+    <xsd:choice maxOccurs="unbounded" minOccurs="0">
+      <xsd:element ref="xmi:Extension"/>
+    </xsd:choice>
+    <xsd:attribute ref="xmi:id"/>
+    <xsd:attributeGroup ref="xmi:ObjectAttribs"/>
+    <xsd:attribute name="index" type="xsd:int" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Index for the right ordering</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="field" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>The field name to sort against</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="type" type="util:SortType"/>
+  </xsd:complexType>
+  <xsd:element name="Sort" type="util:Sort">
+    <xsd:annotation>
+      <xsd:documentation>Sort definition</xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+  <xsd:complexType name="Filter">
+    <xsd:annotation>
+      <xsd:documentation>The filter definition</xsd:documentation>
+    </xsd:annotation>
+    <xsd:choice maxOccurs="unbounded" minOccurs="0">
+      <xsd:element name="value" nillable="true" type="xsd:string">
+        <xsd:annotation>
+          <xsd:documentation>The values to filter against</xsd:documentation>
+        </xsd:annotation>
+      </xsd:element>
+      <xsd:element ref="xmi:Extension"/>
+    </xsd:choice>
+    <xsd:attribute ref="xmi:id"/>
+    <xsd:attributeGroup ref="xmi:ObjectAttribs"/>
+    <xsd:attribute name="index" type="xsd:int" use="required">
+      <xsd:annotation>
+        <xsd:documentation>Index for the right ordering</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+    <xsd:attribute name="field" type="xsd:string" use="required">
+      <xsd:annotation>
+        <xsd:documentation>The field name to sort against</xsd:documentation>
+      </xsd:annotation>
+    </xsd:attribute>
+  </xsd:complexType>
+  <xsd:element name="Filter" type="util:Filter">
+    <xsd:annotation>
+      <xsd:documentation>The filter definition</xsd:documentation>
+    </xsd:annotation>
+  </xsd:element>
+</xsd:schema>

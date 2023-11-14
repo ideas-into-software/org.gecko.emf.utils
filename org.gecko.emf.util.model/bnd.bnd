@@ -20,3 +20,4 @@ src src,src-gen
 
 Bundle-Version: 2.1.3.SNAPSHOT
 
+-buildpath: osgi.core
