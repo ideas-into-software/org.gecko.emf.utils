@@ -7,6 +7,9 @@
     <details key="containmentProxies" value="true"/>
     <details key="basePackage" value="geckoprojects.org"/>
   </eAnnotations>
+  <eAnnotations source="Version">
+    <details key="value" value="1.2"/>
+  </eAnnotations>
   <eClassifiers xsi:type="ecore:EDataType" name="EPushStream" instanceTypeName="org.osgi.util.pushstream.PushStream&lt;org.eclipse.emf.ecore.EObject>"/>
   <eClassifiers xsi:type="ecore:EDataType" name="PushStreamProvider" instanceClassName="org.osgi.util.pushstream.PushStreamProvider"/>
   <eClassifiers xsi:type="ecore:EDataType" name="PushStreamBuilder" instanceTypeName="org.osgi.util.pushstream.PushStreamBuilder&lt;org.eclipse.emf.ecore.EObject, java.util.concurrent.BlockingQueue&lt;org.osgi.util.pushstream.PushEvent&lt;? extends org.eclipse.emf.ecore.EObject>>>"/>
