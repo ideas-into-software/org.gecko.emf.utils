@@ -8,7 +8,7 @@
     <details key="basePackage" value="org.gecko"/>
   </eAnnotations>
   <eAnnotations source="Version">
-    <details key="value" value="2.1"/>
+    <details key="value" value="2.2"/>
   </eAnnotations>
   <eClassifiers xsi:type="ecore:EDataType" name="EList" instanceTypeName="org.eclipse.emf.common.util.EList&lt;org.eclipse.emf.ecore.EObject>"/>
   <eClassifiers xsi:type="ecore:EClass" name="ECollection" abstract="true" interface="true">
