@@ -74,3 +74,5 @@ javac.target: 11
 #X-Test: ${if;${def;releaseNotNeeded};local;remote}
 X-Test: ${-maven-release.local}
 X-Test2: ${-maven-release}
+
+-jpms-module-info:
