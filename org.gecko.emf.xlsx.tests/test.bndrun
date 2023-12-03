@@ -54,3 +54,12 @@
 	org.osgi.service.component;version='[1.5.0,1.5.1)',\
 	org.osgi.util.converter;version='[1.0.8,1.0.9)',\
 	slf4j.jcl;version='[1.7.36,1.7.37)'
+-runrepos: \
+	Central,\
+	Local,\
+	Temp,\
+	Baseline,\
+	Jacoco Dependencies,\
+	OSGi-Tests-JUnit5 Dependencies,\
+	Workspace,\
+	GeckoEMF Dependencies

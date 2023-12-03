@@ -1445,16 +1445,17 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 	private void setMetadataDocumentationValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			EAnnotation genModelAnnotation) {
-		if (genModelAnnotation != null) {
-			Map<String, String> genModelAnnotationDetails = genModelAnnotation.getDetails().map();
 
-			if (genModelAnnotationDetails.containsKey(DOCUMENTATION_GENMODEL_DETAILS)) {
-				setMetadataDocumentationValueCell(matrix, rowIndex, colIndex,
-						genModelAnnotationDetails.get(DOCUMENTATION_GENMODEL_DETAILS));
-			}
-		} else {
+		if (genModelAnnotation == null
+				|| !genModelAnnotation.getDetails().map().containsKey(DOCUMENTATION_GENMODEL_DETAILS)) {
 			setVoidValueCell(matrix, rowIndex, colIndex);
+			return;
 		}
+
+		Map<String, String> genModelAnnotationDetails = genModelAnnotation.getDetails().map();
+
+		setMetadataDocumentationValueCell(matrix, rowIndex, colIndex,
+				genModelAnnotationDetails.get(DOCUMENTATION_GENMODEL_DETAILS));
 	}
 
 	private void setMetadataDocumentationValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
