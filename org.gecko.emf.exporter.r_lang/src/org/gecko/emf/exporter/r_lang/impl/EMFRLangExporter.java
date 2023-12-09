@@ -64,38 +64,57 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 
 	private static final String RDATA_FILE_EXTENSION = "RData";
 
+	@SuppressWarnings("unused")
 	private static final int NILSXP = 0; /* nil = NULL */
 	private static final int SYMSXP = 1; /* symbols */
 	private static final int LISTSXP = 2; /* lists of dotted pairs */
+	@SuppressWarnings("unused")
 	private static final int CLOSXP = 3; /* closures */
+	@SuppressWarnings("unused")
 	private static final int ENVSXP = 4; /* environments */
+	@SuppressWarnings("unused")
 	private static final int PROMSXP = 5; /* promises: [un]evaluated closure arguments */
+	@SuppressWarnings("unused")
 	private static final int LANGSXP = 6; /* language constructs (special lists) */
+	@SuppressWarnings("unused")
 	private static final int SPECIALSXP = 7; /* special forms */
+	@SuppressWarnings("unused")
 	private static final int BUILTINSXP = 8; /* builtin non-special forms */
 	private static final int CHARSXP = 9; /* "scalar" string type (internal only) */
 	private static final int LGLSXP = 10; /* logical vectors */
 	private static final int INTSXP = 13; /* integer vectors */
 	private static final int REALSXP = 14; /* real variables */
+	@SuppressWarnings("unused")
 	private static final int CPLXSXP = 15; /* complex variables */
 	private static final int STRSXP = 16; /* string vectors */
+	@SuppressWarnings("unused")
 	private static final int DOTSXP = 17; /* dot-dot-dot object */
+	@SuppressWarnings("unused")
 	private static final int ANYSXP = 18; /*
 											 * make "any" args work. Used in specifying types for symbol registration to
 											 * mean anything is okay
 											 */
 	private static final int VECSXP = 19; /* generic vectors */
+	@SuppressWarnings("unused")
 	private static final int EXPRSXP = 20; /* expressions vectors */
+	@SuppressWarnings("unused")
 	private static final int BCODESXP = 21; /* byte code */
+	@SuppressWarnings("unused")
 	private static final int EXTPTRSXP = 22; /* external pointer */
+	@SuppressWarnings("unused")
 	private static final int RAWSXP = 24; /* raw bytes */
+	@SuppressWarnings("unused")
 	private static final int S4SXP = 25; /* S4, non-vector */
+	@SuppressWarnings("unused")
 	private static final int FUNSXP = 99; /* Closure or Builtin or Special */
 
 	private static final int NILVALUESXP = 254;
+	@SuppressWarnings("unused")
 	private static final int REFSXP = 255;
 
+	@SuppressWarnings("unused")
 	private static final int LATIN1_MASK = (1 << 2);
+	@SuppressWarnings("unused")
 	private static final int UTF8_MASK = (1 << 3);
 	private static final int ASCII_MASK = (1 << 6);
 
@@ -358,10 +377,15 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 	}
 
 	private Object convertValue(Object v, Map<Object, Object> exportOptions) {
-		if ((v == null) || (v instanceof Optional)) {
+		if ((v == null) || (v instanceof Optional)
+				|| (v instanceof EMFExportEObjectOneReferenceValueCell
+						&& !((EMFExportEObjectOneReferenceValueCell) v).hasRefID())
+				|| (v instanceof EMFExportEObjectManyReferencesValueCell
+						&& !((EMFExportEObjectManyReferencesValueCell) v).hasURIs())) {
 			return "";
 		} else {
-			if (showURIsEnabled(exportOptions) && (v instanceof EMFExportEObjectReferenceValueCell)) {
+			if (showURIsEnabled(exportOptions) && (v instanceof EMFExportEObjectReferenceValueCell)
+					&& !((EMFExportEObjectReferenceValueCell) v).isSelfReferencingModel()) {
 				if (v instanceof EMFExportEObjectOneReferenceValueCell
 						&& ((EMFExportEObjectOneReferenceValueCell) v).hasURI()) {
 					return ((EMFExportEObjectOneReferenceValueCell) v).getURI();
@@ -380,6 +404,13 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 				if ((v instanceof EMFExportEObjectManyReferencesValueCell)
 						&& ((EMFExportEObjectManyReferencesValueCell) v).getRefIDsCount() == 1) {
 					return ((EMFExportEObjectManyReferencesValueCell) v).getRefIDs().get(0);
+
+				} else if (v instanceof EMFExportEObjectOneReferenceValueCell) {
+					if (((EMFExportEObjectOneReferenceValueCell) v).hasRefID()) {
+						return ((EMFExportEObjectOneReferenceValueCell) v).getRefID();
+					} else {
+						return "";
+					}
 				} else {
 					return v;
 				}
@@ -524,6 +555,10 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 
 				@Override
 				public String apply(Object obj) {
+					if (obj == null) {
+						return "";
+					}
+
 					return String.valueOf(obj);
 				}
 			}, String[]::new));

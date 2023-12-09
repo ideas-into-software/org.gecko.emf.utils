@@ -69,8 +69,9 @@ import com.google.common.collect.Table;
  * @author Michal H. Siemaszko
  */
 public abstract class AbstractEMFExporter implements EMFExporter {
+
 	protected static final List<String> METADATA_ECLASS_MATRIX_COLUMNS_HEADERS = List.of("Name", "Type", "isMany",
-			"isRequired", "Default value", "Documentation");
+			"isRequired", "isID", "Default value", "Documentation");
 
 	protected static final List<String> METADATA_EENUM_MATRIX_COLUMNS_HEADERS = List.of("Name", "Literal", "Value",
 			"Documentation");
@@ -93,8 +94,6 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	protected static final String INTERNAL_ID_COLUMN_NAME = "_id";
 
 	protected static final int INTERNAL_ID_COLUMN_POSITION = 0;
-
-	protected static final String ID_ATTRIBUTE_NAME = "id";
 
 	protected static final String REF_COLUMN_SUFFIX = "._ref";
 
@@ -325,6 +324,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 			constructEReferencesMappingMatrixColumnHeaders(
 					eReferencesMappingMatrix, 
 					fromEObject.eClass(), 
+					toEReference.getName(),
 					toEReference.getEReferenceType());
 			// @formatter:on
 
@@ -333,12 +333,18 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void constructEReferencesMappingMatrixColumnHeaders(
-			Table<Integer, Integer, Object> eReferencesMappingMatrix, EClass fromEClass, EClass toEClass) {
+			Table<Integer, Integer, Object> eReferencesMappingMatrix, EClass fromEClass, String fromFieldName,
+			EClass toEClass) {
 
 		String fromEClassColumnHeaderName = constructEReferencesMappingMatrixColumnHeaderName(fromEClass);
 		eReferencesMappingMatrix.put(getMatrixRowKey(1), getMatrixColumnKey(0), fromEClassColumnHeaderName);
 
-		String toEClassColumnHeaderName = constructEReferencesMappingMatrixColumnHeaderName(toEClass);
+		boolean isSelfReferencingModel = (fromEClass.getName().toLowerCase())
+				.equalsIgnoreCase(toEClass.getName().toLowerCase());
+
+		String toEClassColumnHeaderName = isSelfReferencingModel
+				? constructEReferencesMappingMatrixSelfReferencingModelColumnHeaderName(fromFieldName)
+				: constructEReferencesMappingMatrixColumnHeaderName(toEClass);
 		eReferencesMappingMatrix.put(getMatrixRowKey(1), getMatrixColumnKey(1), toEClassColumnHeaderName);
 	}
 
@@ -347,12 +353,26 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 		EAttribute idAttribute = eClass.getEIDAttribute();
 
-		if (idAttribute == null || idAttribute.getName().equalsIgnoreCase(ID_ATTRIBUTE_NAME)) {
+		if (idAttribute == null || idAttribute.getName().equalsIgnoreCase(ID_COLUMN_NAME)) {
 			sb.append(eClass.getName().toLowerCase());
 			sb.append("_");
 			sb.append(ID_COLUMN_NAME);
 		} else {
 			sb.append(idAttribute.getName());
+		}
+
+		return sb.toString();
+	}
+
+	private String constructEReferencesMappingMatrixSelfReferencingModelColumnHeaderName(String fromFieldName) {
+		StringBuilder sb = new StringBuilder(100);
+
+		if (!fromFieldName.equalsIgnoreCase(ID_COLUMN_NAME)) {
+			sb.append(fromFieldName);
+			sb.append("_");
+			sb.append(ID_COLUMN_NAME);
+		} else {
+			sb.append(fromFieldName);
 		}
 
 		return sb.toString();
@@ -722,6 +742,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 			populateMatrixCellWithData(
 					processedEObjectsDTO,
 					matrix,
+					matrixName,
 					rowIndex, 
 					(hasIDOrPseudoID ? (colIndex + 1) : colIndex),
 					eObject,
@@ -759,7 +780,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 	@SuppressWarnings("unchecked")
 	private void populateMatrixCellWithData(ProcessedEObjectsDTO processedEObjectsDTO,
-			Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex, EObject eObject,
+			Table<Integer, Integer, Object> matrix, String matrixName, int rowIndex, int colIndex, EObject eObject,
 			EStructuralFeature eStructuralFeature, Map<Object, Object> exportOptions) throws EMFExportException {
 
 		if (eStructuralFeature instanceof EAttribute) {
@@ -805,6 +826,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 			setEReferenceValueCell(
 					processedEObjectsDTO,
 					matrix, 
+					matrixName, 
 					rowIndex, 
 					colIndex, 
 					eObject, 
@@ -865,20 +887,22 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 	@SuppressWarnings("unchecked")
 	private void setEReferenceValueCell(ProcessedEObjectsDTO processedEObjectsDTO,
-			Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex, EObject eObject, EReference eReference,
-			Map<Object, Object> exportOptions) throws EMFExportException {
+			Table<Integer, Integer, Object> matrix, String matrixName, int rowIndex, int colIndex, EObject eObject,
+			EReference eReference, Map<Object, Object> exportOptions) throws EMFExportException {
 
 		Object value = eObject.eGet(eReference);
 
 		String refMatrixName = constructEClassMatrixName(eReference.getEReferenceType());
 
+		boolean isSelfReferencingModel = matrixName.equalsIgnoreCase(refMatrixName);
+
 		if (!eReference.isMany() && (value == null)) {
-			setEmptyOneEReferenceValueCell(matrix, refMatrixName, rowIndex, colIndex);
+			setEmptyOneEReferenceValueCell(matrix, refMatrixName, isSelfReferencingModel, rowIndex, colIndex);
 			return;
 
 		} else if ((eReference.isMany() && (value == null))
 				|| (eReference.isMany() && (value != null) && ((List<EObject>) value).isEmpty())) {
-			setEmptyManyEReferencesValueCell(matrix, refMatrixName, rowIndex, colIndex);
+			setEmptyManyEReferencesValueCell(matrix, refMatrixName, isSelfReferencingModel, rowIndex, colIndex);
 			return;
 		}
 
@@ -889,6 +913,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 					processedEObjectsDTO,
 					matrix, 
 					refMatrixName,
+					isSelfReferencingModel,
 					rowIndex,
 					colIndex,
 					(EObject) value,
@@ -919,6 +944,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 						processedEObjectsDTO,
 						matrix, 
 						refMatrixName,
+						isSelfReferencingModel,
 						rowIndex,
 						colIndex, 
 						((List<EObject>) value), 
@@ -929,8 +955,8 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void setOneEReferenceValueCell(ProcessedEObjectsDTO processedEObjectsDTO,
-			Table<Integer, Integer, Object> matrix, String refMatrixName, int rowIndex, int colIndex, EObject eObject,
-			Map<Object, Object> exportOptions) throws EMFExportException {
+			Table<Integer, Integer, Object> matrix, String refMatrixName, boolean isSelfReferencingModel, int rowIndex,
+			int colIndex, EObject eObject, Map<Object, Object> exportOptions) throws EMFExportException {
 
 		if (hasIDOrPseudoID(processedEObjectsDTO, eObject)) {
 
@@ -939,6 +965,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 					processedEObjectsDTO,
 					matrix, 
 					refMatrixName,
+					isSelfReferencingModel,
 					rowIndex,
 					colIndex, 
 					getIDOrPseudoID(processedEObjectsDTO, eObject), 
@@ -946,13 +973,13 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 			// @formatter:on
 
 		} else {
-			setEmptyOneEReferenceValueCell(matrix, refMatrixName, rowIndex, colIndex);
+			setEmptyOneEReferenceValueCell(matrix, refMatrixName, isSelfReferencingModel, rowIndex, colIndex);
 		}
 	}
 
 	private void setManyEReferencesValueCell(ProcessedEObjectsDTO processedEObjectsDTO,
-			Table<Integer, Integer, Object> matrix, String refMatrixName, int rowIndex, int colIndex,
-			List<EObject> eObjects, Map<Object, Object> exportOptions) throws EMFExportException {
+			Table<Integer, Integer, Object> matrix, String refMatrixName, boolean isSelfReferencingModel, int rowIndex,
+			int colIndex, List<EObject> eObjects, Map<Object, Object> exportOptions) throws EMFExportException {
 
 		List<String> refIDs = new ArrayList<String>();
 		List<String> refURIs = new ArrayList<String>();
@@ -967,29 +994,29 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		}
 
 		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex),
-				new EMFExportEObjectManyReferencesValueCell(refMatrixName, refIDs, refURIs));
+				new EMFExportEObjectManyReferencesValueCell(refMatrixName, isSelfReferencingModel, refIDs, refURIs));
 	}
 
 	private void setOneEReferenceValueCell(ProcessedEObjectsDTO processedEObjectsDTO,
-			Table<Integer, Integer, Object> matrix, String refMatrixName, int rowIndex, int colIndex, String refID,
-			String refURI) throws EMFExportException {
+			Table<Integer, Integer, Object> matrix, String refMatrixName, boolean isSelfReferencingModel, int rowIndex,
+			int colIndex, String refID, String refURI) throws EMFExportException {
 
 		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex),
-				new EMFExportEObjectOneReferenceValueCell(refMatrixName, refID, refURI));
+				new EMFExportEObjectOneReferenceValueCell(refMatrixName, isSelfReferencingModel, refID, refURI));
 	}
 
 	private void setEmptyOneEReferenceValueCell(Table<Integer, Integer, Object> matrix, String refMatrixName,
-			int rowIndex, int colIndex) {
+			boolean isSelfReferencingModel, int rowIndex, int colIndex) {
 
 		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex),
-				new EMFExportEObjectOneReferenceValueCell(refMatrixName, null, null));
+				new EMFExportEObjectOneReferenceValueCell(refMatrixName, isSelfReferencingModel, null, null));
 	}
 
 	private void setEmptyManyEReferencesValueCell(Table<Integer, Integer, Object> matrix, String refMatrixName,
-			int rowIndex, int colIndex) {
+			boolean isSelfReferencingModel, int rowIndex, int colIndex) {
 
 		matrix.put(getMatrixRowKey(rowIndex), getMatrixColumnKey(colIndex),
-				new EMFExportEObjectManyReferencesValueCell(refMatrixName, null, null));
+				new EMFExportEObjectManyReferencesValueCell(refMatrixName, isSelfReferencingModel, null, null));
 	}
 
 	private void populateEReferencesMappingMatrixWithData(ProcessedEObjectsDTO processedEObjectsDTO,
@@ -1077,11 +1104,15 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 
 		int rowIndex = (rowsCount + 1);
 
+		boolean isSelfReferencingModel = (fromEObject.eClass().getName().toLowerCase())
+				.equalsIgnoreCase(toEObject.eClass().getName().toLowerCase());
+
 		// @formatter:off
 		setOneEReferenceValueCell(
 				processedEObjectsDTO,
 				eReferencesMappingMatrix, 
 				constructEClassMatrixName(fromEObject.eClass()),
+				isSelfReferencingModel,
 				rowIndex, 
 				0, 
 				fromEObject, 
@@ -1093,6 +1124,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 				processedEObjectsDTO,
 				eReferencesMappingMatrix, 
 				constructEClassMatrixName(toEObject.eClass()),
+				isSelfReferencingModel,
 				rowIndex, 
 				1, 
 				toEObject, 
@@ -1251,6 +1283,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	private void populateMatrixWithEClassMetadata(ProcessedEObjectsDTO processedEObjectsDTO,
 			Table<Integer, Integer, Object> matrix, EClass eClass) {
 		if (processedEObjectsDTO.eObjectsClassesWithPseudoIDs.contains(eClass)) {
+			setEClassMetadataPseudoInternalIDValueCell(matrix);
 			setEClassMetadataPseudoIDValueCell(matrix);
 		}
 
@@ -1260,17 +1293,27 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void setEClassMetadataPseudoIDValueCell(Table<Integer, Integer, Object> matrix) {
+		setEClassMetadataPseudoIDValueCell(matrix, ID_COLUMN_NAME);
+	}
+
+	private void setEClassMetadataPseudoInternalIDValueCell(Table<Integer, Integer, Object> matrix) {
+		setEClassMetadataPseudoIDValueCell(matrix, INTERNAL_ID_COLUMN_NAME);
+	}
+
+	private void setEClassMetadataPseudoIDValueCell(Table<Integer, Integer, Object> matrix, String name) {
 		int rowsCount = matrix.rowKeySet().size();
 
 		int rowIndex = (rowsCount + 1);
 
-		// 6 columns: Name | Type | isMany | isRequired | Default value | Documentation
-		setStringValueCell(matrix, rowIndex, 0, ID_ATTRIBUTE_NAME);
+		// 7 columns: Name | Type | isMany | isRequired | isID | Default value |
+		// Documentation
+		setStringValueCell(matrix, rowIndex, 0, name);
 		setStringValueCell(matrix, rowIndex, 1, "String");
 		setBooleanValueCell(matrix, rowIndex, 2, Boolean.FALSE);
 		setBooleanValueCell(matrix, rowIndex, 3, Boolean.FALSE);
-		setVoidValueCell(matrix, rowIndex, 4);
-		setStringValueCell(matrix, rowIndex, 5, METADATA_PSEUDOID_DOCUMENTATION);
+		setBooleanValueCell(matrix, rowIndex, 4, Boolean.FALSE);
+		setVoidValueCell(matrix, rowIndex, 5);
+		setStringValueCell(matrix, rowIndex, 6, METADATA_PSEUDOID_DOCUMENTATION);
 	}
 
 	private void populateMatrixWithEEnumMetadata(Table<Integer, Integer, Object> matrix, EEnum eEnum) {
@@ -1322,10 +1365,13 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		case 3: // isRequired
 			setEClassMetadataIsRequiredValueCell(matrix, rowIndex, colIndex, eStructuralFeature);
 			break;
-		case 4: // Default value
+		case 4: // isID
+			setEClassMetadataIsIDValueCell(matrix, rowIndex, colIndex, eStructuralFeature);
+			break;
+		case 5: // Default value
 			setEClassMetadataDefaultValueCell(matrix, rowIndex, colIndex, eStructuralFeature);
 			break;
-		case 5: // Documentation
+		case 6: // Documentation
 			setEStructuralFeatureMetadataDocumentationValueCell(matrix, rowIndex, colIndex, eStructuralFeature);
 			break;
 		}
@@ -1399,6 +1445,18 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 		setBooleanValueCell(matrix, rowIndex, colIndex, eStructuralFeature.isRequired());
 	}
 
+	private void setEClassMetadataIsIDValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
+			EStructuralFeature eStructuralFeature) {
+
+		if (eStructuralFeature instanceof EAttribute) {
+			EAttribute eAttribute = (EAttribute) eStructuralFeature;
+
+			setBooleanValueCell(matrix, rowIndex, colIndex, eAttribute.isID());
+		} else {
+			setBooleanValueCell(matrix, rowIndex, colIndex, Boolean.FALSE);
+		}
+	}
+
 	private void setEClassMetadataDefaultValueCell(Table<Integer, Integer, Object> matrix, int rowIndex, int colIndex,
 			EStructuralFeature eStructuralFeature) {
 		if (eStructuralFeature instanceof EAttribute) {
@@ -1464,8 +1522,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	}
 
 	private boolean skipFeature(EObject eObject, EStructuralFeature eStructuralFeature) {
-		if ((((eStructuralFeature instanceof EAttribute) && ((EAttribute) eStructuralFeature).isID())
-				|| (eStructuralFeature.getName()).equalsIgnoreCase(ID_ATTRIBUTE_NAME))
+		if ((((eStructuralFeature instanceof EAttribute) && ((EAttribute) eStructuralFeature).isID()))
 				|| eStructuralFeature.isTransient()) {
 			return true;
 
@@ -1543,19 +1600,7 @@ public abstract class AbstractEMFExporter implements EMFExporter {
 	}
 
 	protected String getID(EObject eObject) {
-		String id = EcoreUtil.getID(eObject);
-		if (id != null) {
-			return id;
-		}
-
-		// in some models (e.g. '/org.gecko.emf.util.model/model/utilities.ecore') ID
-		// attributes are present but not marked as ID
-		EStructuralFeature idEStructuralFeature = eObject.eClass().getEStructuralFeature(ID_ATTRIBUTE_NAME);
-		if (idEStructuralFeature != null) {
-			return String.valueOf(eObject.eGet(idEStructuralFeature));
-		}
-
-		return null;
+		return EcoreUtil.getID(eObject);
 	}
 
 	protected boolean hasPseudoID(ProcessedEObjectsDTO processedEObjectsDTO, EObject eObject) {

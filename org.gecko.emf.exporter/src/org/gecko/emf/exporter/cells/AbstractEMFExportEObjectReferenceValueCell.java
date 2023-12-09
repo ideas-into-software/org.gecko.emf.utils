@@ -26,12 +26,14 @@ import java.util.Objects;
  */
 public class AbstractEMFExportEObjectReferenceValueCell implements EMFExportEObjectReferenceValueCell {
 	protected final String refMatrixName;
+	protected final boolean isSelfReferencingModel;
 
-	public AbstractEMFExportEObjectReferenceValueCell(String refMatrixName) {
+	public AbstractEMFExportEObjectReferenceValueCell(String refMatrixName, boolean isSelfReferencingModel) {
 		this.refMatrixName = refMatrixName;
+		this.isSelfReferencingModel = isSelfReferencingModel;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see org.gecko.emf.exporter.EMFExportEObjectReferenceValueCell#getRefMatrixName()
 	 */
@@ -40,16 +42,25 @@ public class AbstractEMFExportEObjectReferenceValueCell implements EMFExportEObj
 		return refMatrixName;
 	}
 
-	/* 
+	/*
+	 * (non-Javadoc)
+	 * @see org.gecko.emf.exporter.cells.EMFExportEObjectReferenceValueCell#isSelfReferencingModel()
+	 */
+	@Override
+	public boolean isSelfReferencingModel() {
+		return isSelfReferencingModel;
+	}
+
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
 	public int hashCode() {
-		return Objects.hash(refMatrixName);
+		return Objects.hash(isSelfReferencingModel, refMatrixName);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
@@ -62,6 +73,7 @@ public class AbstractEMFExportEObjectReferenceValueCell implements EMFExportEObj
 		if (getClass() != obj.getClass())
 			return false;
 		AbstractEMFExportEObjectReferenceValueCell other = (AbstractEMFExportEObjectReferenceValueCell) obj;
-		return Objects.equals(refMatrixName, other.refMatrixName);
-	}	
+		return isSelfReferencingModel == other.isSelfReferencingModel
+				&& Objects.equals(refMatrixName, other.refMatrixName);
+	}
 }

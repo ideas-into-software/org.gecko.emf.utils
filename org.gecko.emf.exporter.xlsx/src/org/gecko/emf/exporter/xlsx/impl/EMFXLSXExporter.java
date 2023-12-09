@@ -324,7 +324,7 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 			CreationHelper creationHelper, CellStyle genericDataCellStyle) {
 		Cell cell = dataRow.createCell(colIndex);
 
-		if (showURIsEnabled(exportOptions)) {
+		if (showURIsEnabled(exportOptions) && !referenceValueCell.isSelfReferencingModel()) {
 			cell.setCellValue(referenceValueCell.hasURI() ? referenceValueCell.getURI() : "");
 		} else {
 			cell.setCellValue(referenceValueCell.hasRefID() ? referenceValueCell.getRefID() : "");
@@ -376,9 +376,9 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 			Map<Object, Object> exportOptions) {
 		StringBuilder sb = new StringBuilder();
 
-		List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions) && referenceValues.hasURIs())
-				? referenceValues.getURIs()
-				: referenceValues.hasRefIDs() ? referenceValues.getRefIDs() : Collections.emptyList();
+		List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions)
+				&& !referenceValues.isSelfReferencingModel() && referenceValues.hasURIs()) ? referenceValues.getURIs()
+						: referenceValues.hasRefIDs() ? referenceValues.getRefIDs() : Collections.emptyList();
 
 		if (!manyReferencesValueCellValues.isEmpty()) {
 			Iterator<String> referenceValuesIt = manyReferencesValueCellValues.iterator();

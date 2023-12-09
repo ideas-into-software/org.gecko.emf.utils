@@ -40,6 +40,7 @@ import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
 import org.gecko.emf.osgi.example.model.basic.Family;
 import org.gecko.emf.utilities.Request;
 import org.gecko.emf.utilities.UtilitiesFactory;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
@@ -180,6 +181,7 @@ public class EMFRLangExporterTest {
 		// @formatter:on
 	}
 
+	@Disabled // TODO: re-enable once clarified with Juergen regarding repeating column names (e.g. "Request")
 	@Test
 	public void testExportUtilModelEObjectsToRLangAllDataframesInOneFile(
 			@InjectService(cardinality = 1, timeout = 4000, filter = "(component.name=EMFRLangExporter)") ServiceAware<EMFExporter> emfRLangExporterAware)

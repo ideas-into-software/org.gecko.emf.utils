@@ -800,7 +800,8 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 			EMFExportEObjectManyReferencesValueCell manyReferencesValueCell = (EMFExportEObjectManyReferencesValueCell) rawMatrixRowColumnValue;
 
 			List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions)
-					&& manyReferencesValueCell.hasURIs()) ? manyReferencesValueCell.getURIs()
+					&& !manyReferencesValueCell.isSelfReferencingModel() && manyReferencesValueCell.hasURIs())
+							? manyReferencesValueCell.getURIs()
 							: manyReferencesValueCell.hasRefIDs() ? manyReferencesValueCell.getRefIDs()
 									: Collections.emptyList();
 
@@ -1567,7 +1568,8 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 		if ((v == null) || (v instanceof Optional)) {
 			return "";
 		} else {
-			if (showURIsEnabled(exportOptions) && (v instanceof EMFExportEObjectReferenceValueCell)) {
+			if (showURIsEnabled(exportOptions) && (v instanceof EMFExportEObjectReferenceValueCell)
+					&& !((EMFExportEObjectReferenceValueCell) v).isSelfReferencingModel()) {
 				if (v instanceof EMFExportEObjectOneReferenceValueCell
 						&& ((EMFExportEObjectOneReferenceValueCell) v).hasURI()) {
 					return ((EMFExportEObjectOneReferenceValueCell) v).getURI();

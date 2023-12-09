@@ -24,6 +24,16 @@
 	bnd.identity;id='org.gecko.emf.exporter.xlsx',\
 	bnd.identity;id='org.gecko.emf.exporter.xlsx.tests'
 
+-runrepos: \
+	Central,\
+	Local,\
+	Temp,\
+	Baseline,\
+	GeckoEMF Dependencies,\
+	Jacoco Dependencies,\
+	OSGi-Tests-JUnit5 Dependencies,\
+	Workspace
+
 -runbundles: \
 	junit-jupiter-api;version='[5.8.2,5.8.3)',\
 	junit-platform-commons;version='[1.8.2,1.8.3)',\
@@ -59,12 +69,3 @@
 	slf4j.jcl;version='[1.7.36,1.7.37)',\
 	org.gecko.emf.exporter.xlsx;version=snapshot,\
 	org.gecko.emf.util.model;version='[2.1.2,2.1.3)'
--runrepos: \
-	Central,\
-	Local,\
-	Temp,\
-	Baseline,\
-	GeckoEMF Dependencies,\
-	Jacoco Dependencies,\
-	OSGi-Tests-JUnit5 Dependencies,\
-	Workspace

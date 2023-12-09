@@ -303,8 +303,9 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 	private void setOneReferenceValueCell(SpreadSheet document, Range dataRow, int colIndex,
 			EMFExportEObjectOneReferenceValueCell referenceValueCell, Map<Object, Object> exportOptions) {
 
-		String refValue = (showURIsEnabled(exportOptions) && referenceValueCell.hasURI()) ? referenceValueCell.getURI()
-				: referenceValueCell.hasRefID() ? referenceValueCell.getRefID() : "";
+		String refValue = (showURIsEnabled(exportOptions) && !referenceValueCell.isSelfReferencingModel()
+				&& referenceValueCell.hasURI()) ? referenceValueCell.getURI()
+						: referenceValueCell.hasRefID() ? referenceValueCell.getRefID() : "";
 
 		if (generateLinks(exportOptions, referenceValueCell.hasRefID())) {
 			Sheet sheet = getOrConstructODSSheetIfNotExists(document, referenceValueCell.getRefMatrixName());
@@ -324,9 +325,10 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 
 			Sheet sheet = getOrConstructODSSheetIfNotExists(document, referencesValueCell.getRefMatrixName());
 
-			List<String> refValues = (showURIsEnabled(exportOptions) && referencesValueCell.hasURIs())
-					? referencesValueCell.getURIs()
-					: referencesValueCell.hasRefIDs() ? referencesValueCell.getRefIDs() : Collections.emptyList();
+			List<String> refValues = (showURIsEnabled(exportOptions) && !referencesValueCell.isSelfReferencingModel()
+					&& referencesValueCell.hasURIs()) ? referencesValueCell.getURIs()
+							: referencesValueCell.hasRefIDs() ? referencesValueCell.getRefIDs()
+									: Collections.emptyList();
 
 			for (String refValue : refValues) {
 				LinkedValue linkedValue = LinkedValue.builder().value(refValue).href(sheet).build();
@@ -349,9 +351,10 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 			Map<Object, Object> exportOptions) {
 		StringBuilder sb = new StringBuilder();
 
-		List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions) && referencesValueCell.hasURIs())
-				? referencesValueCell.getURIs()
-				: referencesValueCell.hasRefIDs() ? referencesValueCell.getRefIDs() : Collections.emptyList();
+		List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions)
+				&& !referencesValueCell.isSelfReferencingModel() && referencesValueCell.hasURIs())
+						? referencesValueCell.getURIs()
+						: referencesValueCell.hasRefIDs() ? referencesValueCell.getRefIDs() : Collections.emptyList();
 
 		if (!manyReferencesValueCellValues.isEmpty()) {
 			Iterator<String> referenceValuesIt = manyReferencesValueCellValues.iterator();
