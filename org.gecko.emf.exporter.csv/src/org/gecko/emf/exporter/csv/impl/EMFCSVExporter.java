@@ -38,12 +38,14 @@ import org.gecko.emf.exporter.AbstractEMFExporter;
 import org.gecko.emf.exporter.EMFExportException;
 import org.gecko.emf.exporter.EMFExportOptions;
 import org.gecko.emf.exporter.EMFExporter;
+import org.gecko.emf.exporter.EMFExporterConstants;
 import org.gecko.emf.exporter.cells.EMFExportEObjectIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectReferenceValueCell;
 import org.gecko.emf.exporter.csv.api.EMFCSVExportMode;
 import org.gecko.emf.exporter.csv.api.EMFCSVExportOptions;
+import org.gecko.emf.exporter.csv.api.EMFCSVExporterConstants;
 import org.gecko.emf.exporter.headers.EMFExportEObjectColumnHeader;
 import org.gecko.emf.exporter.headers.EMFExportEObjectManyReferencesColumnHeader;
 import org.gecko.emf.exporter.headers.EMFExportEObjectOneReferenceColumnHeader;
@@ -53,6 +55,7 @@ import org.gecko.emf.exporter.keys.EMFExportColumnRefsMaxValueCountCompositeKey;
 import org.gecko.emf.exporter.keys.EMFExportRefHasValueCompositeKey;
 import org.gecko.emf.exporter.keys.EMFExportRefMatrixNameIDCompositeKey;
 import org.gecko.emf.exporter.keys.EMFExportRefsMaxValueCountCompositeKey;
+import org.osgi.annotation.bundle.Capability;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
@@ -70,7 +73,8 @@ import de.siegmar.fastcsv.writer.CsvWriter;
  * 
  * @author Michal H. Siemaszko
  */
-@Component(name = "EMFCSVExporter", scope = ServiceScope.PROTOTYPE)
+@Component(name = EMFCSVExporterConstants.EMF_EXPORTER_NAME, scope = ServiceScope.PROTOTYPE)
+@Capability(namespace = EMFExporterConstants.EMF_EXPORTER_NAMESPACE, name = EMFCSVExporterConstants.EMF_EXPORTER_NAME)
 public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(EMFCSVExporter.class);
 

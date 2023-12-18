@@ -7,15 +7,10 @@
 	bnd.identity;id='org.gecko.emf.json',\
 	bnd.identity;id='org.gecko.emf.pushstreams',\
 	bnd.identity;id='org.gecko.emf.util.model',\
-	bnd.identity;id='org.gecko.emf.exporter.ods.api',\
 	bnd.identity;id='org.gecko.emf.ods',\
-	bnd.identity;id='org.gecko.emf.exporter.ods',\
-	bnd.identity;id='org.gecko.emf.exporter.csv.api',\
 	bnd.identity;id='org.gecko.emf.csv',\
-	bnd.identity;id='org.gecko.emf.exporter.csv',\
-	bnd.identity;id='org.gecko.emf.exporter.xlsx.api',\
 	bnd.identity;id='org.gecko.emf.xlsx',\
-	bnd.identity;id='org.gecko.emf.exporter.xlsx'
+	bnd.identity;id='org.gecko.emf.r_lang'
 
 -runblacklist: \
 	bnd.identity;id='ch.qos.logback.classic',\
@@ -66,6 +61,8 @@
 	org.eclipse.emf.ecore.xmi;version='[2.18.0,2.18.1)',\
 	org.gecko.emf.osgi.api;version='[5.0.0,5.0.1)',\
 	org.gecko.emf.osgi.component;version='[5.0.0,5.0.1)',\
-	org.osgi.service.cm;version='[1.6.0,1.6.1)',\
 	org.osgi.service.component;version='[1.5.0,1.5.1)',\
-	org.osgi.util.converter;version='[1.0.8,1.0.9)'
+	org.osgi.util.converter;version='[1.0.8,1.0.9)',\
+	org.gecko.emf.exporter.r_lang;version=snapshot,\
+	org.gecko.emf.exporter.r_lang.api;version=snapshot,\
+	org.gecko.emf.r_lang;version=snapshot

@@ -14,13 +14,20 @@ package org.gecko.emf.ods.configuration;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
+import org.gecko.emf.ods.constants.EMFODSConstants;
 import org.gecko.emf.exporter.EMFExporter;
+import org.gecko.emf.exporter.EMFExporterConstants;
+import org.gecko.emf.exporter.ods.api.EMFODSExporterConstants;
+import org.osgi.annotation.bundle.Capability;
+import org.osgi.annotation.bundle.Requirement;
 
 /**
  * {@link ResourceFactoryImpl} for the ODS resource.
  * 
  * @author Michal H. Siemaszko
  */
+@Requirement(namespace = EMFExporterConstants.EMF_EXPORTER_NAMESPACE, name = EMFODSExporterConstants.EMF_EXPORTER_NAME)
+@Capability(namespace = EMFODSConstants.EMF_RESOURCEFACTORY_NAMESPACE, name = EMFODSConstants.EMF_RESOURCEFACTORY_NAME)
 public class EMFODSResourceFactory extends ResourceFactoryImpl {
 	private EMFExporter emfODSExporter;
 

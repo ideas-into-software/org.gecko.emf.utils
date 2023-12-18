@@ -12,7 +12,8 @@
 package org.gecko.emf.r_lang.constants;
 
 /**
- * Constants used as options during load/save operations on an EMF R Language Resource.
+ * Constants used as options during load/save operations on an EMF R Language
+ * Resource.
  * 
  * @author Michal H. Siemaszko
  */
@@ -24,4 +25,8 @@ public interface EMFRLangConstants {
 	static final String EMFRLANG_FILE_EXTENSION = "RData";
 
 	static final String EMFRLANG_CONTENT_TYPE = "text/x-R";
+
+	static final String EMF_RESOURCEFACTORY_NAMESPACE = "emf.resourceFactory";
+
+	static final String EMF_RESOURCEFACTORY_NAME = "EMFRLangResourceFactory";
 }

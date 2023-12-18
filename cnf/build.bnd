@@ -11,7 +11,7 @@
 
 # Needed because we enabled library 'gecko-dimc' 	
 github-project: org.gecko.emf.util
-base-version: 2.1.0.SNAPSHOT
+base-version: 2.1.1.SNAPSHOT
 
 # Maven Central Group-Id
 -groupid: org.geckoprojects.emf.utils
@@ -49,8 +49,8 @@ javac.target: 11
 		
 -plugin.baseline:\
     aQute.bnd.repository.maven.provider.MavenBndRepository; \
-        snapshotUrl="https://oss.sonatype.org/content/repositories/snapshots/"; \
-        releaseUrl=https://repo.maven.apache.org/maven2/; \
+        snapshotUrl="https://devel.data-in-motion.biz/nexus/repository/dim-snapshot/,https://oss.sonatype.org/content/repositories/snapshots/"; \
+        releaseUrl="https://devel.data-in-motion.biz/nexus/repository/dim-release/,https://repo.maven.apache.org/maven2/"; \
         index=${.}/baseline.mvn; \
         readOnly=true;\
 		name=Baseline

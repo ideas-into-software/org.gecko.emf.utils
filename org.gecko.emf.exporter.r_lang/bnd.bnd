@@ -12,3 +12,7 @@ Bundle-Description: R Language Exporter for EMF
 
 Private-Package: \
 	org.gecko.emf.exporter.r_lang.impl
+
+Import-Package: \
+	org.gecko.emf.exporter.r_lang.api,\
+	*

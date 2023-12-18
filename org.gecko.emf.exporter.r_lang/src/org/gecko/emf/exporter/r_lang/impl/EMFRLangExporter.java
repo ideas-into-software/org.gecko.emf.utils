@@ -35,10 +35,13 @@ import org.eclipse.emf.ecore.EObject;
 import org.gecko.emf.exporter.AbstractEMFExporter;
 import org.gecko.emf.exporter.EMFExportException;
 import org.gecko.emf.exporter.EMFExporter;
+import org.gecko.emf.exporter.EMFExporterConstants;
 import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectReferenceValueCell;
 import org.gecko.emf.exporter.r_lang.api.EMFRLangExportOptions;
+import org.gecko.emf.exporter.r_lang.api.EMFRLangExporterConstants;
+import org.osgi.annotation.bundle.Capability;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
@@ -58,7 +61,8 @@ import com.google.common.primitives.Bytes;
  * 
  * @author Michal H. Siemaszko
  */
-@Component(name = "EMFRLangExporter", scope = ServiceScope.PROTOTYPE)
+@Component(name = EMFRLangExporterConstants.EMF_EXPORTER_NAME, scope = ServiceScope.PROTOTYPE)
+@Capability(namespace = EMFExporterConstants.EMF_EXPORTER_NAMESPACE, name = EMFRLangExporterConstants.EMF_EXPORTER_NAME)
 public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(EMFRLangExporter.class);
 
@@ -207,15 +211,10 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 
 				Table<Integer, Integer, Object> matrix = matrixNameToMatrixMap.get(matrixName);
 
-				boolean hasTypeLevelMetadataDocumentation = hasTypeLevelMetadataDocumentation(matrixName,
-						matrix.row(getMatrixRowKey(1)));
-
-				ListMultimap<String, Object> dataFrame = constructDataFrame(exportOptions, matrix,
-						hasTypeLevelMetadataDocumentation);
+				ListMultimap<String, Object> dataFrame = constructDataFrame(exportOptions, matrix);
 				dataFrames.put(matrixName, dataFrame);
 
-				List<ValueType> dataFrameTypes = extractDataFrameTypes(exportOptions, matrix,
-						hasTypeLevelMetadataDocumentation);
+				List<ValueType> dataFrameTypes = extractDataFrameTypes(exportOptions, matrix);
 
 				ListMultimap<String, Object> dataFrameMetadata = constructDataFrameMetadata(dataFrame, dataFrameTypes);
 				dataFramesMetadata.add(dataFrameMetadata);
@@ -286,14 +285,9 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 			Table<Integer, Integer, Object> matrix, ZipOutputStream zipOutputStream)
 			throws IOException, EMFExportException {
 
-		boolean hasTypeLevelMetadataDocumentation = hasTypeLevelMetadataDocumentation(matrixName,
-				matrix.row(getMatrixRowKey(1)));
+		ListMultimap<String, Object> dataFrame = constructDataFrame(exportOptions, matrix);
 
-		ListMultimap<String, Object> dataFrame = constructDataFrame(exportOptions, matrix,
-				hasTypeLevelMetadataDocumentation);
-
-		List<ValueType> dataFrameTypes = extractDataFrameTypes(exportOptions, matrix,
-				hasTypeLevelMetadataDocumentation);
+		List<ValueType> dataFrameTypes = extractDataFrameTypes(exportOptions, matrix);
 
 		ListMultimap<String, Object> dataFrameMetadata = constructDataFrameMetadata(dataFrame, dataFrameTypes);
 
@@ -308,7 +302,7 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 	}
 
 	private ListMultimap<String, Object> constructDataFrame(Map<Object, Object> exportOptions,
-			Table<Integer, Integer, Object> matrix, boolean hasTypeLevelMetadataDocumentation) {
+			Table<Integer, Integer, Object> matrix) {
 		ListMultimap<String, Object> dataFrame = MultimapBuilder.linkedHashKeys().arrayListValues().build();
 
 		Set<Integer> matrixColumnKeys = matrix.columnKeySet();
@@ -316,10 +310,9 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 		for (Integer matrixColumnKey : matrixColumnKeys) {
 			Map<Integer, Object> matrixColumn = matrix.column(matrixColumnKey);
 
-			String matrixColumnHeader = matrixColumn.get(hasTypeLevelMetadataDocumentation ? 2 : 1).toString();
+			String matrixColumnHeader = matrixColumn.get(1).toString();
 
-			List<Object> matrixColumnValues = matrixColumn.values().stream()
-					.skip(matrixColumnValuesToSkip(matrixColumnKey, hasTypeLevelMetadataDocumentation))
+			List<Object> matrixColumnValues = matrixColumn.values().stream().skip(1)
 					.map(v -> convertValue(v, exportOptions)).collect(Collectors.toList());
 
 			dataFrame.putAll(matrixColumnHeader, matrixColumnValues);
@@ -328,7 +321,7 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 	}
 
 	private List<ValueType> extractDataFrameTypes(Map<Object, Object> exportOptions,
-			Table<Integer, Integer, Object> matrix, boolean hasTypeLevelMetadataDocumentation) {
+			Table<Integer, Integer, Object> matrix) {
 		List<ValueType> dataFrameTypes = new ArrayList<>();
 
 		Set<Integer> matrixColumnKeys = matrix.columnKeySet();
@@ -336,8 +329,7 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 		for (Integer matrixColumnKey : matrixColumnKeys) {
 			Map<Integer, Object> matrixColumn = matrix.column(matrixColumnKey);
 
-			List<Object> matrixColumnValues = matrixColumn.values().stream()
-					.skip(matrixColumnValuesToSkip(matrixColumnKey, hasTypeLevelMetadataDocumentation))
+			List<Object> matrixColumnValues = matrixColumn.values().stream().skip(1)
 					.map(v -> convertValue(v, exportOptions)).collect(Collectors.toList());
 
 			for (Object matrixColumnValue : matrixColumnValues) {
@@ -366,14 +358,6 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 		dataFrameMetadata.putAll(TYPES_KEYS, dataFrame.keySet());
 		dataFrameMetadata.putAll(TYPES_TYPES, dataFrameTypes);
 		return dataFrameMetadata;
-	}
-
-	private int matrixColumnValuesToSkip(Integer matrixColumnKey, boolean hasTypeLevelMetadataDocumentation) {
-		if (hasTypeLevelMetadataDocumentation && (matrixColumnKey.intValue() < 2)) {
-			return 2;
-		} else {
-			return 1;
-		}
 	}
 
 	private Object convertValue(Object v, Map<Object, Object> exportOptions) {
@@ -443,15 +427,6 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 		sb.append(".");
 		sb.append(RDATA_FILE_EXTENSION);
 		return sb.toString();
-	}
-
-	private boolean hasTypeLevelMetadataDocumentation(String matrixName, Map<Integer, Object> firstRow) {
-		boolean isMetadataSheet = (matrixName.contains(METADATA_MATRIX_NAME_SUFFIX));
-		boolean isTypeLevelMetadataDocumentationPresent = (firstRow.size() == 2)
-				&& firstRow.containsKey(getMatrixColumnKey(0))
-				&& String.valueOf(firstRow.get(getMatrixColumnKey(0))).equalsIgnoreCase(METADATA_DOCUMENTATION_HEADER);
-
-		return isMetadataSheet && isTypeLevelMetadataDocumentationPresent;
 	}
 
 	private <T> void applyForEach(List<T> collection, ForEachApplier<T, Integer> iteratee) throws EMFExportException {

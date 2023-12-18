@@ -5,6 +5,15 @@
 
 -runbundles.junit5: ${test.runbundles}
 
+-runrepos: \
+	Central,\
+	Local,\
+	Temp,\
+	GeckoEMF Dependencies,\
+	Jacoco Dependencies,\
+	OSGi-Tests-JUnit5 Dependencies,\
+	Workspace
+
 -runbundles: \
 	junit-jupiter-api;version='[5.8.2,5.8.3)',\
 	junit-platform-commons;version='[1.8.2,1.8.3)',\
