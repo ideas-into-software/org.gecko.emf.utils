@@ -12,9 +12,9 @@
 package org.gecko.emf.exporter.csv.api;
 
 /**
+ * Constants used in EMF CSV exporter.
  * 
- * @author michal
- * @since Dec 16, 2023
+ * @author Michal H. Siemaszko
  */
 public class EMFCSVExporterConstants {
 	

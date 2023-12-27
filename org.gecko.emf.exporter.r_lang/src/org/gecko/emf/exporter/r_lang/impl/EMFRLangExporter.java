@@ -35,13 +35,12 @@ import org.eclipse.emf.ecore.EObject;
 import org.gecko.emf.exporter.AbstractEMFExporter;
 import org.gecko.emf.exporter.EMFExportException;
 import org.gecko.emf.exporter.EMFExporter;
-import org.gecko.emf.exporter.EMFExporterConstants;
+import org.gecko.emf.exporter.annotation.ProvideEMFExporter;
 import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectReferenceValueCell;
 import org.gecko.emf.exporter.r_lang.api.EMFRLangExportOptions;
 import org.gecko.emf.exporter.r_lang.api.EMFRLangExporterConstants;
-import org.osgi.annotation.bundle.Capability;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
@@ -62,7 +61,7 @@ import com.google.common.primitives.Bytes;
  * @author Michal H. Siemaszko
  */
 @Component(name = EMFRLangExporterConstants.EMF_EXPORTER_NAME, scope = ServiceScope.PROTOTYPE)
-@Capability(namespace = EMFExporterConstants.EMF_EXPORTER_NAMESPACE, name = EMFRLangExporterConstants.EMF_EXPORTER_NAME)
+@ProvideEMFExporter(name = EMFRLangExporterConstants.EMF_EXPORTER_NAME)
 public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(EMFRLangExporter.class);
 
@@ -163,15 +162,13 @@ public class EMFRLangExporter extends AbstractEMFExporter implements EMFExporter
 
 				LOG.info("Starting export of {} EObject(s) to R language data frames"
 						+ (!exportOptions.isEmpty() ? " with options" : ""), eObjects.size());
-				if (!exportOptions.isEmpty()) {
-					LOG.info("  Locale to use: {}", locale(exportOptions));
-					LOG.info("  Export non-containment references: {}", exportNonContainmentEnabled(exportOptions));
-					LOG.info("  Export metadata: {}", exportMetadataEnabled(exportOptions));
-					LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
-					LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIsEnabled(exportOptions));
-					LOG.info("  Show columns containing references: {}", showREFsEnabled(exportOptions));
-					LOG.info("  Dataframe per file: {}", dataframePerFileEnabled(exportOptions));
-				}
+				LOG.info("  Locale to use: {}", locale(exportOptions));
+				LOG.info("  Export non-containment references: {}", exportNonContainmentEnabled(exportOptions));
+				LOG.info("  Export metadata: {}", exportMetadataEnabled(exportOptions));
+				LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
+				LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIsEnabled(exportOptions));
+				LOG.info("  Show columns containing references: {}", showREFsEnabled(exportOptions));
+				LOG.info("  Dataframe per file: {}", dataframePerFileEnabled(exportOptions));
 
 				ProcessedEObjectsDTO processedEObjectsDTO = exportEObjectsToMatrices(eObjects, exportOptions);
 

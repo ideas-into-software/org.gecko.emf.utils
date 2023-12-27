@@ -12,9 +12,9 @@
 package org.gecko.emf.exporter.ods.api;
 
 /**
+ * Constants used in EMF ODS exporter.
  * 
- * @author michal
- * @since Dec 16, 2023
+ * @author Michal H. Siemaszko
  */
 public class EMFODSExporterConstants {
 

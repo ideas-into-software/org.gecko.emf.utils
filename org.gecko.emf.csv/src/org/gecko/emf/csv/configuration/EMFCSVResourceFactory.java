@@ -26,7 +26,8 @@ import org.osgi.annotation.bundle.Requirement;
  * 
  * @author Michal H. Siemaszko
  */
-@Requirement(namespace = EMFExporterConstants.EMF_EXPORTER_NAMESPACE, name = EMFCSVExporterConstants.EMF_EXPORTER_NAME)
+@Requirement(namespace = EMFExporterConstants.EMF_EXPORTER_NAMESPACE, filter = "("
+		+ EMFExporterConstants.EMF_EXPORTER_NAME + "=" + EMFCSVExporterConstants.EMF_EXPORTER_NAME + ")")
 @Capability(namespace = EMFCSVConstants.EMF_RESOURCEFACTORY_NAMESPACE, name = EMFCSVConstants.EMF_RESOURCEFACTORY_NAME)
 public class EMFCSVResourceFactory extends ResourceFactoryImpl {
 	private EMFExporter emfCSVExporter;

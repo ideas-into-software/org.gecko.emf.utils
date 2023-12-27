@@ -12,7 +12,3 @@ Bundle-Description: XLSX (Microsoft Excel Open XML Spreadsheet) Exporter for EMF
 	slf4j.api
 
 Private-Package: org.gecko.emf.exporter.xlsx.impl
-
-Import-Package: \
-	org.gecko.emf.exporter.xlsx.api,\
-	*

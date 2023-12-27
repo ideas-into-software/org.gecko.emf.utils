@@ -53,8 +53,7 @@
 	org.gecko.emf.xlsx;version=snapshot,\
 	org.osgi.service.component;version='[1.5.0,1.5.1)',\
 	org.osgi.util.converter;version='[1.0.8,1.0.9)',\
-	slf4j.jcl;version='[1.7.36,1.7.37)',\
-	org.gecko.emf.exporter.xlsx.api;version=snapshot
+	slf4j.jcl;version='[1.7.36,1.7.37)'
 
 -runrepos: \
 	Central,\

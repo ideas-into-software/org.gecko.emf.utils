@@ -63,5 +63,4 @@
 	org.osgi.util.converter;version='[1.0.8,1.0.9)',\
 	slf4j.jcl;version='[1.7.36,1.7.37)',\
 	org.gecko.emf.exporter.ods;version=snapshot,\
-	org.gecko.emf.exporter.ods.api;version=snapshot,\
 	org.gecko.emf.util.model;version=snapshot

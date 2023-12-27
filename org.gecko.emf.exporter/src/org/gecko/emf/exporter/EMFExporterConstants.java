@@ -12,11 +12,14 @@
 package org.gecko.emf.exporter;
 
 /**
+ * Constants used in all EMF exporters.
  * 
- * @author michal
- * @since Dec 16, 2023
+ * @author Michal H. Siemaszko
  */
 public class EMFExporterConstants {
 
 	public static final String EMF_EXPORTER_NAMESPACE = "emf.exporter";
+	
+	public static final String EMF_EXPORTER_NAME = "emf.exporter.name";
+	
 }

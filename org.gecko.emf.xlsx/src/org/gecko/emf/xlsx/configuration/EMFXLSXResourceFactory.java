@@ -26,7 +26,8 @@ import org.osgi.annotation.bundle.Requirement;
  * 
  * @author Michal H. Siemaszko
  */
-@Requirement(namespace = EMFExporterConstants.EMF_EXPORTER_NAMESPACE, name = EMFXLSXExporterConstants.EMF_EXPORTER_NAME)
+@Requirement(namespace = EMFExporterConstants.EMF_EXPORTER_NAMESPACE, filter = "("
+		+ EMFExporterConstants.EMF_EXPORTER_NAME + "=" + EMFXLSXExporterConstants.EMF_EXPORTER_NAME + ")")
 @Capability(namespace = EMFXLSXConstants.EMF_RESOURCEFACTORY_NAMESPACE, name = EMFXLSXConstants.EMF_RESOURCEFACTORY_NAME)
 public class EMFXLSXResourceFactory extends ResourceFactoryImpl {
 	private EMFExporter emfXLSXExporter;

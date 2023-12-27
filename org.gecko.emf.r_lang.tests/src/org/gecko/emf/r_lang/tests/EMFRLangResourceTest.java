@@ -64,7 +64,7 @@ public class EMFRLangResourceTest {
 		ServiceReference<BasicFactory> bfReference = bfAware.getServiceReference();
 		assertThat(bfReference).isNotNull();
 	}
-	
+
 	@Test
 	public void testSaveResourceToRLang(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
 			@InjectService(timeout = 2000) ServiceAware<BasicFactory> bfAware) throws Exception {
@@ -109,5 +109,39 @@ public class EMFRLangResourceTest {
 					)				
 				);				
 		// @formatter:on
+	}
+
+	@Test
+	public void testSaveResourceToRLangNoOpts(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
+			@InjectService(timeout = 2000) ServiceAware<BasicFactory> bfAware) throws Exception {
+
+		assertNotNull(rsAware);
+		assertThat(rsAware.getServices()).hasSize(1);
+		ResourceSet resourceSet = rsAware.getService();
+		assertNotNull(resourceSet);
+
+		assertNotNull(bfAware);
+		assertThat(bfAware.getServices()).hasSize(1);
+		BasicFactory factoryImpl = bfAware.getService();
+		assertNotNull(factoryImpl);
+
+		Resource resource = resourceSet.createResource(URI.createURI("testSaveResourceToRLangNoOpts.RData"));
+		assertNotNull(resource);
+		assertTrue(resource instanceof EMFRLangResource);
+
+		Family simpsonFamily = createSimpsonFamily(factoryImpl);
+		resource.getContents().add(simpsonFamily);
+
+		Family flintstonesFamily = createFlintstonesFamily(factoryImpl);
+		resource.getContents().add(flintstonesFamily);
+
+		BusinessPerson businessPerson = createBusinessPerson(factoryImpl);
+		resource.getContents().add(businessPerson);
+
+		Path filePath = Files.createTempFile("testSaveResourceToRLangNoOpts", ".RData");
+
+		OutputStream fileOutputStream = Files.newOutputStream(filePath);
+
+		resource.save(fileOutputStream, Map.of()); // will use default options
 	}
 }

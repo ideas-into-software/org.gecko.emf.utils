@@ -12,9 +12,9 @@
 package org.gecko.emf.exporter.r_lang.api;
 
 /**
+ * Constants used in EMF R Language exporter.
  * 
- * @author michal
- * @since Dec 16, 2023
+ * @author Michal H. Siemaszko
  */
 public class EMFRLangExporterConstants {
 

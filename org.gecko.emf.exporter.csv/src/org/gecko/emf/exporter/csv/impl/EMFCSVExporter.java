@@ -38,7 +38,7 @@ import org.gecko.emf.exporter.AbstractEMFExporter;
 import org.gecko.emf.exporter.EMFExportException;
 import org.gecko.emf.exporter.EMFExportOptions;
 import org.gecko.emf.exporter.EMFExporter;
-import org.gecko.emf.exporter.EMFExporterConstants;
+import org.gecko.emf.exporter.annotation.ProvideEMFExporter;
 import org.gecko.emf.exporter.cells.EMFExportEObjectIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
@@ -55,7 +55,6 @@ import org.gecko.emf.exporter.keys.EMFExportColumnRefsMaxValueCountCompositeKey;
 import org.gecko.emf.exporter.keys.EMFExportRefHasValueCompositeKey;
 import org.gecko.emf.exporter.keys.EMFExportRefMatrixNameIDCompositeKey;
 import org.gecko.emf.exporter.keys.EMFExportRefsMaxValueCountCompositeKey;
-import org.osgi.annotation.bundle.Capability;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
@@ -74,7 +73,7 @@ import de.siegmar.fastcsv.writer.CsvWriter;
  * @author Michal H. Siemaszko
  */
 @Component(name = EMFCSVExporterConstants.EMF_EXPORTER_NAME, scope = ServiceScope.PROTOTYPE)
-@Capability(namespace = EMFExporterConstants.EMF_EXPORTER_NAMESPACE, name = EMFCSVExporterConstants.EMF_EXPORTER_NAME)
+@ProvideEMFExporter(name = EMFCSVExporterConstants.EMF_EXPORTER_NAME)
 public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(EMFCSVExporter.class);
 
@@ -109,16 +108,14 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 
 				LOG.info("Starting export of {} EObject(s) to CSV format"
 						+ (!exportOptions.isEmpty() ? " with options" : ""), eObjects.size());
-				if (!exportOptions.isEmpty()) {
-					LOG.info("  Export mode: " + (flatExportMode(exportOptions) ? "flat"
-							: (zipExportMode(exportOptions) ? "zip" : "unknown")));
-					LOG.info("  Locale to use: {}", locale(exportOptions)); // TODO: remove if not needed
-					LOG.info("  Export non-containment references: {}", exportNonContainmentEnabled(exportOptions));
-					LOG.info("  Export metadata: {}", exportMetadataEnabled(exportOptions));
-					LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
-					LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIsEnabled(exportOptions));
-					LOG.info("  Show columns containing references: {}", showREFsEnabled(exportOptions));
-				}
+				LOG.info("  Export mode: " + (flatExportMode(exportOptions) ? "flat"
+						: (zipExportMode(exportOptions) ? "zip" : "unknown")));
+				LOG.info("  Locale to use: {}", locale(exportOptions)); // TODO: remove if not needed
+				LOG.info("  Export non-containment references: {}", exportNonContainmentEnabled(exportOptions));
+				LOG.info("  Export metadata: {}", exportMetadataEnabled(exportOptions));
+				LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
+				LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIsEnabled(exportOptions));
+				LOG.info("  Show columns containing references: {}", showREFsEnabled(exportOptions));
 
 				exportMatricesToCSV(outputStream, eObjects, lookupIndexesDTO, exportOptions);
 
@@ -1663,13 +1660,17 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private boolean flatExportMode(Map<Object, Object> exportOptions) {
-		return EMFCSVExportMode.valueOf(String.valueOf(exportOptions
-				.getOrDefault(EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.FLAT))) == EMFCSVExportMode.FLAT;
+		return (exportMode(exportOptions) != null
+				&& EMFCSVExportMode.valueOf(String.valueOf(exportMode(exportOptions))) == EMFCSVExportMode.FLAT);
 	}
 
 	private boolean zipExportMode(Map<Object, Object> exportOptions) {
-		return EMFCSVExportMode.valueOf(String.valueOf(exportOptions
-				.getOrDefault(EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.ZIP))) == EMFCSVExportMode.ZIP;
+		return (exportMode(exportOptions) == null || (exportMode(exportOptions) != null
+				&& EMFCSVExportMode.valueOf(String.valueOf(exportMode(exportOptions))) == EMFCSVExportMode.ZIP));
+	}
+
+	private Object exportMode(Map<Object, Object> exportOptions) {
+		return exportOptions.get(EMFCSVExportOptions.OPTION_EXPORT_MODE);
 	}
 
 	@Override

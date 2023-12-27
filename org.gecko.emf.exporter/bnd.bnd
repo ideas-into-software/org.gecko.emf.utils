@@ -12,6 +12,7 @@ Bundle-Description: Exporter for EMF
 
 Export-Package: \
 	org.gecko.emf.exporter,\
+	org.gecko.emf.exporter.annotation,\
 	org.gecko.emf.exporter.cells,\
 	org.gecko.emf.exporter.headers,\
 	org.gecko.emf.exporter.keys

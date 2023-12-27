@@ -13,7 +13,3 @@ Bundle-Description: ODS (OpenDocument Spreadsheet) Exporter for EMF
 	slf4j.api
 
 Private-Package: org.gecko.emf.exporter.ods.impl
-
-Import-Package: \
-	org.gecko.emf.exporter.ods.api,\
-	*

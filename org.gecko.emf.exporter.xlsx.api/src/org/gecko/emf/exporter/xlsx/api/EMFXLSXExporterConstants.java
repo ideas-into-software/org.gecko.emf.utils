@@ -12,9 +12,9 @@
 package org.gecko.emf.exporter.xlsx.api;
 
 /**
+ * Constants used in EMF XLSX exporter.
  * 
- * @author michal
- * @since Dec 16, 2023
+ * @author Michal H. Siemaszko
  */
 public class EMFXLSXExporterConstants {
 
