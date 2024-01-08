@@ -1,11 +1,9 @@
 -enable-junit5: true
+-library: enable-emf
 
 -buildpath: \
-	org.eclipse.emf.ecore,\
-	org.eclipse.emf.common,\
 	org.osgi.framework,\
 	org.osgi.service.cm,\
-	org.gecko.emf.osgi.api,\
 	org.gecko.emf.osgi.example.model.basic,\
 	com.fasterxml.jackson.core.jackson-core,\
 	com.fasterxml.jackson.core.jackson-databind,\
@@ -15,4 +13,4 @@
 javac.source: 11
 javac.target: 11
 
-Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Version: 1.0.3.SNAPSHOT

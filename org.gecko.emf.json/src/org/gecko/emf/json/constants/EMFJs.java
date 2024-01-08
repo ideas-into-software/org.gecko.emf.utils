@@ -15,6 +15,10 @@ package org.gecko.emf.json.constants;
  * Constants used as options during load/save operations on a Resource.
  */
 public final class EMFJs {
+	
+	/** Constant for the general Capability Namespace **/	
+	public static final String EMFSJON_CAPABILITY_NAME = "EMFJson";
+	
 	/**
 	 * Sets the root element to be loaded from a JSON document without type field.
 	 * <p>
@@ -48,10 +52,6 @@ public final class EMFJs {
 	public static final String OPTION_INDENT_OUTPUT = "OPTION_INDENT_OUTPUT";
 
 	/**
-	 * Option used to indicate the module to serialize containments as references.
-	 */
-	public static final String OPTION_SERIALIZE_CONTAINMENT_AS_HREF = "OPTION_SERIALIZE_CONTAINMENT_AS_HREF";
-	/**
 	 * When value is true, the writer will include an _id key to each json objects
 	 * and sets as value the fragment identifier.
 	 * <p>
@@ -66,6 +66,20 @@ public final class EMFJs {
 	 * </p>
 	 */
 	public static final String OPTION_TYPE_FIELD = "OPTION_TYPE_FIELD";
+	/**
+	 * Specify the that will be use to denote the type of objects.
+	 * <p>
+	 * By default URI will be use
+	 * </p>
+	 */
+	public static final String OPTION_TYPE_USE = "OPTION_TYPE_USE";
+	/**
+	 * Specify the package uri that will be use to denote the type of objects.
+	 * <p>
+	 * By default null will be use
+	 * </p>
+	 */
+	public static final String OPTION_TYPE_PACKAGE_URI = "OPTION_TYPE_PACKAGE_URI";
 	/**
 	 * Specify the field name that will be use to denote a reference. This option is
 	 * use when a reference is created as a json object.

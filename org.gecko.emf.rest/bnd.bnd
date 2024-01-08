@@ -1,0 +1,22 @@
+javac.source: 11
+javac.target: 11
+
+-library: enable-emf
+
+-dsannotations-options: inherit
+
+-buildpath: \
+	jakarta.ws.rs-api;version='3.1.0',\
+	jakarta.ws.rs-api;version='2.1.6',\
+	org.osgi.service.jakartars;version=latest,\
+	org.osgi.service.jaxrs;version=latest,\
+	org.osgi.service.component;version=latest,\
+	org.eclipse.emfcloud.emfjson-jackson;version=latest,\
+	org.gecko.emf.json;version=project,\
+	org.gecko.emf.osgi.model.info
+
+Bundle-Description: Extension to load and save EMF EObjects using a MessageBodyReader or -Writer
+
+Provide-Capability: emf.rest;emf.rest=osgi
+
+-sub: *.bnd

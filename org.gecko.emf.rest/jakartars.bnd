@@ -1,0 +1,12 @@
+
+Bundle-Name: Gecko EMF JakartaRs Extension
+
+Private-Package: \
+	org.gecko.emf.rest.common.internal,\
+	org.gecko.emf.rest.jakartars.internal
+
+Export-Package: \
+	org.gecko.emf.rest.common,\
+	org.gecko.emf.rest.jakartars,\
+	org.gecko.emf.rest.annotations,\
+	org.gecko.emf.rest.annotations.json

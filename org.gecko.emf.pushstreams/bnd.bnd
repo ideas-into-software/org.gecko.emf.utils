@@ -1,7 +1,5 @@
 # sets the usually required buildpath using the bnd library, you can extend it with the normal -buildpath to your liking
 src src,src-gen
-#-library: enable-emf
-
 
 # The code generation takes a bit of time and makes the build a bit slower.
 # It might be a good idea to put comments around it, when you don't need it
@@ -21,8 +19,10 @@ src src,src-gen
 javac.source: 11
 javac.target: 11
 
+-library: enable-emf
+
 -buildpath: ,\
-	${emf.lib},\
-	org.osgi.util.pushstream
+	org.osgi.util.pushstream,\
+	org.osgi.service.condition
 	
-Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Version: 1.2.0.SNAPSHOT

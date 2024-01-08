@@ -1,0 +1,23 @@
+Bundle-Version: 1.2.0-SNAPSHOT
+
+-buildpath: \
+	org.gecko.emf.bson;version=snapshot,\
+	org.gecko.emf.json;version=snapshot,\
+	org.gecko.emf.rest.jakartars;version=snapshot,\
+	org.gecko.emf.csv;version=snapshot,\
+	org.gecko.emf.ods;version=snapshot,\
+	org.gecko.emf.xlsx;version=snapshot,\
+	org.gecko.emf.osgi.api;version=latest
+	
+Export-Package: \
+	org.gecko.emf.bson.annotation,\
+	org.gecko.emf.json.annotation,\
+	org.gecko.emf.rest.annotations,\
+	org.gecko.emf.rest.annotations.json,\
+	org.gecko.emf.csv.annotation,\
+	org.gecko.emf.ods.annotation,\
+	org.gecko.emf.xlsx.annotation,\
+	org.gecko.emf.json.constants,\
+	org.gecko.emf.csv.constants,\
+	org.gecko.emf.ods.constants,\
+	org.gecko.emf.xlsx.constants
