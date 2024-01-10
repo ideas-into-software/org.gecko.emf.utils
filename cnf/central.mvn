@@ -1,5 +1,4 @@
-biz.aQute.bnd:aQute.libg:6.2.0
-biz.aQute.bnd:biz.aQute.bnd.annotation:6.2.0
+biz.aQute.bnd:biz.aQute.bnd.annotation:7.0.0
 biz.aQute:biz.aQute.gogo.commands.provider:1.8.0
 biz.aQute:biz.aQute.wrapper.hamcrest:1.9.0
 
@@ -55,22 +54,12 @@ org.apache.servicemix.specs:org.apache.servicemix.specs.jsr311-api-1.1.1:2.9.0
 
 org.apache.sling:org.apache.sling.commons.johnzon:1.2.14
 
-org.assertj:assertj-core:3.22.0
-
 org.bouncycastle:bcpkix-jdk15on:1.64
 org.bouncycastle:bcprov-jdk15on:1.64
 org.bouncycastle:bctls-jdk15on:1.64
 org.bouncycastle:bcutil-jdk15on:1.69
 
-org.junit.jupiter:junit-jupiter-api:5.6.3
-org.junit.jupiter:junit-jupiter-engine:5.6.3
-org.junit.jupiter:junit-jupiter-params:5.6.3
-org.junit.platform:junit-platform-commons:1.8.2
-org.junit.platform:junit-platform-engine:1.8.2
-org.junit.vintage:junit-vintage-engine:5.8.2
 
-org.mockito:mockito-core:4.2.0
-org.mockito:mockito-junit-jupiter:4.2.0
 
 org.opentest4j:opentest4j:1.2.0
 
@@ -158,8 +147,8 @@ org.freemarker:freemarker:2.3.31
 org.apiguardian:apiguardian-api:1.1.2
 
 org.geckoprojects.bnd:org.gecko.bnd.dimc.library:1.4.2-SNAPSHOT
-org.geckoprojects.bnd:org.gecko.bnd.osgitest.library:1.1.1
-org.geckoprojects.bnd:org.gecko.bnd.jacoco.library:1.1.1
+org.geckoprojects.bnd:org.gecko.bnd.osgitest.library:1.4.2-SNAPSHOT
+org.geckoprojects.bnd:org.gecko.bnd.jacoco.library:1.4.2-SNAPSHOT
 
 org.geckoprojects.emf:org.gecko.emf.osgi.bnd.library.workspace:5.0.0
 

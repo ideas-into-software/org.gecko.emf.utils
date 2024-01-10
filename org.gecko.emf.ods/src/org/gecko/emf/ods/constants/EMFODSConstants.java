@@ -24,4 +24,8 @@ public interface EMFODSConstants {
 	static final String EMFODS_FILE_EXTENSION = "ods";
 
 	static final String EMFODS_CONTENT_TYPE = "application/vnd.oasis.opendocument.spreadsheet";
+
+	static final String EMF_RESOURCEFACTORY_NAMESPACE = "emf.resourceFactory";
+
+	static final String EMF_RESOURCEFACTORY_NAME = "EMFODSResourceFactory";
 }

@@ -4,7 +4,7 @@ src src,src-gen
 # The code generation takes a bit of time and makes the build a bit slower.
 # It might be a good idea to put comments around it, when you don't need it
 -generate:\
-	model/utilities.genmodel;\
+	model/*;\
 		generate=geckoEMF;\
 		genmodel=model/utilities.genmodel;\
 		output=src-gen
@@ -18,6 +18,6 @@ src src,src-gen
 
 -library: enable-emf
 
-Bundle-Version: 2.2.0.SNAPSHOT
+Bundle-Version: 2.2.1.SNAPSHOT
 
 -buildpath: osgi.core

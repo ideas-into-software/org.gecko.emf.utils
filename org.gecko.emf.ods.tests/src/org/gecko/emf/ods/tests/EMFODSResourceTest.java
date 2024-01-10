@@ -28,6 +28,7 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.gecko.emf.exporter.EMFExportOptions;
+import org.gecko.emf.ods.annotation.RequireEMFODS;
 import org.gecko.emf.ods.configuration.EMFODSResource;
 import org.gecko.emf.osgi.example.model.basic.BasicFactory;
 import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
@@ -48,23 +49,23 @@ import org.osgi.test.junit5.service.ServiceExtension;
  */
 @ExtendWith(BundleContextExtension.class)
 @ExtendWith(ServiceExtension.class)
+@RequireEMFODS
 public class EMFODSResourceTest {
 
 	@Order(value = -1)
 	@Test
-	public void testServices(
-			@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
+	public void testServices(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
 			@InjectService(timeout = 2000) ServiceAware<BasicFactory> bfAware) {
 
 		assertThat(rsAware.getServices()).hasSize(1);
 		ServiceReference<ResourceSet> rsReference = rsAware.getServiceReference();
 		assertThat(rsReference).isNotNull();
-		
+
 		assertThat(bfAware.getServices()).hasSize(1);
 		ServiceReference<BasicFactory> bfReference = bfAware.getServiceReference();
-		assertThat(bfReference).isNotNull();		
-	}	
-	
+		assertThat(bfReference).isNotNull();
+	}
+
 	@Test
 	public void testSaveResourceToOds(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
 			@InjectService(timeout = 2000) ServiceAware<BasicFactory> bfAware) throws Exception {
@@ -109,5 +110,39 @@ public class EMFODSResourceTest {
 //						EMFExportOptions.OPTION_SHOW_REFS, true, // defaults to true
 					));
 		// @formatter:on
+	}
+
+	@Test
+	public void testSaveResourceToOdsNoOpts(@InjectService(timeout = 2000) ServiceAware<ResourceSet> rsAware,
+			@InjectService(timeout = 2000) ServiceAware<BasicFactory> bfAware) throws Exception {
+
+		assertNotNull(rsAware);
+		assertThat(rsAware.getServices()).hasSize(1);
+		ResourceSet resourceSet = rsAware.getService();
+		assertNotNull(resourceSet);
+
+		assertNotNull(bfAware);
+		assertThat(bfAware.getServices()).hasSize(1);
+		BasicFactory factoryImpl = bfAware.getService();
+		assertNotNull(factoryImpl);
+
+		Resource resource = resourceSet.createResource(URI.createURI("testSaveResourceToOdsNoOpts.ods"));
+		assertNotNull(resource);
+		assertTrue(resource instanceof EMFODSResource);
+
+		Family simpsonFamily = createSimpsonFamily(factoryImpl);
+		resource.getContents().add(simpsonFamily);
+
+		Family flintstonesFamily = createFlintstonesFamily(factoryImpl);
+		resource.getContents().add(flintstonesFamily);
+
+		BusinessPerson businessPerson = createBusinessPerson(factoryImpl);
+		resource.getContents().add(businessPerson);
+
+		Path filePath = Files.createTempFile("testSaveResourceToOdsNoOpts", ".ods");
+
+		OutputStream fileOutputStream = Files.newOutputStream(filePath);
+
+		resource.save(fileOutputStream, Map.of()); // will use default options
 	}
 }

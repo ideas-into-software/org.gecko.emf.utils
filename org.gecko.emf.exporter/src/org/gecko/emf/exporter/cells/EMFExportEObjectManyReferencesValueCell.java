@@ -20,12 +20,14 @@ import java.util.Objects;
  * 
  * @author Michal H. Siemaszko
  */
-public class EMFExportEObjectManyReferencesValueCell extends AbstractEMFExportEObjectReferenceValueCell implements EMFExportEObjectReferenceValueCell {
+public class EMFExportEObjectManyReferencesValueCell extends AbstractEMFExportEObjectReferenceValueCell
+		implements EMFExportEObjectReferenceValueCell {
 	private final List<String> refIDs;
 	private final List<String> refURIs;
 
-	public EMFExportEObjectManyReferencesValueCell(String refMatrixName, List<String> refIDs, List<String> refURIs) {
-		super(refMatrixName);
+	public EMFExportEObjectManyReferencesValueCell(String refMatrixName, boolean isSelfReferencingModel,
+			List<String> refIDs, List<String> refURIs) {
+		super(refMatrixName, isSelfReferencingModel);
 
 		this.refIDs = refIDs;
 		this.refURIs = refURIs;
@@ -63,7 +65,7 @@ public class EMFExportEObjectManyReferencesValueCell extends AbstractEMFExportEO
 		}
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -71,11 +73,11 @@ public class EMFExportEObjectManyReferencesValueCell extends AbstractEMFExportEO
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(refMatrixName, refURIs, refIDs);
+		result = prime * result + Objects.hash(isSelfReferencingModel, refIDs, refMatrixName, refURIs);
 		return result;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
@@ -88,18 +90,18 @@ public class EMFExportEObjectManyReferencesValueCell extends AbstractEMFExportEO
 		if (getClass() != obj.getClass())
 			return false;
 		EMFExportEObjectManyReferencesValueCell other = (EMFExportEObjectManyReferencesValueCell) obj;
-		return Objects.equals(refMatrixName, other.refMatrixName) && Objects.equals(refURIs, other.refURIs)
-				&& Objects.equals(refIDs, other.refIDs);
+		return isSelfReferencingModel == other.isSelfReferencingModel && Objects.equals(refIDs, other.refIDs)
+				&& Objects.equals(refMatrixName, other.refMatrixName) && Objects.equals(refURIs, other.refURIs);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */
 	@Override
 	public String toString() {
 		if (hasRefIDs()) {
-			return Arrays.toString(refIDs.toArray()); 
+			return Arrays.toString(refIDs.toArray());
 		} else {
 			return null;
 		}

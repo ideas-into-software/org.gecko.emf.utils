@@ -25,4 +25,6 @@ package org.gecko.emf.exporter.cells;
 public interface EMFExportEObjectReferenceValueCell {
 
 	String getRefMatrixName();
+
+	boolean isSelfReferencingModel();
 }
