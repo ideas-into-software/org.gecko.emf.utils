@@ -12,7 +12,8 @@
 package org.gecko.emf.xlsx.constants;
 
 /**
- * Constants used as options during load/save operations on an EMF XLSX Resource.
+ * Constants used as options during load/save operations on an EMF XLSX
+ * Resource.
  * 
  * @author Michal H. Siemaszko
  */
@@ -24,4 +25,8 @@ public interface EMFXLSXConstants {
 	static final String EMFXLSX_FILE_EXTENSION = "xlsx";
 
 	static final String EMFXLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+
+	static final String EMF_RESOURCEFACTORY_NAMESPACE = "emf.resourceFactory";
+
+	static final String EMF_RESOURCEFACTORY_NAME = "EMFXLSXResourceFactory";
 }

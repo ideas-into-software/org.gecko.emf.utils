@@ -11,16 +11,10 @@
 
 # Needed because we enabled library 'gecko-dimc' 	
 github-project: org.gecko.emf.util
-base-version: 2.1.0.SNAPSHOT
+base-version: 2.1.1.SNAPSHOT
 
 # Maven Central Group-Id
 -groupid: org.geckoprojects.emf.utils
-
-# No simultanious release - We only release new version to Maven Central
-releaseNotNeeded: ${findproviders;osgi.identity;(&(osgi.identity=${bsn})(version=${versionmask;===;${Bundle-Version}}));REPOS}
-
-# If release not needed is empty, no Bundle has been found and for maven we do a release to the remote Repo. If not, we only do a release to the local .m2 Repo
--maven-release.local: ${if;${def;releaseNotNeeded};local;remote}
 
 javac.source: 11
 javac.target: 11
@@ -55,22 +49,5 @@ javac.target: 11
         readOnly=true;\
 		name=Baseline
 
--diffignore: *.xml,\
-	*/pom.properties,\
-	Git-SHA,\
-	Bundle-Vendor,\
-	Bundle-License,\
-	Bundle-DocURL,\
-	Bundle-SCM,\
-	Bundle-Developers,\
-	Bundle-Copyright,\
-	Bundle-ContactAddress,\
-	META-INF/maven/*,\
-	OSGI-OPT/*
-		
-#-baselinerepo: Baseline
-#-baseline: *
-
-#X-Test: ${if;${def;releaseNotNeeded};local;remote}
-X-Test: ${-maven-release.local}
-X-Test2: ${-maven-release}
+-baselinerepo: Baseline
+-baseline: *

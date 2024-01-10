@@ -18,12 +18,14 @@ import java.util.Objects;
  * 
  * @author Michal H. Siemaszko
  */
-public class EMFExportEObjectOneReferenceValueCell extends AbstractEMFExportEObjectReferenceValueCell implements EMFExportEObjectReferenceValueCell {
+public class EMFExportEObjectOneReferenceValueCell extends AbstractEMFExportEObjectReferenceValueCell
+		implements EMFExportEObjectReferenceValueCell {
 	private final String refID;
 	private final String refURI;
 
-	public EMFExportEObjectOneReferenceValueCell(String refMatrixName, String refID, String refURI) {
-		super(refMatrixName);
+	public EMFExportEObjectOneReferenceValueCell(String refMatrixName, boolean isSelfReferencingModel, String refID,
+			String refURI) {
+		super(refMatrixName, isSelfReferencingModel);
 
 		this.refID = refID;
 		this.refURI = refURI;
@@ -45,7 +47,7 @@ public class EMFExportEObjectOneReferenceValueCell extends AbstractEMFExportEObj
 		return (refURI != null);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#hashCode()
 	 */
@@ -53,11 +55,11 @@ public class EMFExportEObjectOneReferenceValueCell extends AbstractEMFExportEObj
 	public int hashCode() {
 		final int prime = 31;
 		int result = super.hashCode();
-		result = prime * result + Objects.hash(refMatrixName, refURI, refID);
+		result = prime * result + Objects.hash(isSelfReferencingModel, refID, refMatrixName, refURI);
 		return result;
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
@@ -70,11 +72,11 @@ public class EMFExportEObjectOneReferenceValueCell extends AbstractEMFExportEObj
 		if (getClass() != obj.getClass())
 			return false;
 		EMFExportEObjectOneReferenceValueCell other = (EMFExportEObjectOneReferenceValueCell) obj;
-		return Objects.equals(refMatrixName, other.refMatrixName) && Objects.equals(refURI, other.refURI)
-				&& Objects.equals(refID, other.refID);
+		return isSelfReferencingModel == other.isSelfReferencingModel && Objects.equals(refID, other.refID)
+				&& Objects.equals(refMatrixName, other.refMatrixName) && Objects.equals(refURI, other.refURI);
 	}
 
-	/* 
+	/*
 	 * (non-Javadoc)
 	 * @see java.lang.Object#toString()
 	 */

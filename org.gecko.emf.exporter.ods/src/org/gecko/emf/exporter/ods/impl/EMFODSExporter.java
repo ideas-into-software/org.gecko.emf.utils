@@ -27,12 +27,14 @@ import org.eclipse.emf.ecore.EObject;
 import org.gecko.emf.exporter.AbstractEMFExporter;
 import org.gecko.emf.exporter.EMFExportException;
 import org.gecko.emf.exporter.EMFExporter;
+import org.gecko.emf.exporter.annotation.ProvideEMFExporter;
 import org.gecko.emf.exporter.cells.EMFExportEObjectIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
 import org.gecko.emf.exporter.cells.EMFExportInternalIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportMappingMatrixReferenceValueCell;
 import org.gecko.emf.exporter.ods.api.EMFODSExportOptions;
+import org.gecko.emf.exporter.ods.api.EMFODSExporterConstants;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
@@ -53,7 +55,8 @@ import com.google.common.collect.Table;
  * 
  * @author Michal H. Siemaszko
  */
-@Component(name = "EMFODSExporter", scope = ServiceScope.PROTOTYPE)
+@Component(name = EMFODSExporterConstants.EMF_EXPORTER_NAME, scope = ServiceScope.PROTOTYPE)
+@ProvideEMFExporter(name = EMFODSExporterConstants.EMF_EXPORTER_NAME)
 public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(EMFODSExporter.class);
 
@@ -96,16 +99,14 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 
 				LOG.info("Starting export of {} EObject(s) to ODS format"
 						+ (!exportOptions.isEmpty() ? " with options" : ""), eObjects.size());
-				if (!exportOptions.isEmpty()) {
-					LOG.info("  Locale to use: {}", locale(exportOptions));
-					LOG.info("  Export non-containment references: {}", exportNonContainmentEnabled(exportOptions));
-					LOG.info("  Export metadata: {}", exportMetadataEnabled(exportOptions));
-					LOG.info("  Adjust column width: {}", adjustColumnWidthEnabled(exportOptions));
-					LOG.info("  Generate links for references: {}", generateLinksEnabled(exportOptions));
-					LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
-					LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIsEnabled(exportOptions));
-					LOG.info("  Show columns containing references: {}", showREFsEnabled(exportOptions));
-				}
+				LOG.info("  Locale to use: {}", locale(exportOptions));
+				LOG.info("  Export non-containment references: {}", exportNonContainmentEnabled(exportOptions));
+				LOG.info("  Export metadata: {}", exportMetadataEnabled(exportOptions));
+				LOG.info("  Adjust column width: {}", adjustColumnWidthEnabled(exportOptions));
+				LOG.info("  Generate links for references: {}", generateLinksEnabled(exportOptions));
+				LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
+				LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIsEnabled(exportOptions));
+				LOG.info("  Show columns containing references: {}", showREFsEnabled(exportOptions));
 
 				ProcessedEObjectsDTO processedEObjectsDTO = exportEObjectsToMatrices(eObjects, exportOptions);
 
@@ -166,20 +167,12 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 
 		Sheet sheet = getOrConstructODSSheetIfNotExists(document, matrixName);
 
-		boolean hasTypeLevelMetadataDocumentation = hasTypeLevelMetadataDocumentation(sheet,
-				matrix.row(getMatrixRowKey(1)));
-		if (hasTypeLevelMetadataDocumentation) {
-			LOG.debug("Matrix named '{}' has type level metadata documentation ", matrixName);
+		constructODSSheetColumnHeaders(matrix, sheet, exportOptions);
 
-			setTypeLevelMetadataDocumentation(matrix, sheet);
-		}
-
-		constructODSSheetColumnHeaders(matrix, sheet, hasTypeLevelMetadataDocumentation, exportOptions);
-
-		populateODSSheetWithData(document, matrix, sheet, hasTypeLevelMetadataDocumentation, exportOptions);
+		populateODSSheetWithData(document, matrix, sheet, exportOptions);
 
 		if (adjustColumnWidthEnabled(exportOptions)) {
-			adjustColumnsWidth(sheet, hasTypeLevelMetadataDocumentation);
+			adjustColumnsWidth(sheet);
 		}
 	}
 
@@ -195,9 +188,9 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void constructODSSheetColumnHeaders(Table<Integer, Integer, Object> matrix, Sheet sheet,
-			boolean hasTypeLevelMetadataDocumentation, Map<Object, Object> exportOptions) {
+			Map<Object, Object> exportOptions) {
 
-		Map<Integer, Object> matrixHeaderRow = matrix.row(getMatrixRowKey(hasTypeLevelMetadataDocumentation ? 2 : 1));
+		Map<Integer, Object> matrixHeaderRow = matrix.row(getMatrixRowKey(1));
 
 		// @formatter:off
 		List<String> sheetColumnHeaders = matrixHeaderRow.values()
@@ -220,13 +213,13 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private void populateODSSheetWithData(SpreadSheet document, Table<Integer, Integer, Object> matrix, Sheet sheet,
-			boolean hasTypeLevelMetadataDocumentation, Map<Object, Object> exportOptions) {
+			Map<Object, Object> exportOptions) {
 		Map<Integer, Map<Integer, Object>> matrixRowMap = matrix.rowMap();
 
 		// @formatter:off
 		List<Integer> remainingRows = matrixRowMap.keySet()
 				.stream()
-				.skip(hasTypeLevelMetadataDocumentation ? 2 : 1)
+				.skip(1)
 				.collect(Collectors.toList());
 		// @formatter:on
 
@@ -303,8 +296,9 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 	private void setOneReferenceValueCell(SpreadSheet document, Range dataRow, int colIndex,
 			EMFExportEObjectOneReferenceValueCell referenceValueCell, Map<Object, Object> exportOptions) {
 
-		String refValue = (showURIsEnabled(exportOptions) && referenceValueCell.hasURI()) ? referenceValueCell.getURI()
-				: referenceValueCell.hasRefID() ? referenceValueCell.getRefID() : "";
+		String refValue = (showURIsEnabled(exportOptions) && !referenceValueCell.isSelfReferencingModel()
+				&& referenceValueCell.hasURI()) ? referenceValueCell.getURI()
+						: referenceValueCell.hasRefID() ? referenceValueCell.getRefID() : "";
 
 		if (generateLinks(exportOptions, referenceValueCell.hasRefID())) {
 			Sheet sheet = getOrConstructODSSheetIfNotExists(document, referenceValueCell.getRefMatrixName());
@@ -324,9 +318,10 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 
 			Sheet sheet = getOrConstructODSSheetIfNotExists(document, referencesValueCell.getRefMatrixName());
 
-			List<String> refValues = (showURIsEnabled(exportOptions) && referencesValueCell.hasURIs())
-					? referencesValueCell.getURIs()
-					: referencesValueCell.hasRefIDs() ? referencesValueCell.getRefIDs() : Collections.emptyList();
+			List<String> refValues = (showURIsEnabled(exportOptions) && !referencesValueCell.isSelfReferencingModel()
+					&& referencesValueCell.hasURIs()) ? referencesValueCell.getURIs()
+							: referencesValueCell.hasRefIDs() ? referencesValueCell.getRefIDs()
+									: Collections.emptyList();
 
 			for (String refValue : refValues) {
 				LinkedValue linkedValue = LinkedValue.builder().value(refValue).href(sheet).build();
@@ -349,9 +344,10 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 			Map<Object, Object> exportOptions) {
 		StringBuilder sb = new StringBuilder();
 
-		List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions) && referencesValueCell.hasURIs())
-				? referencesValueCell.getURIs()
-				: referencesValueCell.hasRefIDs() ? referencesValueCell.getRefIDs() : Collections.emptyList();
+		List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions)
+				&& !referencesValueCell.isSelfReferencingModel() && referencesValueCell.hasURIs())
+						? referencesValueCell.getURIs()
+						: referencesValueCell.hasRefIDs() ? referencesValueCell.getRefIDs() : Collections.emptyList();
 
 		if (!manyReferencesValueCellValues.isEmpty()) {
 			Iterator<String> referenceValuesIt = manyReferencesValueCellValues.iterator();
@@ -419,37 +415,7 @@ public class EMFODSExporter extends AbstractEMFExporter implements EMFExporter {
 		return (Double.valueOf(value.length() / MAX_CHAR_PER_LINE_DEFAULT) * 5);
 	}
 
-	private boolean hasTypeLevelMetadataDocumentation(Sheet sheet, Map<Integer, Object> firstRow) {
-		boolean isMetadataSheet = (sheet.getName() != null && sheet.getName().contains(METADATA_MATRIX_NAME_SUFFIX));
-		boolean isTypeLevelMetadataDocumentationPresent = (firstRow.size() == 2)
-				&& firstRow.containsKey(getMatrixColumnKey(0))
-				&& String.valueOf(firstRow.get(getMatrixColumnKey(0))).equalsIgnoreCase(METADATA_DOCUMENTATION_HEADER);
-
-		return isMetadataSheet && isTypeLevelMetadataDocumentationPresent;
-	}
-
-	private void setTypeLevelMetadataDocumentation(Table<Integer, Integer, Object> matrix, Sheet sheet) {
-		sheet.appendColumn();
-
-		Range typeLevelMetadataDocumentationRow = sheet.getRange((sheet.getMaxRows() - 1), 0, 1, 2);
-
-		constructTypeLevelMetadataDocumentationValueCell(typeLevelMetadataDocumentationRow,
-				METADATA_DOCUMENTATION_HEADER, HEADER_STYLE, 0);
-
-		constructTypeLevelMetadataDocumentationValueCell(typeLevelMetadataDocumentationRow,
-				String.valueOf(matrix.get(getMatrixRowKey(1), getMatrixColumnKey(1))), WRAPPED_DATA_CELL_STYLE, 1);
-
-		sheet.appendRow();
-	}
-
-	private void constructTypeLevelMetadataDocumentationValueCell(Range metadataSheetDocumentationRow, String cellValue,
-			Style cellStyle, int colIndex) {
-		Range metadataSheetDocumentationCell = metadataSheetDocumentationRow.getCell(0, colIndex);
-		metadataSheetDocumentationCell.setValue(cellValue);
-		metadataSheetDocumentationCell.setStyle(cellStyle);
-	}
-
-	private void adjustColumnsWidth(Sheet sheet, boolean hasTypeLevelMetadataDocumentation) {
+	private void adjustColumnsWidth(Sheet sheet) {
 		int columnsCount = sheet.getMaxColumns();
 
 		int rowsCount = sheet.getMaxRows();

@@ -39,12 +39,14 @@ import org.eclipse.emf.ecore.EObject;
 import org.gecko.emf.exporter.AbstractEMFExporter;
 import org.gecko.emf.exporter.EMFExportException;
 import org.gecko.emf.exporter.EMFExporter;
+import org.gecko.emf.exporter.annotation.ProvideEMFExporter;
 import org.gecko.emf.exporter.cells.EMFExportEObjectIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
 import org.gecko.emf.exporter.cells.EMFExportInternalIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportMappingMatrixReferenceValueCell;
 import org.gecko.emf.exporter.xlsx.api.EMFXLSXExportOptions;
+import org.gecko.emf.exporter.xlsx.api.EMFXLSXExporterConstants;
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ServiceScope;
 import org.slf4j.Logger;
@@ -59,7 +61,8 @@ import com.google.common.collect.Table;
  * 
  * @author Michal H. Siemaszko
  */
-@Component(name = "EMFXLSXExporter", scope = ServiceScope.PROTOTYPE)
+@Component(name = EMFXLSXExporterConstants.EMF_EXPORTER_NAME, scope = ServiceScope.PROTOTYPE)
+@ProvideEMFExporter(name = EMFXLSXExporterConstants.EMF_EXPORTER_NAME)
 public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(EMFXLSXExporter.class);
 
@@ -85,16 +88,14 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 
 				LOG.info("Starting export of {} EObject(s) to XLSX format"
 						+ (!exportOptions.isEmpty() ? " with options" : ""), eObjects.size());
-				if (!exportOptions.isEmpty()) {
-					LOG.info("  Locale to use: {}", locale(exportOptions));
-					LOG.info("  Export non-containment references: {}", exportNonContainmentEnabled(exportOptions));
-					LOG.info("  Export metadata: {}", exportMetadataEnabled(exportOptions));
-					LOG.info("  Adjust column width: {}", adjustColumnWidthEnabled(exportOptions));
-					LOG.info("  Generate links for references: {}", generateLinksEnabled(exportOptions));
-					LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
-					LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIsEnabled(exportOptions));
-					LOG.info("  Show columns containing references: {}", showREFsEnabled(exportOptions));
-				}
+				LOG.info("  Locale to use: {}", locale(exportOptions));
+				LOG.info("  Export non-containment references: {}", exportNonContainmentEnabled(exportOptions));
+				LOG.info("  Export metadata: {}", exportMetadataEnabled(exportOptions));
+				LOG.info("  Adjust column width: {}", adjustColumnWidthEnabled(exportOptions));
+				LOG.info("  Generate links for references: {}", generateLinksEnabled(exportOptions));
+				LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
+				LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIsEnabled(exportOptions));
+				LOG.info("  Show columns containing references: {}", showREFsEnabled(exportOptions));
 
 				ProcessedEObjectsDTO processedEObjectsDTO = exportEObjectsToMatrices(eObjects, exportOptions);
 
@@ -175,26 +176,17 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 
 		Sheet sheet = constructXLSXSheet(workbook, matrixName);
 
-		boolean hasTypeLevelMetadataDocumentation = hasTypeLevelMetadataDocumentation(sheet,
-				matrix.row(getMatrixRowKey(1)));
-		if (hasTypeLevelMetadataDocumentation) {
-			LOG.debug("Matrix named '{}' has type level metadata documentation ", matrixName);
+		constructXLSXSheetColumnHeaders(matrix, sheet, exportOptions, headerCellStyle, genericDataCellStyle);
 
-			setTypeLevelMetadataDocumentation(matrix, sheet, headerCellStyle, genericDataCellStyle);
-		}
-
-		constructXLSXSheetColumnHeaders(matrix, sheet, hasTypeLevelMetadataDocumentation, exportOptions,
-				headerCellStyle, genericDataCellStyle);
-
-		populateXLSXSheetWithData(processedEObjectsDTO, matrix, sheet, hasTypeLevelMetadataDocumentation, exportOptions,
-				creationHelper, genericDataCellStyle, dateDataCellStyle);
+		populateXLSXSheetWithData(processedEObjectsDTO, matrix, sheet, exportOptions, creationHelper,
+				genericDataCellStyle, dateDataCellStyle);
 
 		if (adjustColumnWidthEnabled(exportOptions)) {
-			adjustColumnWidth(sheet, hasTypeLevelMetadataDocumentation);
+			adjustColumnWidth(sheet);
 		}
 
 		if (freezeHeaderRowEnabled(exportOptions)) {
-			freezeHeaderRow(sheet, hasTypeLevelMetadataDocumentation);
+			freezeHeaderRow(sheet);
 		}
 	}
 
@@ -203,10 +195,9 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 	}
 
 	private void constructXLSXSheetColumnHeaders(Table<Integer, Integer, Object> matrix, Sheet sheet,
-			boolean hasTypeLevelMetadataDocumentation, Map<Object, Object> exportOptions, CellStyle headerCellStyle,
-			CellStyle genericDataCellStyle) {
+			Map<Object, Object> exportOptions, CellStyle headerCellStyle, CellStyle genericDataCellStyle) {
 
-		Map<Integer, Object> matrixHeaderRow = matrix.row(getMatrixRowKey(hasTypeLevelMetadataDocumentation ? 2 : 1));
+		Map<Integer, Object> matrixHeaderRow = matrix.row(getMatrixRowKey(1));
 
 		// @formatter:off
 		List<String> sheetColumnHeaders = matrixHeaderRow.values()
@@ -217,7 +208,7 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 
 		int sheetColumnsCount = sheetColumnHeaders.size();
 
-		Row sheetHeaderRow = sheet.createRow(hasTypeLevelMetadataDocumentation ? 1 : 0);
+		Row sheetHeaderRow = sheet.createRow(0);
 
 		for (int colIndex = 0; colIndex < sheetColumnsCount; colIndex++) {
 			constructXLSXSheetColumnHeaderCell(sheetHeaderRow, sheetColumnHeaders.get(colIndex), headerCellStyle,
@@ -226,15 +217,14 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 	}
 
 	private void populateXLSXSheetWithData(ProcessedEObjectsDTO processedEObjectsDTO,
-			Table<Integer, Integer, Object> matrix, Sheet sheet, boolean hasTypeLevelMetadataDocumentation,
-			Map<Object, Object> exportOptions, CreationHelper creationHelper, CellStyle genericDataCellStyle,
-			CellStyle dateDataCellStyle) {
+			Table<Integer, Integer, Object> matrix, Sheet sheet, Map<Object, Object> exportOptions,
+			CreationHelper creationHelper, CellStyle genericDataCellStyle, CellStyle dateDataCellStyle) {
 		Map<Integer, Map<Integer, Object>> matrixRowMap = matrix.rowMap();
 
 		// @formatter:off
 		List<Integer> remainingRows = matrixRowMap.keySet()
 				.stream()
-				.skip(hasTypeLevelMetadataDocumentation ? 2 : 1)
+				.skip(1)
 				.collect(Collectors.toList());
 		// @formatter:on
 
@@ -324,7 +314,7 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 			CreationHelper creationHelper, CellStyle genericDataCellStyle) {
 		Cell cell = dataRow.createCell(colIndex);
 
-		if (showURIsEnabled(exportOptions)) {
+		if (showURIsEnabled(exportOptions) && !referenceValueCell.isSelfReferencingModel()) {
 			cell.setCellValue(referenceValueCell.hasURI() ? referenceValueCell.getURI() : "");
 		} else {
 			cell.setCellValue(referenceValueCell.hasRefID() ? referenceValueCell.getRefID() : "");
@@ -376,9 +366,9 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 			Map<Object, Object> exportOptions) {
 		StringBuilder sb = new StringBuilder();
 
-		List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions) && referenceValues.hasURIs())
-				? referenceValues.getURIs()
-				: referenceValues.hasRefIDs() ? referenceValues.getRefIDs() : Collections.emptyList();
+		List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions)
+				&& !referenceValues.isSelfReferencingModel() && referenceValues.hasURIs()) ? referenceValues.getURIs()
+						: referenceValues.hasRefIDs() ? referenceValues.getRefIDs() : Collections.emptyList();
 
 		if (!manyReferencesValueCellValues.isEmpty()) {
 			Iterator<String> referenceValuesIt = manyReferencesValueCellValues.iterator();
@@ -463,8 +453,8 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 		cell.setBlank();
 	}
 
-	private void adjustColumnWidth(Sheet sheet, boolean hasTypeLevelMetadataDocumentation) {
-		Row firstRow = sheet.getRow(hasTypeLevelMetadataDocumentation ? 1 : 0);
+	private void adjustColumnWidth(Sheet sheet) {
+		Row firstRow = sheet.getRow(0);
 		short minColIx = firstRow.getFirstCellNum();
 		short maxColIx = firstRow.getLastCellNum();
 		for (short colIndex = minColIx; colIndex < maxColIx; colIndex++) {
@@ -476,36 +466,8 @@ public class EMFXLSXExporter extends AbstractEMFExporter implements EMFExporter 
 		}
 	}
 
-	private void freezeHeaderRow(Sheet sheet, boolean hasTypeLevelMetadataDocumentation) {
-		sheet.createFreezePane(0, (hasTypeLevelMetadataDocumentation ? 2 : 1));
-	}
-
-	private boolean hasTypeLevelMetadataDocumentation(Sheet sheet, Map<Integer, Object> firstRow) {
-		boolean isMetadataSheet = (sheet.getSheetName() != null
-				&& sheet.getSheetName().contains(METADATA_MATRIX_NAME_SUFFIX));
-		boolean isTypeLevelMetadataDocumentationPresent = (firstRow.size() == 2)
-				&& firstRow.containsKey(getMatrixColumnKey(0))
-				&& String.valueOf(firstRow.get(getMatrixColumnKey(0))).equalsIgnoreCase(METADATA_DOCUMENTATION_HEADER);
-
-		return isMetadataSheet && isTypeLevelMetadataDocumentationPresent;
-	}
-
-	private void setTypeLevelMetadataDocumentation(Table<Integer, Integer, Object> matrix, Sheet sheet,
-			CellStyle headerCellStyle, CellStyle genericDataCellStyle) {
-		Row typeLevelMetadataDocumentationRow = sheet.createRow(0);
-
-		constructTypeLevelMetadataDocumentationValueCell(typeLevelMetadataDocumentationRow,
-				METADATA_DOCUMENTATION_HEADER, headerCellStyle, 0);
-
-		constructTypeLevelMetadataDocumentationValueCell(typeLevelMetadataDocumentationRow,
-				String.valueOf(matrix.get(getMatrixRowKey(1), getMatrixColumnKey(1))), genericDataCellStyle, 1);
-	}
-
-	private void constructTypeLevelMetadataDocumentationValueCell(Row row, String cellValue, CellStyle cellStyle,
-			int colIndex) {
-		Cell headerRowCell = row.createCell(colIndex);
-		headerRowCell.setCellValue(cellValue);
-		headerRowCell.setCellStyle(cellStyle);
+	private void freezeHeaderRow(Sheet sheet) {
+		sheet.createFreezePane(0, 1);
 	}
 
 	private CellStyle createHeaderCellStyle(Workbook workbook, XSSFFont font) {

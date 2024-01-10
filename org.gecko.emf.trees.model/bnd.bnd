@@ -18,7 +18,7 @@ src src,src-gen
 
 -library: enable-emf
 
-Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Version: 1.0.1.SNAPSHOT
 Export-Package: \
 	trees,\
 	trees.impl,\

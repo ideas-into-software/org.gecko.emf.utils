@@ -15,12 +15,17 @@ import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceFactoryImpl;
 import org.gecko.emf.exporter.EMFExporter;
+import org.gecko.emf.exporter.EMFExporterConstants;
+import org.osgi.annotation.bundle.Requirement;
+import org.gecko.emf.exporter.csv.api.EMFCSVExporterConstants;
 
 /**
  * {@link ResourceFactoryImpl} for the CSV resource.
  * 
  * @author Michal H. Siemaszko
  */
+@Requirement(namespace = EMFExporterConstants.EMF_EXPORTER_NAMESPACE, filter = "("
+		+ EMFExporterConstants.EMF_EXPORTER_NAME + "=" + EMFCSVExporterConstants.EMF_EXPORTER_NAME + ")")
 public class EMFCSVResourceFactory extends ResourceFactoryImpl {
 	private EMFExporter emfCSVExporter;
 
