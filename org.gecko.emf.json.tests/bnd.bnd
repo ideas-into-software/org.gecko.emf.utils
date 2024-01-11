@@ -1,13 +1,11 @@
--enable-junit5: true
--library: enable-emf
+-library: enable-emf,\
+	enableOSGi-Test
 
 javac.source: 11
 javac.target: 11
 
-Bundle-Version: 1.0.3.SNAPSHOT
+Bundle-Version: 1.0.4.SNAPSHOT
 -buildpath: \
 	org.eclipse.emfcloud.emfjson-jackson;version=latest,\
-	org.gecko.emf.osgi.component,\
-	org.eclipse.emf.ecore.xmi,\
-	org.eclipse.emf.ecore,\
-	org.gecko.emf.osgi.example.model.basic
+	org.gecko.emf.osgi.example.model.basic,\
+	org.gecko.emf.json

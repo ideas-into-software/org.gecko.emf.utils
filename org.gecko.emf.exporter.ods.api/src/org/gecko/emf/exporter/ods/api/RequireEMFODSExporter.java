@@ -9,7 +9,7 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.r_lang.annotation;
+package org.gecko.emf.exporter.ods.api;
 
 import static java.lang.annotation.ElementType.PACKAGE;
 import static java.lang.annotation.ElementType.TYPE;
@@ -19,21 +19,21 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.gecko.emf.osgi.annotation.require.RequireEMF;
-import org.gecko.emf.r_lang.constants.EMFRLangConstants;
+import org.gecko.emf.exporter.EMFExporterConstants;
 import org.osgi.annotation.bundle.Requirement;
 
 @Documented
 @Retention(CLASS)
 @Target({ TYPE, PACKAGE })
-@Requirement(namespace = EMFRLangConstants.EMF_RESOURCEFACTORY_NAMESPACE, name = EMFRLangConstants.EMF_RESOURCEFACTORY_NAME)
-@RequireEMF
+@Requirement(namespace = EMFExporterConstants.EMF_EXPORTER_NAMESPACE, filter = "("
+		+ EMFExporterConstants.EMF_EXPORTER_NAME + "=" + EMFODSExporterConstants.EMF_EXPORTER_NAME + ")")
 
 /**
- * Meta annotation to generate a Require Capability for EMF R Language
+ * Meta annotation to generate a Require Capability for ODS
+ * {@link org.gecko.emf.exporter.EMFExporter}
  * 
  * @author Michal H. Siemaszko
  */
-public @interface RequireEMFRLangResourceFactory {
+public @interface RequireEMFODSExporter {
 
 }

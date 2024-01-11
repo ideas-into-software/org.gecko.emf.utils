@@ -24,8 +24,4 @@ public interface EMFCSVConstants {
 	static final String EMFCSV_FILE_EXTENSION = "csv";
 
 	static final String EMFCSV_CONTENT_TYPE = "application/csv";
-
-	static final String EMF_RESOURCEFACTORY_NAMESPACE = "emf.resourceFactory";
-
-	static final String EMF_RESOURCEFACTORY_NAME = "EMFCSVResourceFactory";
 }

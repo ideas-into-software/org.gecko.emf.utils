@@ -9,7 +9,7 @@
  * Contributors:
  *     Data In Motion - initial API and implementation
  */
-package org.gecko.emf.csv.annotation;
+package org.gecko.emf.exporter.r_lang.api;
 
 import static java.lang.annotation.ElementType.PACKAGE;
 import static java.lang.annotation.ElementType.TYPE;
@@ -19,21 +19,21 @@ import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
-import org.gecko.emf.csv.constants.EMFCSVConstants;
-import org.gecko.emf.osgi.annotation.require.RequireEMF;
+import org.gecko.emf.exporter.EMFExporterConstants;
 import org.osgi.annotation.bundle.Requirement;
 
 @Documented
 @Retention(CLASS)
 @Target({ TYPE, PACKAGE })
-@Requirement(namespace = EMFCSVConstants.EMF_RESOURCEFACTORY_NAMESPACE, name = EMFCSVConstants.EMF_RESOURCEFACTORY_NAME)
-@RequireEMF
+@Requirement(namespace = EMFExporterConstants.EMF_EXPORTER_NAMESPACE, filter = "("
+		+ EMFExporterConstants.EMF_EXPORTER_NAME + "=" + EMFRLangExporterConstants.EMF_EXPORTER_NAME + ")")
 
 /**
- * Meta annotation to generate a Require Capability for EMF CSV
+ * Meta annotation to generate a Require Capability for R Language
+ * {@link org.gecko.emf.exporter.EMFExporter}
  * 
  * @author Michal H. Siemaszko
  */
-public @interface RequireEMFCSVResourceFactory {
+public @interface RequireEMFRLangExporter {
 
 }
