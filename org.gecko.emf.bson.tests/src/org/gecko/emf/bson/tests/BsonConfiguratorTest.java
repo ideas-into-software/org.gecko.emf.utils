@@ -26,6 +26,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.gecko.emf.bson.annotation.RequireEMFBson;
 import org.gecko.emf.osgi.ResourceFactoryConfigurator;
 import org.gecko.emf.osgi.example.model.basic.BasicFactory;
 import org.gecko.emf.osgi.example.model.basic.BasicPackage;
@@ -51,6 +52,7 @@ import de.undercouch.bson4jackson.BsonFactory;
 
 @ExtendWith(BundleContextExtension.class)
 @ExtendWith(ServiceExtension.class)
+@RequireEMFBson
 public class BsonConfiguratorTest {
 
 	@Test

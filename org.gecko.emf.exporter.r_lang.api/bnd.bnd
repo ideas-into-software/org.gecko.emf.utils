@@ -8,5 +8,3 @@ Bundle-Description: R Language Exporter API for EMF
 	org.gecko.emf.exporter;version=latest,\
 	org.apache.commons.commons-text,\
 	slf4j.api
-
-Export-Package: org.gecko.emf.exporter.r_lang.api

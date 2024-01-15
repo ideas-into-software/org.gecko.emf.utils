@@ -10,4 +10,3 @@ Bundle-Description: CSV (Comma-separated values) Exporter API for EMF
 	org.apache.commons.commons-text,\
 	slf4j.api
 
-Export-Package: org.gecko.emf.exporter.csv.api

@@ -9,5 +9,3 @@ Bundle-Description: XLSX (Microsoft Excel Open XML Spreadsheet) Exporter API for
 	org.apache.servicemix.bundles.poi,\
 	org.apache.commons.commons-text,\
 	slf4j.api
-
-Export-Package: org.gecko.emf.exporter.xlsx.api

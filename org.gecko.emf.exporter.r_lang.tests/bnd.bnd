@@ -9,11 +9,9 @@ Bundle-Version: 1.0.0.SNAPSHOT
 -buildpath: \
 	org.gecko.emf.osgi.example.model.basic,\
 	org.gecko.emf.exporter;version=latest,\
-	org.gecko.emf.exporter.r_lang.api;version=latest,\
+	org.gecko.emf.exporter.r_lang.api;version=snapshot,\
 	org.apache.commons.commons-text,\
-	org.gecko.emf.util.model,\
-	org.gecko.emf.trees.model;version=latest
+	org.gecko.emf.util.model;version=snapshot,\
+	org.gecko.emf.trees.model;version=snapshot
 
--privatepackage: \
-	org.gecko.emf.r_lang.tests,\
-	org.gecko.emf.r_lang.tests.helper
+-dependson: org.gecko.emf.exporter.r_lang

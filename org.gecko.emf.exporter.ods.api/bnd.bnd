@@ -9,5 +9,3 @@ Bundle-Description: ODS (OpenDocument Spreadsheet) Exporter API for EMF
 	com.github.miachm.sods,\
 	org.apache.commons.commons-text;version='1.10',\
 	slf4j.api
-
-Export-Package: org.gecko.emf.exporter.ods.api
