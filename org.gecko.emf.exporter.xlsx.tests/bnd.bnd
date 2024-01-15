@@ -1,22 +1,17 @@
--enable-junit5: true
--library: enable-emf
+-library: enable-emf,\
+	enableOSGi-Test
 
 javac.source: 11
 javac.target: 11
 
-Bundle-Version: 1.0.0.SNAPSHOT
+Bundle-Version: 1.0.1.SNAPSHOT
 
 -buildpath: \
-	org.gecko.emf.osgi.component,\
-	org.eclipse.emf.ecore.xmi,\
-	org.eclipse.emf.ecore,\
 	org.gecko.emf.osgi.example.model.basic,\
-	org.gecko.emf.exporter;version=latest,\
-	org.gecko.emf.exporter.xlsx.api;version=latest,\
+	org.gecko.emf.exporter;version=snapshot,\
+	org.gecko.emf.exporter.xlsx.api;version=snapshot,\
 	org.apache.commons.commons-text,\
-	org.gecko.emf.util.model,\
-	org.gecko.emf.trees.model;version=latest
+	org.gecko.emf.util.model;version=snapshot,\
+	org.gecko.emf.trees.model;version=snapshot
 
--privatepackage: \
-	org.gecko.emf.xlsx.tests,\
-	org.gecko.emf.xlsx.tests.helper
+-dependson: org.gecko.emf.exporter.xlsx

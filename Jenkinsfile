@@ -22,6 +22,12 @@ pipeline  {
                 checkout scm 
             }
         }
+        stage('Build and Test') {
+            steps {
+                echo "I am building on ${env.BRANCH_NAME}"
+                sh "./gradlew clean build itest --info --stacktrace -Dmaven.repo.local=${WORKSPACE}/.m2"
+            }
+        }
         stage('Main branch release') {
             when { 
                 branch 'main' 

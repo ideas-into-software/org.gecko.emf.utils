@@ -12,7 +12,8 @@
 package org.gecko.emf.xlsx.constants;
 
 /**
- * Constants used as options during load/save operations on an EMF XLSX Resource.
+ * Constants used as options during load/save operations on an EMF XLSX
+ * Resource.
  * 
  * @author Michal H. Siemaszko
  */

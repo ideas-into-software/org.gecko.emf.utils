@@ -28,11 +28,8 @@ import org.osgi.annotation.bundle.Requirement;
 @Documented
 @Retention(CLASS)
 @Target({ TYPE, PACKAGE })
-@Requirement(
-		namespace = EMFNamespaces.EMF_CONFIGURATOR_NAMESPACE,
-		name = ResourceSetConfigurator.EMF_CONFIGURATOR_NAME,
-		filter = "(" + EMFNamespaces.EMF_CONFIGURATOR_NAME + "=" + EMFXLSXConstants.EMFXLSX_CAPABILITY_NAME + ")"
-		)
+@Requirement(namespace = EMFNamespaces.EMF_CONFIGURATOR_NAMESPACE, name = ResourceSetConfigurator.EMF_CONFIGURATOR_NAME, filter = "("
+		+ EMFNamespaces.EMF_CONFIGURATOR_NAME + "=" + EMFXLSXConstants.EMFXLSX_CAPABILITY_NAME + ")")
 @RequireEMF
 
 /**

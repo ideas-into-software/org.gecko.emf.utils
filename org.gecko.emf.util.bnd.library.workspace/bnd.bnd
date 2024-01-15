@@ -1,5 +1,7 @@
 -resourceonly: true
 
+-includeresource: resources
+
 Provide-Capability: \
 	${gecko-base}
 

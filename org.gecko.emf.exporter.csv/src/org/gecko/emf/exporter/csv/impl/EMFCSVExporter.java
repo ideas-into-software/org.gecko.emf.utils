@@ -38,12 +38,14 @@ import org.gecko.emf.exporter.AbstractEMFExporter;
 import org.gecko.emf.exporter.EMFExportException;
 import org.gecko.emf.exporter.EMFExportOptions;
 import org.gecko.emf.exporter.EMFExporter;
+import org.gecko.emf.exporter.annotation.ProvideEMFExporter;
 import org.gecko.emf.exporter.cells.EMFExportEObjectIDValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectManyReferencesValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectOneReferenceValueCell;
 import org.gecko.emf.exporter.cells.EMFExportEObjectReferenceValueCell;
 import org.gecko.emf.exporter.csv.api.EMFCSVExportMode;
 import org.gecko.emf.exporter.csv.api.EMFCSVExportOptions;
+import org.gecko.emf.exporter.csv.api.EMFCSVExporterConstants;
 import org.gecko.emf.exporter.headers.EMFExportEObjectColumnHeader;
 import org.gecko.emf.exporter.headers.EMFExportEObjectManyReferencesColumnHeader;
 import org.gecko.emf.exporter.headers.EMFExportEObjectOneReferenceColumnHeader;
@@ -70,7 +72,8 @@ import de.siegmar.fastcsv.writer.CsvWriter;
  * 
  * @author Michal H. Siemaszko
  */
-@Component(name = "EMFCSVExporter", scope = ServiceScope.PROTOTYPE)
+@Component(name = EMFCSVExporterConstants.EMF_EXPORTER_NAME, scope = ServiceScope.PROTOTYPE)
+@ProvideEMFExporter(name = EMFCSVExporterConstants.EMF_EXPORTER_NAME)
 public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	private static final Logger LOG = LoggerFactory.getLogger(EMFCSVExporter.class);
 
@@ -105,16 +108,14 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 
 				LOG.info("Starting export of {} EObject(s) to CSV format"
 						+ (!exportOptions.isEmpty() ? " with options" : ""), eObjects.size());
-				if (!exportOptions.isEmpty()) {
-					LOG.info("  Export mode: " + (flatExportMode(exportOptions) ? "flat"
-							: (zipExportMode(exportOptions) ? "zip" : "unknown")));
-					LOG.info("  Locale to use: {}", locale(exportOptions)); // TODO: remove if not needed
-					LOG.info("  Export non-containment references: {}", exportNonContainmentEnabled(exportOptions));
-					LOG.info("  Export metadata: {}", exportMetadataEnabled(exportOptions));
-					LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
-					LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIsEnabled(exportOptions));
-					LOG.info("  Show columns containing references: {}", showREFsEnabled(exportOptions));
-				}
+				LOG.info("  Export mode: " + (flatExportMode(exportOptions) ? "flat"
+						: (zipExportMode(exportOptions) ? "zip" : "unknown")));
+				LOG.info("  Locale to use: {}", locale(exportOptions)); // TODO: remove if not needed
+				LOG.info("  Export non-containment references: {}", exportNonContainmentEnabled(exportOptions));
+				LOG.info("  Export metadata: {}", exportMetadataEnabled(exportOptions));
+				LOG.info("  Add mapping table: {}", addMappingTableEnabled(exportOptions));
+				LOG.info("  Show URIs instead of IDs (where applicable): {}", showURIsEnabled(exportOptions));
+				LOG.info("  Show columns containing references: {}", showREFsEnabled(exportOptions));
 
 				exportMatricesToCSV(outputStream, eObjects, lookupIndexesDTO, exportOptions);
 
@@ -800,7 +801,8 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 			EMFExportEObjectManyReferencesValueCell manyReferencesValueCell = (EMFExportEObjectManyReferencesValueCell) rawMatrixRowColumnValue;
 
 			List<String> manyReferencesValueCellValues = (showURIsEnabled(exportOptions)
-					&& manyReferencesValueCell.hasURIs()) ? manyReferencesValueCell.getURIs()
+					&& !manyReferencesValueCell.isSelfReferencingModel() && manyReferencesValueCell.hasURIs())
+							? manyReferencesValueCell.getURIs()
 							: manyReferencesValueCell.hasRefIDs() ? manyReferencesValueCell.getRefIDs()
 									: Collections.emptyList();
 
@@ -1567,7 +1569,8 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 		if ((v == null) || (v instanceof Optional)) {
 			return "";
 		} else {
-			if (showURIsEnabled(exportOptions) && (v instanceof EMFExportEObjectReferenceValueCell)) {
+			if (showURIsEnabled(exportOptions) && (v instanceof EMFExportEObjectReferenceValueCell)
+					&& !((EMFExportEObjectReferenceValueCell) v).isSelfReferencingModel()) {
 				if (v instanceof EMFExportEObjectOneReferenceValueCell
 						&& ((EMFExportEObjectOneReferenceValueCell) v).hasURI()) {
 					return ((EMFExportEObjectOneReferenceValueCell) v).getURI();
@@ -1657,13 +1660,17 @@ public class EMFCSVExporter extends AbstractEMFExporter implements EMFExporter {
 	}
 
 	private boolean flatExportMode(Map<Object, Object> exportOptions) {
-		return EMFCSVExportMode.valueOf(String.valueOf(exportOptions
-				.getOrDefault(EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.FLAT))) == EMFCSVExportMode.FLAT;
+		return (exportMode(exportOptions) != null
+				&& EMFCSVExportMode.valueOf(String.valueOf(exportMode(exportOptions))) == EMFCSVExportMode.FLAT);
 	}
 
 	private boolean zipExportMode(Map<Object, Object> exportOptions) {
-		return EMFCSVExportMode.valueOf(String.valueOf(exportOptions
-				.getOrDefault(EMFCSVExportOptions.OPTION_EXPORT_MODE, EMFCSVExportMode.ZIP))) == EMFCSVExportMode.ZIP;
+		return (exportMode(exportOptions) == null || (exportMode(exportOptions) != null
+				&& EMFCSVExportMode.valueOf(String.valueOf(exportMode(exportOptions))) == EMFCSVExportMode.ZIP));
+	}
+
+	private Object exportMode(Map<Object, Object> exportOptions) {
+		return exportOptions.get(EMFCSVExportOptions.OPTION_EXPORT_MODE);
 	}
 
 	@Override

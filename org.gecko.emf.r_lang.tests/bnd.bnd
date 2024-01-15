@@ -1,0 +1,14 @@
+-library: enable-emf,\
+	enableOSGi-Test
+
+javac.source: 11
+javac.target: 11
+
+Bundle-Version: 1.0.0.SNAPSHOT
+
+-buildpath: \
+	org.gecko.emf.osgi.example.model.basic,\
+	org.gecko.emf.exporter;version=latest,\
+	org.gecko.emf.exporter.r_lang.api;version=latest,\
+	org.apache.commons.commons-text,\
+	org.gecko.emf.r_lang
