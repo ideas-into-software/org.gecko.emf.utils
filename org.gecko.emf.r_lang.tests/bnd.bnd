@@ -12,3 +12,5 @@ Bundle-Version: 1.0.0.SNAPSHOT
 	org.gecko.emf.exporter.r_lang.api;version=snapshot,\
 	org.apache.commons.commons-text,\
 	org.gecko.emf.r_lang;version=snapshot
+
+-dependson: org.gecko.emf.exporter.r_lang
