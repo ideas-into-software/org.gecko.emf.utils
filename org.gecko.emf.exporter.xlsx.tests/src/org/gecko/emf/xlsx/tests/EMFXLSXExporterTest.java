@@ -50,6 +50,7 @@ import org.gecko.emf.exporter.EMFExportOptions;
 import org.gecko.emf.exporter.EMFExporter;
 import org.gecko.emf.exporter.xlsx.api.EMFXLSXExportOptions;
 import org.gecko.emf.exporter.xlsx.api.annotations.RequireEMFXLSXExporter;
+import org.gecko.emf.osgi.annotation.require.RequireEMF;
 import org.gecko.emf.osgi.example.model.basic.Address;
 import org.gecko.emf.osgi.example.model.basic.BasicFactory;
 import org.gecko.emf.osgi.example.model.basic.BasicPackage;
@@ -82,6 +83,7 @@ import trees.TreesPackage;
 @ExtendWith(ServiceExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @RequireEMFXLSXExporter
+@RequireEMF
 public class EMFXLSXExporterTest {
 
 	@Order(value = -1)

@@ -11,7 +11,7 @@
 
 # Needed because we enabled library 'gecko-dimc' 	
 github-project: org.gecko.emf.util
-base-version: 2.1.1
+base-version: 2.2.0
 
 # Maven Central Group-Id
 -groupid: org.geckoprojects.emf.utils

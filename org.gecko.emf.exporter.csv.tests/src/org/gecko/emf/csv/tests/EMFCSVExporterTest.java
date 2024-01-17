@@ -42,6 +42,7 @@ import org.gecko.emf.exporter.EMFExporter;
 import org.gecko.emf.exporter.csv.api.EMFCSVExportMode;
 import org.gecko.emf.exporter.csv.api.EMFCSVExportOptions;
 import org.gecko.emf.exporter.csv.api.annotations.RequireEMFCSVExporter;
+import org.gecko.emf.osgi.annotation.require.RequireEMF;
 import org.gecko.emf.osgi.example.model.basic.Address;
 import org.gecko.emf.osgi.example.model.basic.BasicFactory;
 import org.gecko.emf.osgi.example.model.basic.BasicPackage;
@@ -74,6 +75,7 @@ import trees.TreesPackage;
 @ExtendWith(ServiceExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @RequireEMFCSVExporter
+@RequireEMF
 public class EMFCSVExporterTest {
 
 	private static final String TREES_DATASET_XMI = System.getProperty("TREES_DATASET_XMI");

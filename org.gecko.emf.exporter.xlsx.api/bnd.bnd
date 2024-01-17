@@ -1,4 +1,4 @@
-Bundle-Version: 1.1.0.SNAPSHOT
+Bundle-Version: 1.1.1.SNAPSHOT
 Bundle-Name: Gecko EMF XLSX Exporter API
 Bundle-Description: XLSX (Microsoft Excel Open XML Spreadsheet) Exporter API for EMF
 

@@ -35,6 +35,7 @@ import org.gecko.emf.exporter.EMFExportOptions;
 import org.gecko.emf.exporter.EMFExporter;
 import org.gecko.emf.exporter.r_lang.api.EMFRLangExportOptions;
 import org.gecko.emf.exporter.r_lang.api.annotations.RequireEMFRLangExporter;
+import org.gecko.emf.osgi.annotation.require.RequireEMF;
 import org.gecko.emf.osgi.example.model.basic.BasicFactory;
 import org.gecko.emf.osgi.example.model.basic.BasicPackage;
 import org.gecko.emf.osgi.example.model.basic.BusinessPerson;
@@ -65,6 +66,7 @@ import trees.TreesPackage;
 @ExtendWith(ServiceExtension.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @RequireEMFRLangExporter
+@RequireEMF
 public class EMFRLangExporterTest {
 
 	private static final String TREES_DATASET_XMI = System.getProperty("TREES_DATASET_XMI");
