@@ -8,9 +8,9 @@
 	com.fasterxml.jackson.core.jackson-core,\
 	com.fasterxml.jackson.core.jackson-databind,\
 	de.undercouch.bson4jackson,\
-	org.gecko.emf.bson;version=project
+	org.gecko.emf.bson;version=snapshot
 
 javac.source: 11
 javac.target: 11
 
-Bundle-Version: 1.0.4.SNAPSHOT
+Bundle-Version: 1.0.5.SNAPSHOT
