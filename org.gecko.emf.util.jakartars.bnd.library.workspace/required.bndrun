@@ -11,7 +11,8 @@
 	bnd.identity;id='org.gecko.emf.csv',\
 	bnd.identity;id='org.gecko.emf.xlsx',\
 	bnd.identity;id='org.gecko.emf.r_lang',\
-	bnd.identity;id='org.gecko.com.github.miachm.sods'
+	bnd.identity;id='org.gecko.com.github.miachm.sods',\
+	bnd.identity;id='org.gecko.emf.util.common'
 
 -runblacklist: \
 	bnd.identity;id='ch.qos.logback.classic',\
@@ -65,5 +66,5 @@
 	slf4j.jcl;version='[1.7.36,1.7.37)',\
 	org.gecko.com.github.miachm.sods;version=snapshot,\
 	org.gecko.emf.exporter;version=snapshot,\
-	org.gecko.emf.osgi.api;version='[6.0.1,6.0.2)',\
-	org.gecko.emf.osgi.component;version='[6.0.1,6.0.2)'
+	org.gecko.emf.osgi.component;version='[6.0.1,6.0.2)',\
+	org.gecko.emf.util.common;version=snapshot
