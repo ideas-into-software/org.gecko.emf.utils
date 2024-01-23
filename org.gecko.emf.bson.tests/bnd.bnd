@@ -14,4 +14,4 @@
 javac.source: 11
 javac.target: 11
 
-Bundle-Version: 1.0.5.SNAPSHOT
+Bundle-Version: 1.0.6.SNAPSHOT
