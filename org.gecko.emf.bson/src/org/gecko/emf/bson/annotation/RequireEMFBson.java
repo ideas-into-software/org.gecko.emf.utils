@@ -28,7 +28,7 @@ import org.osgi.annotation.bundle.Requirement;
 @Target({ TYPE, PACKAGE })
 @Requirement(
 		namespace = EMFNamespaces.EMF_CONFIGURATOR_NAMESPACE,
-		filter = "(" + EMFNamespaces.EMF_CONFIGURATOR_NAME + "=EMFBson)"
+		filter = "(RESOURCE_FACTORY=EMFBson)"
 		)
 /**
  * Metaannotation to generate a Require Capability for EMFBson
