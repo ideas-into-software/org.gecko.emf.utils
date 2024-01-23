@@ -11,7 +11,7 @@
 
 # Needed because we enabled library 'gecko-dimc' 	
 github-project: org.gecko.emf.util
-base-version: 2.2.0
+base-version: 2.2.1
 
 # Maven Central Group-Id
 -groupid: org.geckoprojects.emf.utils
@@ -50,4 +50,7 @@ javac.target: 11
 		name=Baseline
 
 -baselinerepo: Baseline
--baseline: *
+-baseline: \
+	*
+
+-diffignore.module: 

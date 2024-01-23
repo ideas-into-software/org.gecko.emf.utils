@@ -15,3 +15,5 @@ gecko-base:\
         path            = template
         
 -dependson: org.gecko.com.github.miachm.sods
+
+Dependencies: ${-buildpath.*}

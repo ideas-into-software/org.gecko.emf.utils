@@ -16,7 +16,7 @@ org.geckoprojects.emf.utils:org.gecko.emf.exporter.r_lang.tests:1.0.0
 org.geckoprojects.emf.utils:org.gecko.emf.exporter.xlsx:1.0.1
 org.geckoprojects.emf.utils:org.gecko.emf.exporter.xlsx.api:1.1.0
 org.geckoprojects.emf.utils:org.gecko.emf.exporter.xlsx.tests:1.0.1
-org.geckoprojects.emf.utils:org.gecko.emf.json:1.4.4
+org.geckoprojects.emf.utils:org.gecko.emf.json:1.5.0
 org.geckoprojects.emf.utils:org.gecko.emf.json.tests:1.0.4
 org.geckoprojects.emf.utils:org.gecko.emf.ods:1.1.0
 org.geckoprojects.emf.utils:org.gecko.emf.ods.tests:1.0.3
@@ -26,10 +26,10 @@ org.geckoprojects.emf.utils:org.gecko.emf.r_lang.tests:1.0.0
 org.geckoprojects.emf.utils:org.gecko.emf.rest.jakartars:2.1.1
 org.geckoprojects.emf.utils:org.gecko.emf.rest.jaxrs:2.1.1
 org.geckoprojects.emf.utils:org.gecko.emf.trees.model:1.0.1
-org.geckoprojects.emf.utils:org.gecko.emf.util.annotations:1.3.1
-org.geckoprojects.emf.utils:org.gecko.emf.util.bnd.library.workspace:2.1.1
-org.geckoprojects.emf.utils:org.gecko.emf.util.jakartars.bnd.library.workspace:2.1.1
-org.geckoprojects.emf.utils:org.gecko.emf.util.jaxrs.bnd.library.workspace:2.1.1
+org.geckoprojects.emf.utils:org.gecko.emf.util.annotations:1.4.0
+org.geckoprojects.emf.utils:org.gecko.emf.util.bnd.library.workspace:2.2.0
+org.geckoprojects.emf.utils:org.gecko.emf.util.jakartars.bnd.library.workspace:2.2.0
+org.geckoprojects.emf.utils:org.gecko.emf.util.jaxrs.bnd.library.workspace:2.2.0
 org.geckoprojects.emf.utils:org.gecko.emf.util.model:2.2.1
 org.geckoprojects.emf.utils:org.gecko.emf.xlsx:1.1.0
 org.geckoprojects.emf.utils:org.gecko.emf.xlsx.tests:1.0.1
